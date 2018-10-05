@@ -10,3 +10,16 @@ Description: More about what it does (maybe more than one line)
 License: GNU General Public License
 Encoding: UTF-8
 LazyData: true
+Depends: R (>= 3.3.0)
+Imports:
+    PamBinaries,
+    dplyr,
+    seewave,
+    gam,
+    PAMmisc,
+    data.table,
+    RSQLite,
+    stringr,
+    purrr,
+    methods
+RoxygenNote: 6.1.0
