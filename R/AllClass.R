@@ -10,7 +10,7 @@
 #'   binary file.
 #' @slot functions a named list of functions to apply to data read in by PAMr.
 #'   Should be named by the PamGuard module the function should be applied to.
-#'   Currently supports "ClickDetector" and "WhistlesMoans".
+#'   Currently supports "ClickDetector", "WhistlesMoans", and "Cepstrum".
 #' @slot calibration a named list of calibration functions to apply while
 #'   applying functions from the "functions" slot. Should named by the
 #'   PamGuard module, same as the "functions"
@@ -28,7 +28,7 @@ setClass('PAMrSettings',
          prototype = prototype(
              db = character(0),
              binaries = list('folder'=character(0), 'list'=character(0)),
-             functions = list('ClickDetector'=list(), 'WhistlesMoans'=list()),
+             functions = list('ClickDetector'=list(), 'WhistlesMoans'=list(), 'Cepstrum'=list()),
              calibration = list('ClickDetector'=list())
          )
 )
@@ -40,9 +40,9 @@ setValidity('PAMrSettings',
                     valid <- FALSE
                     cat('slot binaries must have items "folder" and "list"\n')
                 }
-                if(!all(c('ClickDetector', 'WhistlesMoans') %in% names(object@functions))) {
+                if(!all(c('ClickDetector', 'WhistlesMoans', 'Cepstrum') %in% names(object@functions))) {
                     valid <- FALSE
-                    cat('slot functions must have items "ClickDetector" and "WhistlesMoans"\n')
+                    cat('slot functions must have items "ClickDetector", "WhistlesMoans", and "Cepstrum"\n')
                 }
                 valid
             }

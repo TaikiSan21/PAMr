@@ -38,6 +38,11 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
         moduleType <- 'ClickDetectorTriggerBackground'
         detName <- paste0(detName, '_TriggerBackground')
     }
+    # For now, cepstrum-ing like dis
+    if(moduleType == 'WhistlesMoans' &&
+       grepl('cepstrum', detName, ignore.case = TRUE)) {
+        moduleType <- 'Cepstrum'
+    }
     if(!(moduleType %in% names(binFuns)) ||
        length(binFuns[[moduleType]])==0) {
         warning("I don't have functions for Module Type ", moduleType)
@@ -74,6 +79,10 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
             allWhistles <- doWhistleCalcs(binData$data, c(getUID, binFuns[['WhistlesMoans']]))
             allWhistles$detectorName <- detName
         },
+        'Cepstrum' = {
+            allCepstrum <- doCepstrumCalcs(binData$data, c(getUID, binFuns[['Cepstrum']]))
+            allCepstrum$detectorName <- detName
+        },
         warning("I don't know how to deal with Module Type ", moduleType)
     )
     result$BinaryFile <- basename(binData$fileInfo$fileName)
@@ -101,21 +110,26 @@ doClickCalcs <- function(clickData, clickFuns) {
 # a placeholder right now so doesn't really matter
 doWhistleCalcs <- function(whistleData, whistleFuns) {
     # REAL WAY
-    # allWhistles <- vector('list', length=length(binFuns))
-    # for(f in seq_along(binFuns)) {
-    #   allWhistles[[f]] <- bind_rows(
-    #     lapply(binData$data, function(oneWhistle) {
-    #       binFuns[[f]](oneWhistle)
-    #     })
-    #   )
-    # }
-    # allWhistles <- bind_cols(allWhistles)
-
-    # TEMP NO FUNCTIONS
-    allWhistles <- bind_rows(
-        lapply(whistleData, function(oneWhist) {
-            data.frame(UID=oneWhist$UID, shit='whistles')
+    allWhistles <- vector('list', length=length(whistleFuns))
+    for(f in seq_along(whistleFuns)) {
+      allWhistles[[f]] <- bind_rows(
+        lapply(whistleData, function(oneWhistle) {
+            whistleFuns[[f]](oneWhistle)
         })
-    )
-    return(allWhistles)
+      )
+    }
+    bind_cols(allWhistles)
+}
+
+# ceps. THIS IS ALL TERRIBLE BULLSHIT WHY ARE THEY THE SAME FUCKING FIX IT
+doCepstrumCalcs <- function(cepstrumData, cepstrumFuns) {
+    allCeps <- vector('list', length=length(cepstrumFuns))
+    for(f in seq_along(cepstrumFuns)) {
+        allCeps[[f]] <- bind_rows(
+            lapply(cepstrumData, function(oneCeps) {
+                cepstrumFuns[[f]](oneCeps)
+            })
+        )
+    }
+    bind_cols(allCeps)
 }

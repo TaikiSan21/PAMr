@@ -20,7 +20,7 @@ binary file.}
 
 \item{\code{functions}}{a named list of functions to apply to data read in by PAMr.
 Should be named by the PamGuard module the function should be applied to.
-Currently supports "ClickDetector" and "WhistlesMoans".}
+Currently supports "ClickDetector", "WhistlesMoans", and "Cepstrum".}
 
 \item{\code{calibration}}{a named list of calibration functions to apply while
 applying functions from the "functions" slot. Should named by the

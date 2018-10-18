@@ -26,6 +26,6 @@ addDatabase <- function(prs, db) {
     if(!all(exists)) {
         stop(paste0('Database ', db[!exists], ' does not exist'))
     }
-    prs@db <- c(prs@db, db)
+    prs@db <- unique(c(prs@db, db))
     prs
 }

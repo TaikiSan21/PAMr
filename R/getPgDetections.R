@@ -101,58 +101,65 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
-    db <- prs@db
-    binList <- prs@binaries$list
-    binFuns <- prs@functions
-    dbData <- getDbData(db, grouping)
-    thisSr <- unique(dbData$sampleRate)
-    if(length(thisSr) > 1) {
-        warning('More than 1 sample rate found in database ',
-                basename(db),'.')
-    }
-    thisSource <- unique(dbData$SystemType)
-    dbData <- select(dbData, -SystemType)
-    calibrationUsed <- 'None'
+    allDb <- prs@db
+    cat('Processing databases... \n')
+    pb <- txtProgressBar(min=0, max=length(allDb), style=3)
+    allAcEv <- lapply(allDb, function(db) {
+        binList <- prs@binaries$list
+        binFuns <- prs@functions
+        dbData <- getDbData(db, grouping)
+        thisSr <- unique(dbData$sampleRate)
+        if(length(thisSr) > 1) {
+            warning('More than 1 sample rate found in database ',
+                    basename(db),'.')
+        }
+        thisSource <- unique(dbData$SystemType)
+        dbData <- select(dbData, -SystemType)
+        calibrationUsed <- 'None'
 
-    dbData <- lapply(
-        split(dbData, dbData$BinaryFile), function(x) {
-            thisBin <- getBinaryData(x, binList)
-            if(length(thisBin)==0) {
-                warning('Could not find the matching binary file for ', x$BinaryFile[1],
-                        ' in database ', basename(x))
-                return(NULL)
-            }
-            binData <- calculateModuleData(thisBin, binFuns) %>%
-                select(-BinaryFile)
-            left_join(x, binData, by='UID') %>% distinct()
+        dbData <- lapply(
+            split(dbData, dbData$BinaryFile), function(x) {
+                thisBin <- getBinaryData(x, binList)
+                if(length(thisBin)==0) {
+                    warning('Could not find the matching binary file for ', x$BinaryFile[1],
+                            ' in database ', basename(x))
+                    return(NULL)
+                }
+                binData <- calculateModuleData(thisBin, binFuns) %>%
+                    select(-BinaryFile)
+                inner_join(x, binData, by='UID') %>% distinct()
+            })
+
+        # This is a list for each binary, we want for each detector
+        dbData <- dbData[sapply(dbData, function(x) !is.null(x))]
+
+        dbData <- lapply(dbData, function(x) split(x, x$detectorName))
+        names(dbData) <- NULL
+        dbData <- unlist(dbData, recursive = FALSE)
+        dbData <- squishList(dbData)
+
+        # Split into events, then swap from Detector(Events) to Event(Detectors)
+        # .names necessary to make sure we have all event numbers
+        dbData <- transpose(
+            lapply(dbData, function(x) split(x, x$parentUID)),
+            .names = unique(unlist(sapply(dbData, function(x) x$parentUID)))
+        )
+
+        # Should this function store the event ID? Right now its just the name
+        # in the list, but is this reliable? Probably not
+
+        acousticEvents <- lapply(dbData, function(ev) {
+            ev <- ev[sapply(ev, function(x) !is.null(x))]
+            binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
+                unlist(recursive = FALSE) %>% unique()
+            AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
+                          files = list(binaries=binariesUsed, database=basename(db), calibration=calibrationUsed))
         })
-
-    # This is a list for each binary, we want for each detector
-    dbData <- dbData[sapply(dbData, function(x) !is.null(x))]
-
-    dbData <- lapply(dbData, function(x) split(x, x$detectorName))
-    names(dbData) <- NULL
-    dbData <- unlist(dbData, recursive = FALSE)
-    dbData <- squishList(dbData)
-
-    # Split into events, then swap from Detector(Events) to Event(Detectors)
-    # .names necessary to make sure we have all event numbers
-    dbData <- transpose(
-        lapply(dbData, function(x) split(x, x$parentUID)),
-        .names = unique(unlist(sapply(dbData, function(x) x$parentUID)))
-    )
-
-    # Should this function store the event ID? Right now its just the name
-    # in the list, but is this reliable? Probably not
-
-    acousticEvents <- lapply(dbData, function(ev) {
-        ev <- ev[sapply(ev, function(x) !is.null(x))]
-        binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
-            unlist(recursive = FALSE) %>% unique()
-        AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
-                      files = list(binaries=binariesUsed, database=basename(db), calibration=calibrationUsed))
+        setTxtProgressBar(pb, value = which(allDb == db))
+        acousticEvents
     })
-    acousticEvents
+    names(allAcEv) <- gsub('\\.sqlite3', '', basename(allDb))
+    unlist(allAcEv, recursive = FALSE)
 }
 
 getDbData <- function(db, grouping=c('event', 'detGroup')) {
@@ -211,8 +218,9 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
 
     eventColumns <- eventColumns[eventColumns %in% colnames(allEvents)]
     allEvents <- select_(allEvents, .dots=eventColumns)
-
-    allDetections <- left_join(
+    # Do i want all detections in clicks, or only all in events?
+    # left_join all det, inner_join ev only
+    allDetections <- inner_join(
         allDetections, allEvents, by=c('parentUID'='UID')
     )
 
@@ -262,26 +270,47 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
 getBinaryData <- function(dbData, binList) {
     dbData <- arrange(dbData, UID)
     # This breaks if 'dbData' doesnt have binaryfile...
+    # Borked if UID mismatch between dems
     binFile <- dbData$BinaryFile[1]
     allBinFiles <- grep(binFile, binList, value=TRUE)
     if(length(allBinFiles)==0) {
         return(NULL)
-    } else if(length(allBinFiles)==1) {
+    }
+    if(length(allBinFiles)==1) {
         thisBin <- loadPamguardBinaryFile(allBinFiles, keepUIDs=dbData$UID)
         matchSr <- select(dbData, UID, sampleRate) %>%
             distinct() %>% arrange(UID)
-        for(i in seq_along(matchSr$UID)) {
-            thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
+        if(setequal(matchSr$UID, names(thisBin$data))) {
+            for(i in seq_along(matchSr$UID)) {
+                thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
+            }
+        } else {
+            warning(paste0('UID(s) ', setdiff(matchSr$UID, names(thisBin$data)),
+                           ' are in database but not in binary file ', binFile))
+            for(i in names(thisBin$data)) {
+                thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
+            }
         }
         return(thisBin)
-    } else {
+    }
+    if(length(allBinFiles) > 1) {
         for(bin in allBinFiles) {
             thisBin <- loadPamguardBinaryFile(bin)
             # We've found the right file if UID is in file
             if(dbData$UID[1] %in% names(thisBin$data)) {
-                thisBin$data <- thisBin$data[dbData$ClickNo+1]
-                for(i in seq_along(dbData$UID)) {
-                    thisBin$data[[i]]$sampleRate <- dbData$sampleRate[i]
+                thisBin$data <- thisBin$data[names(thisBin$data) %in% dbData$UID]
+                matchSr <- select(dbData, UID, sampleRate) %>%
+                    distinct() %>% arrange(UID)
+                if(setequal(matchSr$UID, names(thisBin$data))) {
+                    for(i in seq_along(matchSr$UID)) {
+                        thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
+                    }
+                } else {
+                    warning(paste0('UID(s) ', setdiff(matchSr$UID, names(thisBin$data)),
+                                   ' are in database but not in binary file ', binFile))
+                    for(i in names(thisBin$data)) {
+                        thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
+                    }
                 }
                 return(thisBin)
             } else {

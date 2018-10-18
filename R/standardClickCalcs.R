@@ -25,7 +25,7 @@
 #' @importFrom seewave bwfilter TKEO spec
 #' @importFrom gam predict.Gam
 #' @importFrom dplyr bind_rows
-#' @importFrom PAMmisc peakTrough peakFast
+#' @importFrom PAMmisc peakTrough
 #' @importFrom stats median quantile
 #' @export
 #'
@@ -119,7 +119,7 @@ standardClickCalcs <- function(data, calibration, highpass=10, winLen=.0025) {
         #     cat('peakfast and peaktrough not equal??')
         #     browser()
         # }
-        thisDf <- cbind(thisDf, peakFast(calibratedClick))
+        thisDf <- cbind(thisDf, peakTrough(calibratedClick))
 
         # Finding 10/3 dB bandwidth - modified 'Q' function from seewave package
         dbBW10 <- Qfast(calibratedClick, f=sr, level=-10, plot=FALSE)

@@ -23,9 +23,9 @@ addBinaries <- function(prs, binfolder) {
     if(!dir.exists(binfolder)) {
         stop(paste0('Binary folder ', binfolder, ' does not exist'))
     }
-    prs@binaries$folder <- c(prs@binaries$folder, binfolder)
+    prs@binaries$folder <- unique(c(prs@binaries$folder, binfolder))
     cat('Getting list of all binary files in folder. This may take a while...\n')
     binlist <- list.files(binfolder, recursive = TRUE, full.names = TRUE, pattern = 'pgdf')
-    prs@binaries$list <- c(prs@binaries$list, binlist)
+    prs@binaries$list <- unique(c(prs@binaries$list, binlist))
     prs
 }

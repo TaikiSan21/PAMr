@@ -262,6 +262,3 @@ setMethod('soundSource<-', 'DataSettings', function(x, value) {
     validObject(x)
     x
 })
-
-
-

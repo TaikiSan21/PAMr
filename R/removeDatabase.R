@@ -19,11 +19,11 @@
 #'
 removeDatabase <- function(prs, index) {
     if(missing(index)) {
-        if(length(prs@db) > 20) {
-            warning('Only showing first 20 databases.')
-            choices <- prs@db[1:20]
-        }
         choices <- prs@db
+        if(length(choices) > 20) {
+            warning('Only showing first 20 databases.')
+            choices <- choices[1:20]
+        }
         index <- menu('Choose a database to remove:',
                       choices = choices)
     }
