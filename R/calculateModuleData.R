@@ -60,7 +60,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
         } else {
             1
         }
-        data.frame(UID =rep(as.integer(x$UID), nRep))
+        data.frame(UID =rep(as.character(x$UID), nRep), stringsAsFactors = FALSE)
     }
     result <- switch(
         moduleType,
@@ -69,8 +69,9 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
             # We want each 'type' of click to be separate 'detector'. This is PG only.
             allNames <- bind_rows(
                 lapply(binData$data[as.character(allClicks$UID)], function(x) {
-                    data.frame(UID=x$UID,
-                               detectorName=unique(c(x$type, unlist(x$annotations))))
+                    data.frame(UID=as.character(x$UID),
+                               detectorName=unique(c(x$type, unlist(x$annotations))),
+                               stringsAsFactors = FALSE)
                 })) %>%
                 mutate(detectorName = paste(detName, detectorName, sep='_'))
             left_join(allClicks, allNames, by='UID')

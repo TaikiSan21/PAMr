@@ -4,7 +4,8 @@
 \alias{standardClickCalcs}
 \title{Calculate a Set of Measurements for Clicks}
 \usage{
-standardClickCalcs(data, calibration, highpass = 10, winLen = 0.0025)
+standardClickCalcs(data, calibration, highpass_khz = 10,
+  winLen_sec = 0.0025)
 }
 \arguments{
 \item{data}{a list that must have 'wave' containing the wave form as a
@@ -14,9 +15,9 @@ sample rate of the data}
 \item{calibration}{a calibration function to apply to the spectrum, must be
 a gam. If missing no calibration will be applied (not recommended).}
 
-\item{highpass}{frequency in khz of highpass filter to apply}
+\item{highpass_khz}{frequency in khz of highpass filter to apply}
 
-\item{winLen}{length in seconds of fft window. The click wave is first
+\item{winLen_sec}{length in seconds of fft window. The click wave is first
 shortened to this number of samples around the peak of the wave,
 removing a lot of the noise around the click. Following approach of
 JB/EG/MS.}

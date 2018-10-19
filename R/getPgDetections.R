@@ -96,7 +96,7 @@ getPgDetectionsAll <- function(prs, sampleRate) {
 #' @rdname getPgDetections
 #' @export
 #'
-getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
+getPgDetectionsDb <- function(prs, grouping='event') {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
@@ -108,6 +108,10 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
         binList <- prs@binaries$list
         binFuns <- prs@functions
         dbData <- getDbData(db, grouping)
+        if(is.null(dbData)) {
+            setTxtProgressBar(pb, value = which(allDb == db))
+            return(NULL)
+        }
         thisSr <- unique(dbData$sampleRate)
         if(length(thisSr) > 1) {
             warning('More than 1 sample rate found in database ',
@@ -122,7 +126,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
                 thisBin <- getBinaryData(x, binList)
                 if(length(thisBin)==0) {
                     warning('Could not find the matching binary file for ', x$BinaryFile[1],
-                            ' in database ', basename(x))
+                            ' in database ', basename(db))
                     return(NULL)
                 }
                 binData <- calculateModuleData(thisBin, binFuns) %>%
@@ -197,8 +201,10 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
 
     if(length(detTables)==0 ||
        length(eventTables)==0) {
-        stop('Could not find tables for grouping method "', grouping,
+        dbDisconnect(con)
+        warning('Could not find event tables for grouping method "', grouping,
              '" in database ', basename(db))
+        return(NULL)
     }
     allDetections <- bind_rows(
         lapply(detTables, function(table) {
@@ -206,8 +212,10 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
         })
     )
     if(nrow(allDetections)==0) {
-        stop('No detections found for grouping method "', grouping,
+        dbDisconnect(con)
+        warning('No detections found for grouping method "', grouping,
              '" in database ', basename(db))
+        return(NULL)
     }
 
     allEvents <- bind_rows(
@@ -215,6 +223,12 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
             dbReadTable(con, table)
         })
     )
+    if(nrow(allEvents)==0) {
+        dbDisconnect(con)
+        warning('No events found for grouping method "', grouping,
+                '" in database ', basename(db))
+        return(NULL)
+    }
 
     eventColumns <- eventColumns[eventColumns %in% colnames(allEvents)]
     allEvents <- select_(allEvents, .dots=eventColumns)
@@ -264,6 +278,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
         )
         allDetections$sampleRate[srNa] <- srReplace
     }
+    allDetections$UID <- as.character(allDetections$UID)
     allDetections
 }
 
@@ -285,7 +300,7 @@ getBinaryData <- function(dbData, binList) {
                 thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
             }
         } else {
-            warning(paste0('UID(s) ', setdiff(matchSr$UID, names(thisBin$data)),
+            warning(paste0('UID(s) ', paste0(setdiff(matchSr$UID, names(thisBin$data)), collapse=', '),
                            ' are in database but not in binary file ', binFile))
             for(i in names(thisBin$data)) {
                 thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
@@ -295,9 +310,9 @@ getBinaryData <- function(dbData, binList) {
     }
     if(length(allBinFiles) > 1) {
         for(bin in allBinFiles) {
-            thisBin <- loadPamguardBinaryFile(bin)
-            # We've found the right file if UID is in file
-            if(dbData$UID[1] %in% names(thisBin$data)) {
+            thisBin <- loadPamguardBinaryFile(bin, keepUIDs = dbData$UID)
+            # We've found the right file if theres any data
+            if(length(thisBin$data) > 0) {
                 thisBin$data <- thisBin$data[names(thisBin$data) %in% dbData$UID]
                 matchSr <- select(dbData, UID, sampleRate) %>%
                     distinct() %>% arrange(UID)
@@ -306,7 +321,7 @@ getBinaryData <- function(dbData, binList) {
                         thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
                     }
                 } else {
-                    warning(paste0('UID(s) ', setdiff(matchSr$UID, names(thisBin$data)),
+                    warning(paste0('UID(s) ', paste0(setdiff(matchSr$UID, names(thisBin$data)), collapse=', '),
                                    ' are in database but not in binary file ', binFile))
                     for(i in names(thisBin$data)) {
                         thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]

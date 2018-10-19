@@ -8,8 +8,8 @@
 #'   sample rate of the data
 #' @param calibration a calibration function to apply to the spectrum, must be
 #'   a gam. If missing no calibration will be applied (not recommended).
-#' @param highpass frequency in khz of highpass filter to apply
-#' @param winLen length in seconds of fft window. The click wave is first
+#' @param highpass_khz frequency in khz of highpass filter to apply
+#' @param winLen_sec length in seconds of fft window. The click wave is first
 #'   shortened to this number of samples around the peak of the wave,
 #'   removing a lot of the noise around the click. Following approach of
 #'   JB/EG/MS.
@@ -29,8 +29,12 @@
 #' @importFrom stats median quantile
 #' @export
 #'
-standardClickCalcs <- function(data, calibration, highpass=10, winLen=.0025) {
+standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0025) {
     result <- list()
+    paramNames <- c('Channel', 'noiseLevel', 'duration', 'peak', 'peak2', 'peak3', 'trough',
+                    'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'Q_10dB',
+                    'PeakHz_10dB', 'fmin_10dB', 'fmax_10dB', 'BW_10dB', 'centerHz_10dB',
+                    'Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB', 'centerHz_3dB')
     # Do for each channel
     if(!is.matrix(data$wave)) {
         data$wave <- matrix(data$wave, ncol=1)
@@ -39,11 +43,17 @@ standardClickCalcs <- function(data, calibration, highpass=10, winLen=.0025) {
         # We store results in 'thisDf', note channels start at 1 not 0
         thisDf <- data.frame(Channel = chan)
         thisWave <- data$wave[,chan]
+        if(all(thisWave == 0)) {
+            blanks  <- data.frame(matrix(NA, nrow=1, ncol=23))
+            colnames(blanks) <- paramNames
+            result[[chan]] <- blanks
+            next
+        }
         sr <- data$sampleRate
-        thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass*1e3, output='sample')
+        thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
 
         # 2.5ms window size - following Soldevilla paper JASA17
-        fftSize <- round(sr * winLen, 0)
+        fftSize <- round(sr * winLen_sec, 0)
         fftSize <- fftSize + (fftSize %% 2)
 
         # Shortening click wave by getting numpoints=fftsize around peak of wav. Length fft+1
