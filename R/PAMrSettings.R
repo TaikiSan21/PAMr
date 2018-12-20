@@ -23,8 +23,12 @@ PAMrSettings <- function(db, binaries, calibration) {
     prs <- new('PAMrSettings')
     prs <- addDatabase(prs, db)
     prs <- addBinaries(prs, binaries)
-    cat('Default included function(s) are "standardClickCalcs" for the "ClickDetector" module.\n')
+    cat('Default included function(s) are "standardClickCalcs" for the "ClickDetector" module,',
+        '"roccaWhistleCalcs" for the "WhistlesMoans" module,',
+        'and "standardCepstrumCalcs" for the "Cepstrum" module.\n')
     prs <- addFunction(prs, standardClickCalcs, 'ClickDetector')
+    prs <- addFunction(prs, roccaWhistleCalcs, 'WhistlesMoans')
+    prs <- addFunction(prs, standardCepstrumCalcs, 'Cepstrum')
 
     if(missing(calibration)) {
         cat('Do you have a calibration function for clicks?')
