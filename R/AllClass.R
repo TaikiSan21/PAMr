@@ -58,7 +58,11 @@ setMethod('show', 'PAMrSettings', function(object) {
     cat('PAMrSettings object with:\n')
     cat(nDb, 'database(s)')
     if(nDb > 0) {
-        cat(':\n ', paste(basename(object@db), collapse='\n  '))
+        showDb <- basename(object@db)
+        if(nDb > 6) {
+            showDb <- c(showDb[1:6], paste0(nDb-6, ' more not shown ...'))
+        }
+        cat(':\n ', paste(showDb, collapse='\n  '))
     }
     cat('\n', nBinDir, ' binary folder(s) ', sep = '')
     if(nBinDir > 0) {
@@ -176,7 +180,7 @@ VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
 # Behavioral (lul)                                    \\behavior
 # erddap                                               \\erddap
 # https://github.com/rmendels/Talks/blob/master/netCDF_Presentation/netcdf_opendap_erddap.Rmd
-# Species classification - list of classifier objects \\specClass
+# Species classification - list of classifier objects \\species
 # Method, prediction, assignment probabilities
 # Duration? Files used? ID?
 
@@ -202,7 +206,7 @@ VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
 #' @slot visData a \linkS4class{VisObsData} with visual data for this event
 #' @slot behavior behavior data
 #' @slot erddap environmental data
-#' @slot specClass a list of species classifications for this event, named by
+#' @slot species a list of species classifications for this event, named by
 #'   classification method (ie. BANTER model, visual ID)
 #' @slot files a list of files used to create this object, named by the type of
 #'   file (ie. binaries, database)
@@ -218,10 +222,10 @@ setClass('AcousticEvent',
              visData = 'VisObsData',
              behavior = 'list',
              erddap = 'list',
-             specClass = 'list',
+             species = 'list',
              files = 'list'),
          prototype = prototype(detectors=list(), localizations=list(), settings=DataSettings(),
-                               visData=VisObsData(), behavior=list(), erddap=list(), specClass=list(),
+                               visData=VisObsData(), behavior=list(), erddap=list(), species=list(),
                                files = list())
 )
 
@@ -241,9 +245,9 @@ setValidity('AcousticEvent',
 )
 # Basic constructor
 AcousticEvent <- function(detectors=list(), localizations=list(), settings=DataSettings(), visData=VisObsData(),
-                          behavior=list(), erddap=list(), specClass=list(), files=list()) {
+                          behavior=list(), erddap=list(), species=list(), files=list()) {
     new('AcousticEvent', detectors=detectors, localizations=localizations, settings=settings,
-        visData=visData, behavior=behavior, erddap=erddap, specClass=specClass, files=files)
+        visData=visData, behavior=behavior, erddap=erddap, species=species, files=files)
 }
 
 setMethod('show', 'AcousticEvent',
@@ -270,7 +274,7 @@ setMethod('show', 'AcousticEvent',
 # Detection time, spp IDs, group size est, effort status. Multiple ways to read
 # Behavioral (lul)                                    \\behavior
 # erddap                                               \\erddap
-# Species classification - list of classifier objects \\specClass
+# Species classification - list of classifier objects \\species
 # Method, prediction, assignment probabilities
 # Detector settings - named list [[detector name]]   \detectorSettings
 # Localization settings - named list [[ loc. type]]  \localizationSettings

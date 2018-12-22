@@ -30,8 +30,8 @@ A data frame with one row for each channel of click waveform.
   and 10dB bandwidth levels and 'Q' value (see \code{\link[seewave]{Q}}).
 }
 \description{
-Run a list of custom calculations on a Pamguard binary
-  file.
+Calculate a set of "standard" measurements for odontocete clicks.
+  Most of calculations following approach of Baumann-Pickering / Soldevilla
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

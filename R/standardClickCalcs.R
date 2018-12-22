@@ -1,7 +1,7 @@
 #' @title Calculate a Set of Measurements for Clicks
 #'
-#' @description Run a list of custom calculations on a Pamguard binary
-#'   file.
+#' @description Calculate a set of "standard" measurements for odontocete clicks.
+#'   Most of calculations following approach of Baumann-Pickering / Soldevilla
 #'
 #' @param data a list that must have 'wave' containing the wave form as a
 #'   matrix with a separate column for each channel, and 'sampleRate' the

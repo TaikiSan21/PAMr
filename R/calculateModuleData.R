@@ -47,7 +47,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
        length(binFuns[[moduleType]])==0) {
         warning("I don't have functions for Module Type ", moduleType)
         # If nothing, just UID and detectorName? Fine for now
-        result <- data.frame(UID = as.integer(names(binData$data)))
+        result <- data.frame(UID = as.character(names(binData$data)))
         result$detectorName <- rep(detName, nrow(result))
         result$BinaryFile <- rep(basename(binData$fileInfo$fileName), nrow(result))
         return(result)
@@ -79,10 +79,12 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
         'WhistlesMoans' = {
             allWhistles <- doWhistleCalcs(binData$data, c(getUID, binFuns[['WhistlesMoans']]))
             allWhistles$detectorName <- detName
+            allWhistles
         },
         'Cepstrum' = {
             allCepstrum <- doCepstrumCalcs(binData$data, c(getUID, binFuns[['Cepstrum']]))
             allCepstrum$detectorName <- detName
+            allCepstrum
         },
         warning("I don't know how to deal with Module Type ", moduleType)
     )
@@ -105,16 +107,35 @@ doClickCalcs <- function(clickData, clickFuns) {
     bind_cols(allClicks)
 }
 
-# Not sure what this looks like 'in general' like the click one might
-# Possibly the PG only version needs to do some heavy modification
-# to the slices and shit and then operate on them? Dunno. Basically
-# a placeholder right now so doesn't really matter
+
+# WHISTLES DAKINE
+# Hop = (StartSample + 1) / (1st Slice Num)
+# FFT Length = Samp Dur - (N slices - 1) * Hop(above)
+# FFT Length = SampleRate * max(peakData) / MaxFreq
+# Mult bin by SR / Len
+
+# PROBLEM right now this is very PG specific. Which is maybe okay, because
+# moduleCalcs is PG-based? Possbly rename these doPgWhistleCalcs or w/e
 doWhistleCalcs <- function(whistleData, whistleFuns) {
-    # REAL WAY
+    # Does this die if 1st slice is #1 (or 0, w/e index is)
+    # probably, so use next whistle
+    tempData <- whistleData[[1]]
+    if(tempData$sliceData[[1]]$sliceNumber == 0) {
+        tempData <- whistleData[[2]]
+    }
+    fftHop <- (tempData$startSample + 1)/tempData$sliceData[[1]]$sliceNumber
+    fftLen <- tempData$sampleDuration - (tempData$nSlices - 1) * fftHop
+
     allWhistles <- vector('list', length=length(whistleFuns))
     for(f in seq_along(whistleFuns)) {
       allWhistles[[f]] <- bind_rows(
         lapply(whistleData, function(oneWhistle) {
+            if(!('sampleRate' %in% names(oneWhistle))) {
+                oneWhistle$sampleRate <- fftLen * oneWhistle$maxFreq / max(unlist(oneWhistle$sliceData))
+            }
+            oneWhistle$freq <- oneWhistle$contour * oneWhistle$sampleRate / fftLen
+            oneWhistle$time <- sapply(oneWhistle$sliceData,
+                                      function(x) x$sliceNumber) * fftHop / oneWhistle$sampleRate
             whistleFuns[[f]](oneWhistle)
         })
       )
@@ -124,10 +145,24 @@ doWhistleCalcs <- function(whistleData, whistleFuns) {
 
 # ceps. THIS IS ALL TERRIBLE BULLSHIT WHY ARE THEY THE SAME FUCKING FIX IT
 doCepstrumCalcs <- function(cepstrumData, cepstrumFuns) {
+    ### RIGHT NOW FFT NOT NEEDED - CANCELS OUT WITH INVERSE AT SAME LENGTH
+    ### THIS ISNT GENERALLY TRUE, BUT IS FOR PG IMPLEMENTATION
+    ### DOING IT JUST BECAUSE I CAN
+
+    tempData <- cepstrumData[[1]]
+    if(tempData$sliceData[[1]]$sliceNumber == 0) {
+        tempData <- cepstrumData[[2]]
+    }
+    fftHop <- (tempData$startSample + 1)/tempData$sliceData[[1]]$sliceNumber
+    fftLen <- tempData$sampleDuration - (tempData$nSlices - 1) * fftHop
+
     allCeps <- vector('list', length=length(cepstrumFuns))
     for(f in seq_along(cepstrumFuns)) {
         allCeps[[f]] <- bind_rows(
             lapply(cepstrumData, function(oneCeps) {
+                oneCeps$quefrency <- oneCeps$contour
+                oneCeps$time <- sapply(oneCeps$sliceData,
+                                          function(x) x$sliceNumber) * fftHop / oneCeps$sampleRate
                 cepstrumFuns[[f]](oneCeps)
             })
         )

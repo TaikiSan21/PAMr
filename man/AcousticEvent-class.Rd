@@ -25,7 +25,7 @@ by the detector that made the detection}
 
 \item{\code{erddap}}{environmental data}
 
-\item{\code{specClass}}{a list of species classifications for this event, named by
+\item{\code{species}}{a list of species classifications for this event, named by
 classification method (ie. BANTER model, visual ID)}
 
 \item{\code{files}}{a list of files used to create this object, named by the type of

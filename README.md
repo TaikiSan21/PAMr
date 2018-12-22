@@ -121,6 +121,18 @@ try to add on a sample click.
 
 WhistlesMoans function are not yet implemented.
 
+Functions can also be added from a separate PRS object by passing the other
+PRS object in as the second input. In this case all functions from the second
+PRS object (`newPrs` below) will be added to your PRS. This can be useful when
+collaborating with others. Someone can send you their PRS file with their functions
+and settings, but the paths to the data will not match up on your computer. You
+can use this method to add their calculations to your PRS file that points to your
+data.
+
+```r
+newPrs <- myPrs
+myPrs <- addFunction(myPrs, newPrs)
+```
 !!IMPORTANT!! If you are adding your own functions to a PRS object and you make
 a change to your function and source it again, the function *will not be changed*
 in the existing PRS object. You must remove the function and add it again, bringing
@@ -138,4 +150,8 @@ myPrs <- removeDatabase(myPrs)
 myPrs <- removeBinaries(myPrs)
 myPrs <- removeFunction(myPrs)
 ```
+
+### Versions
+
+**0.2.0** 
 

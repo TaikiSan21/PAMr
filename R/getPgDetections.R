@@ -123,15 +123,18 @@ getPgDetectionsDb <- function(prs, grouping='event') {
 
         dbData <- lapply(
             split(dbData, dbData$BinaryFile), function(x) {
-                thisBin <- getBinaryData(x, binList)
+                thisBin <- getBinaryData(x, binList, basename(db))
                 if(length(thisBin)==0) {
                     warning('Could not find the matching binary file for ', x$BinaryFile[1],
                             ' in database ', basename(db))
                     return(NULL)
                 }
-                binData <- calculateModuleData(thisBin, binFuns) %>%
-                    select(-BinaryFile)
-                inner_join(x, binData, by='UID') %>% distinct()
+                binData <- calculateModuleData(thisBin, binFuns)
+                if(!is.null(binData)) {
+                binData %>%
+                        select(-BinaryFile) %>%
+                        inner_join(x, by='UID') %>% distinct()
+                }
             })
 
         # This is a list for each binary, we want for each detector
@@ -234,6 +237,13 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     allEvents <- select_(allEvents, .dots=eventColumns)
     # Do i want all detections in clicks, or only all in events?
     # left_join all det, inner_join ev only
+    if(!('UID' %in% names(allEvents)) ||
+       !('parentUID' %in% names(allDetections))) {
+        warning('UID and parentUID columns not found in database ', basename(db),
+                ', these are required to process data. Please upgrade to Pamguard 2.0+.')
+        dbDisconnect(con)
+        return(NULL)
+    }
     allDetections <- inner_join(
         allDetections, allEvents, by=c('parentUID'='UID')
     )
@@ -282,7 +292,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     allDetections
 }
 
-getBinaryData <- function(dbData, binList) {
+getBinaryData <- function(dbData, binList, dbName) {
     dbData <- arrange(dbData, UID)
     # This breaks if 'dbData' doesnt have binaryfile...
     # Borked if UID mismatch between dems
@@ -301,7 +311,7 @@ getBinaryData <- function(dbData, binList) {
             }
         } else {
             warning(paste0('UID(s) ', paste0(setdiff(matchSr$UID, names(thisBin$data)), collapse=', '),
-                           ' are in database but not in binary file ', binFile))
+                           ' are in database ', dbName, ' but not in binary file ', binFile))
             for(i in names(thisBin$data)) {
                 thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
             }
@@ -322,7 +332,7 @@ getBinaryData <- function(dbData, binList) {
                     }
                 } else {
                     warning(paste0('UID(s) ', paste0(setdiff(matchSr$UID, names(thisBin$data)), collapse=', '),
-                                   ' are in database but not in binary file ', binFile))
+                                   ' are in database ', dbName, ' but not in binary file ', binFile))
                     for(i in names(thisBin$data)) {
                         thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
                     }

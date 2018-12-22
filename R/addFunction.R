@@ -4,7 +4,8 @@
 #'   object.
 #'
 #' @param prs a \linkS4class{PAMrSettings} object to add a function to
-#' @param fun function to add
+#' @param fun function to add OR another \linkS4class{PAMrSettings} object.
+#'   In this case all functions from the second object will be added to \code{prs}
 #' @param module PamGuard module output this function should act on
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the function
@@ -16,13 +17,22 @@
 #' @export
 #'
 addFunction <- function(prs, fun, module) {
+    modsAllowed <- c('ClickDetector', 'WhistlesMoans', 'Cepstrum')
+    if(class(fun) == 'PAMrSettings') {
+        for(m in modsAllowed) {
+            newFuns <- fun@functions[[m]]
+            cat('Adding', length(newFuns), 'functions to module type', m, '\n')
+            prs@functions[m] <- list(c(prs@functions[[m]], newFuns))
+        }
+        return(prs)
+    }
     fname <- deparse(substitute(fun))
-    if(missing(module)) {
-        currentMods <- names(prs@functions)
-        chooseMod <- menu(choices = currentMods,
+    if(missing(module) ||
+       !(module %in% modsAllowed)) {
+        chooseMod <- menu(choices = modsAllowed,
                           title = c('What module type is this function for?'))
         if(chooseMod==0) stop('You must set a module type for this function.')
-        module <- currentMods[chooseMod]
+        module <- modsAllowed[chooseMod]
     }
     cat('Adding function "', fname, '":\n', sep = '')
     oldnames <- names(prs@functions[[module]])
@@ -32,7 +42,7 @@ addFunction <- function(prs, fun, module) {
         prs@functions[module] <- list(c(prs@functions[[module]], fun))
         names(prs@functions[[module]]) <- c(oldnames, fname)
     } else {
-        cat('Unable to add function', fname)
+        cat('Unable to add function ', fname, ', it did not pa')
     }
     prs
 }
@@ -71,6 +81,7 @@ functionChecker <- function(fun, module) {
     switch(module,
            'ClickDetector' = clickChecker(fun),
            'WhistlesMoans' = whistleChecker(fun),
+           'Cepstrum' = cepstrumChecker(fun),
            FALSE
     )
 }
@@ -84,8 +95,16 @@ clickChecker <- function(fun) {
         print(e)
         good <<- FALSE
     })
-    if(exists('testThisClick') &&
-       nrow(testThisClick) != 2) {
+    if(!exists('testThisClick')) {
+        cat('Click function did not run succesfully.')
+        return(good)
+    }
+    if(is.null(testThisClick)) {
+        cat('Click function returned nothing.')
+        good <- FALSE
+        return(good)
+    }
+    if(nrow(testThisClick) != 2) {
         cat('Click functions should return 1 row for each channel.')
         good <- FALSE
     }
@@ -93,5 +112,9 @@ clickChecker <- function(fun) {
 }
 
 whistleChecker <- function(fun) {
+    TRUE
+}
+
+cepstrumChecker <- function(fun) {
     TRUE
 }

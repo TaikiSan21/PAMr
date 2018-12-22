@@ -9,7 +9,8 @@ addFunction(prs, fun, module)
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to add a function to}
 
-\item{fun}{function to add}
+\item{fun}{function to add OR another \linkS4class{PAMrSettings} object.
+In this case all functions from the second object will be added to \code{prs}}
 
 \item{module}{PamGuard module output this function should act on}
 }

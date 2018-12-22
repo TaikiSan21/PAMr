@@ -99,17 +99,17 @@ setMethod('erddap<-', 'AcousticEvent', function(x, value) {
 })
 
 #' @export
-setGeneric('specClass', function(x, ...) standardGeneric('specClass'))
+setGeneric('species', function(x, ...) standardGeneric('species'))
 
 #' @export
-setMethod('specClass', 'AcousticEvent', function(x, ...) x@specClass)
+setMethod('species', 'AcousticEvent', function(x, ...) x@species)
 
 #' @export
-setGeneric('specClass<-', function(x, value) standardGeneric('specClass<-'))
+setGeneric('species<-', function(x, value) standardGeneric('species<-'))
 
 #' @export
-setMethod('specClass<-', 'AcousticEvent', function(x, value) {
-    x@specClass <- value
+setMethod('species<-', 'AcousticEvent', function(x, value) {
+    x@species <- value
     validObject(x)
     x
 })
