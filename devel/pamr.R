@@ -28,16 +28,8 @@
 # for each kind of detector: indiv detections have UID -> tied to event ID -> that has species ID NO IT DOESNT YOU FUCK
 # probably survey name or number for each event - make sure that across seasons we can tell diff
 
-# Size: WM can get rid of the slice thing. I doubt it is useful to us and it takes up most space. ~90% reduction
-# Clicks will probably want to remove waves ~ 82% size reduction
-
-# WM - we can infer frequency resolution from WM contours. Frequency range / Contour range. This is how you would
-# get a lot of the ROCCA params I guess. Not range of used 'contour', but get directly from indiv slices.
-# WHOA OKAY start sample / 1st slice num is window size.
 
 # Offline event id in rocca csv -> eventid in offline clicks table. CSV might be same as rocca whistle stats table? Duration is 0 for clicks tho
-
-# Events will probably try to be a named list based on event id, or if not just name by order
 
 ## DETCTOR NAMES
 # For seeing what detectors we have - PamguardModules table will have a thing for each detector (seems every time its run, or finds something).
@@ -126,8 +118,6 @@
 # Its possible PamBinaries error handling needs a slight overhaul to be more R-like
 # and less 'print' so they make more sense in other functions
 
-# Rocca does not match to UID / group
-
 # WHISTLES DAKINE
 # Hop = (StartSample + 1) / (1st Slice Num)
 # FFT Length = Samp Dur - (N slices - 1) * Hop(above)
@@ -137,10 +127,6 @@
 # BANTER EXPORT
 # Need standard "species 100% id for training". Somehwere in specClass (this is a shitty name)
 # Should this dump NAs and warn?
-
-#NOTES FOR ANNE USING GITHUB PAMR
-# Ask about settings changed in click calcs, how to do.
-# Also will need PamMisc packag enow
 
 # IMPORTANT
 # If you make changes toa  function, need to add it again
@@ -170,3 +156,5 @@
 # Pull out individual spectrogram / clicks / whistles / wigners after the fact
 
 # Error log instead of individual warnings... ugh
+
+# No filter option

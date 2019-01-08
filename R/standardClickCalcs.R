@@ -50,8 +50,10 @@ standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0
             next
         }
         sr <- data$sampleRate
-        thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
-
+        if(highpass_khz > 0) {
+            thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
+        }
+        
         # 2.5ms window size - following Soldevilla paper JASA17
         fftSize <- round(sr * winLen_sec, 0)
         fftSize <- fftSize + (fftSize %% 2)

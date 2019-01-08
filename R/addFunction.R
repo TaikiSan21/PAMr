@@ -97,12 +97,11 @@ clickChecker <- function(fun) {
     })
     if(!exists('testThisClick')) {
         cat('Click function did not run succesfully.')
-        return(good)
+        return(FALSE)
     }
     if(is.null(testThisClick)) {
         cat('Click function returned nothing.')
-        good <- FALSE
-        return(good)
+        return(FALSE)
     }
     if(nrow(testThisClick) != 2) {
         cat('Click functions should return 1 row for each channel.')

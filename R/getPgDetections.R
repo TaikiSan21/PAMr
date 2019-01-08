@@ -249,7 +249,8 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     )
 
     soundAcquisition <- dbReadTable(con, 'Sound_Acquisition') %>%
-        mutate(UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC'),
+        # mutate(UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC'),
+        mutate(UTC = pgDateToPosix(UTC),
                Status = str_trim(Status),
                SystemType = str_trim(SystemType)) %>%
         filter(Status=='Start') %>%
@@ -261,7 +262,8 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
 
     allDetections <- allDetections %>%
         mutate(BinaryFile = str_trim(BinaryFile),
-               UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC')) %>%
+               # UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC')) %>%
+               UTC = pgDateToPosix(UTC)) %>% 
         select_(.dots=unique(c(eventColumns, 'UTC', 'Id', 'UID', 'parentUID', 'BinaryFile'))) %>%
         data.table() %>% setkey(UTC)
 
