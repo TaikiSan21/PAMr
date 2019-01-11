@@ -27,7 +27,7 @@
 export_banter <- function(eventList) {
     events <- data.frame(event.id = names(eventList),
                          species = sapply(eventList, function(x) {
-                             specClass(x)$id
+                             species(x)$id
                          }), stringsAsFactors = FALSE)
     for(e in names(eventList)) {
         thisEv <- eventList[[e]]

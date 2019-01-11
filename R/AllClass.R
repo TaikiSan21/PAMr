@@ -209,7 +209,7 @@ VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
 #' @description An S4 class storing acoustic detections from an Acoustic Event
 #'   as well as other related metadata
 #'
-#' @slot detectors a list of data frames that have acoustic detctions and
+#' @slot detectors a list of data frames that have acoustic detections and
 #'   any measurements calculated on those detections. Each data frame is named
 #'   by the detector that made the detection
 #' @slot localizations a named list storing localizations, named by method
@@ -291,8 +291,23 @@ setMethod('show', 'AcousticEvent',
 # Localization settings - named list [[ loc. type]]  \localizationSettings
 # Some effort bullshit                               \effort
 # ??????
-# ???????
 
+
+#' @title \code{Cruise} Class
+#' @description An S4 class storing acoustic data from an entire cruise
+#'
+#' @slot folders a list of folders containing the cruise data
+#' @slot gpsData a data frame of gps coordinates for the entire cruise
+#' @slot acousticEvents a list of \linkS4class{AcousticEvent} objects with
+#'   detections from the cruise
+#' @slot detectorSettings a named list of settings for the detectors. Names should
+#'   match the detectors found in the \code{acousticEvents} list
+#' @slot localizationSettings a named list of settings for each type of localization done
+#' @slot effort something about effort
+#'
+#' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
+#' @export
+#'
 setClass('Cruise',
          slots = c(
              folders = 'list',

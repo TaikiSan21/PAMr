@@ -145,18 +145,16 @@
 
 # TODO:
 # Calibration - optionally use channel as argument?
-# Enviro - no GPS data right now
+# Enviro
 # Add note to readme for adding functions: use PKG::FUN for th ings
 # Double check/re-think pamguard dependencies for the future
 
 # What if no matching UIDs are found - AutoPAM test case binaries just arent the right ones.
 # Need some kind of check if data is empty what to do
 
-# Pull out individual spectrogram / clicks / whistles / wigners after the fact
-
 # Error log instead of individual warnings... ugh
 
-# No filter option. This made weirdness. Better to set filter at like 1Hz? or find
+# No filter option (click calcs). This made weirdness. Better to set filter at like 1Hz? or find
 # a good normalizing option? unclear, need research
 
 # Should PRS always be paired with output?
