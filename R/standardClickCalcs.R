@@ -5,7 +5,8 @@
 #'
 #' @param data a list that must have 'wave' containing the wave form as a
 #'   matrix with a separate column for each channel, and 'sampleRate' the
-#'   sample rate of the data
+#'   sample rate of the data. Data can also be a \code{Wave} class 
+#'   object, like one created by \code{\link[tuneR]{Wave}}.
 #' @param calibration a calibration function to apply to the spectrum, must be
 #'   a gam. If missing no calibration will be applied (not recommended).
 #' @param highpass_khz frequency in khz of highpass filter to apply
@@ -36,6 +37,9 @@ standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0
                     'PeakHz_10dB', 'fmin_10dB', 'fmax_10dB', 'BW_10dB', 'centerHz_10dB',
                     'Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB', 'centerHz_3dB')
     # Do for each channel
+    if('Wave' %in% class(data)) {
+        data <- list(wave = cbind(data@left, data@right), sampleRate = data@samp.rate)
+    }
     if(!is.matrix(data$wave)) {
         data$wave <- matrix(data$wave, ncol=1)
     }

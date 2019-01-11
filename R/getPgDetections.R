@@ -89,7 +89,7 @@ getPgDetectionsAll <- function(prs, sampleRate) {
     # in the list, but is this reliable? Probably not
 
     acousticEvents <- AcousticEvent(detectors = binData, settings = DataSettings(sampleRate = sampleRate),
-                                    files = list(binaries=basename(binList), database='None', calibration=calibrationUsed))
+                                    files = list(binaries=binList, database='None', calibration=calibrationUsed))
     acousticEvents
 }
 
@@ -123,7 +123,7 @@ getPgDetectionsDb <- function(prs, grouping='event') {
 
         dbData <- lapply(
             split(dbData, dbData$BinaryFile), function(x) {
-                thisBin <- getBinaryData(x, binList, basename(db))
+                thisBin <- getMatchingBinaryData(x, binList, basename(db))
                 if(length(thisBin)==0) {
                     warning('Could not find the matching binary file for ', x$BinaryFile[1],
                             ' in database ', basename(db))
@@ -159,8 +159,9 @@ getPgDetectionsDb <- function(prs, grouping='event') {
             ev <- ev[sapply(ev, function(x) !is.null(x))]
             binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
                 unlist(recursive = FALSE) %>% unique()
+            binariesUsed <- grep(binariesUsed, binList, value=TRUE)
             AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
-                          files = list(binaries=binariesUsed, database=basename(db), calibration=calibrationUsed))
+                          files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
         })
         setTxtProgressBar(pb, value = which(allDb == db))
         acousticEvents
@@ -294,7 +295,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     allDetections
 }
 
-getBinaryData <- function(dbData, binList, dbName) {
+getMatchingBinaryData <- function(dbData, binList, dbName) {
     dbData <- arrange(dbData, UID)
     # This breaks if 'dbData' doesnt have binaryfile...
     # Borked if UID mismatch between dems

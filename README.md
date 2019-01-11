@@ -153,5 +153,24 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.2.2** 
+
+* Added `addGps` function for adding matching GPS data to your detections. This 
+allows you to supply a dataframe of Lat/Long locations with timestamps to 
+match to your detections.
+
+* Added `showWaveform`, `showSpectrogram`, and `showWigner` functions that
+allow you to easily plot the waveform, spectrogram, or wigner plot of a detection
+in an `AcousticEvent` object by selecting the UID(s) you want to investigate further.
+`getBinaryData` is also added as a helper function for these, lets you easily
+get the binary file data for a single detection.
+
+* `standardClickCalcs` now supports supplying a `Wave` class object as input
+
 **0.2.0** 
+
+* Rocca (`roccaWhistleCalcs`) and cepstrum (`standardCepstrumCalcs`) 
+functions added. These are also added by default to a new PRS.
+
+* changed `AcousticEvent` class slot name from `specClass` to `species`
 

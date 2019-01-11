@@ -141,6 +141,17 @@ setMethod('show', 'DataSettings',
 # Visual data (obj)                                   \\visData
 # Detection time, spp IDs, group size est, effort status. Multiple ways to read
 
+#' @title \code{VisObsData} Class
+#' @description An S4 class storing visual obsever data (UNFINISHED)
+#'
+#' @slot detectionTime detection time
+#' @slot speciesId species id
+#' @slot groupSizeEst group size estimate
+#' @slot effortStatus effort status
+#'
+#' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
+#' @export
+#'
 setClass('VisObsData',
          slots = c(
              detectionTime = 'POSIXct',
