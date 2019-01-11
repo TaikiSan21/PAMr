@@ -11,7 +11,7 @@ An S4 class storing acoustic detections from an Acoustic Event
 \section{Slots}{
 
 \describe{
-\item{\code{detectors}}{a list of data frames that have acoustic detctions and
+\item{\code{detectors}}{a list of data frames that have acoustic detections and
 any measurements calculated on those detections. Each data frame is named
 by the detector that made the detection}
 

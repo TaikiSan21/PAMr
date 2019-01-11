@@ -21,7 +21,7 @@ data for}
 \item{\dots}{other arguments to pass to the spectrogram or wigner functions}
 }
 \value{
-nothing, just shows plots for every channel of the waveform for
+Nothing, just shows plots for every channel of the waveform for
   each UID provided
 }
 \description{
