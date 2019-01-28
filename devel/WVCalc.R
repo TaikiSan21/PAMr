@@ -25,7 +25,6 @@
 #Requires packages: Rmisc, contoureR, splancs, sp,raster,contourE,rgeos
 
 WVCalc<-function(data,n=256,fs=200000,Q=.998,plotWV=FALSE){
-    # browser()
    for (c in 1:ncol(data$wave)){
 
      #select 300 samples around click center
@@ -34,7 +33,7 @@ WVCalc<-function(data,n=256,fs=200000,Q=.998,plotWV=FALSE){
        ClickCenter<-round(nrow(data$wave)/2)
        clip<-data$wave[,c]
        clip<-clip[((ClickCenter-150):(ClickCenter+150))]}
-
+    browser()
      #Wigner-Ville Transform of clip
      WVList<-wignerTransform(clip,n,fs,plotWV)
      wvMat<-t(WVList$tfr)

@@ -26,6 +26,9 @@
 #' @export
 #'
 showWaveform <- function(acEv, UID) {
+    if(!('AcousticEvent' %in% class(acEv))) {
+        stop('acEv must be an AcousticEvent class object.')
+    }
     data <- getBinaryData(acEv, UID)
     for(i in seq_along(data)) {
         if(!('wave' %in% names(data[[i]]))) {
@@ -44,6 +47,9 @@ showWaveform <- function(acEv, UID) {
 #' @rdname showWaveform
 #' 
 showSpectrogram <- function(acEv, UID, ...) {
+    if(!('AcousticEvent' %in% class(acEv))) {
+        stop('acEv must be an AcousticEvent class object.')
+    }
     data <- getBinaryData(acEv, UID)
     sr <- sampleRate(settings(acEv))
     for(i in seq_along(data)) {
@@ -63,6 +69,9 @@ showSpectrogram <- function(acEv, UID, ...) {
 #' @rdname showWaveform
 #' 
 showWigner <- function(acEv, UID, ...) {
+    if(!('AcousticEvent' %in% class(acEv))) {
+        stop('acEv must be an AcousticEvent class object.')
+    }
     data <- getBinaryData(acEv, UID)
     sr <- sampleRate(settings(acEv))
     for(i in seq_along(data)) {
@@ -77,5 +86,3 @@ showWigner <- function(acEv, UID, ...) {
         }
     }
 }
-        
-    

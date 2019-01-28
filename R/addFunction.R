@@ -42,7 +42,7 @@ addFunction <- function(prs, fun, module) {
         prs@functions[module] <- list(c(prs@functions[[module]], fun))
         names(prs@functions[[module]]) <- c(oldnames, fname)
     } else {
-        cat('Unable to add function ', fname, ', it did not pa')
+        cat('Unable to add function ', fname, ', it did not create the expected output.')
     }
     prs
 }

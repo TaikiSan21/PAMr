@@ -106,7 +106,6 @@
 # Add 'try' to the processing things so doesnt crash on a weird binary
 # Add filter method for AcEvs?
 
-# Could make calcs work on Wave class
 
 # Save click spectrum somehow. After?
 
@@ -129,7 +128,7 @@
 # Should this dump NAs and warn?
 
 # IMPORTANT
-# If you make changes toa  function, need to add it again
+# If you make changes to a function, need to add it again
 
 # MISC PACKAGE
 # Doc Van Cise / Dave Mellinger: SNR estimator in Matlab
@@ -148,6 +147,9 @@
 # Enviro
 # Add note to readme for adding functions: use PKG::FUN for th ings
 # Double check/re-think pamguard dependencies for the future
+# Mean spectra for an event
+# Shorten wigner window back to same amount
+# SHOW FUNCTIONS - X-Axes all same units in time, Y-axes same units
 
 # What if no matching UIDs are found - AutoPAM test case binaries just arent the right ones.
 # Need some kind of check if data is empty what to do
@@ -158,3 +160,13 @@
 # a good normalizing option? unclear, need research
 
 # Should PRS always be paired with output?
+
+# Calibration - can we just check sign to decide add or subtract? Add options if we need to
+
+# TUTORIAL: Examples of investigating specific detections with getBinaryData, showSTUFF functions
+
+# DILEMMA: I can make things work probably a little sexier by making more things into S4/3 classes
+# (having plotting function for calibration function maybe?), but then it gets weirder for some
+# rando to use. Balancing that kind of weirdness (WTF is a CalSettingsDOnger object?) is hard. I 
+# dont know what is less confusing - more stuff done with less work with weird names I dont
+# know how to interact with?
