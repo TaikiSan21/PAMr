@@ -4,7 +4,7 @@
 \alias{removeBinaries}
 \title{Remove Binaries from a PAMrSettings Object}
 \usage{
-removeBinaries(prs, index)
+removeBinaries(prs, index = NULL)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to remove binaries from}

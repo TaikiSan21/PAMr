@@ -17,14 +17,14 @@
 #' @importFrom utils menu
 #' @export
 #'
-removeDatabase <- function(prs, index) {
-    if(missing(index)) {
+removeDatabase <- function(prs, index=NULL) {
+    if(is.null(index)) {
         choices <- prs@db
         if(length(choices) > 20) {
             warning('Only showing first 20 databases.')
             choices <- choices[1:20]
         }
-        index <- menu('Choose a database to remove:',
+        index <- menu(title = 'Choose a database to remove:',
                       choices = choices)
     }
     if(max(index) > length(prs@db)) warning('Index too large, no database to remove.')

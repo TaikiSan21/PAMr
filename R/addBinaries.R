@@ -4,28 +4,28 @@
 #'   object.
 #'
 #' @param prs a \linkS4class{PAMrSettings} object to add a database to
-#' @param binfolder a folder of binaries to add
+#' @param binFolder a folder of binaries to add
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the binary
-#'   files contained in \code{binfolder} added to the "binaries" slot
+#'   files contained in \code{binFolder} added to the "binaries" slot
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @export
 #'
-addBinaries <- function(prs, binfolder) {
-    if(missing(binfolder)) {
+addBinaries <- function(prs, binFolder=NULL) {
+    if(is.null(binFolder)) {
         cat('Please select the folder where the binaries are stored.\n')
-        binfolder <- choose.dir()
+        binFolder <- choose.dir()
     }
     # Case when cancelled, dont error
-    if(is.na(binfolder)) return(prs)
-    if(!dir.exists(binfolder)) {
-        stop(paste0('Binary folder ', binfolder, ' does not exist'))
+    if(is.na(binFolder)) return(prs)
+    if(!dir.exists(binFolder)) {
+        stop(paste0('Binary folder ', binFolder, ' does not exist'))
     }
-    prs@binaries$folder <- unique(c(prs@binaries$folder, binfolder))
+    prs@binaries$folder <- unique(c(prs@binaries$folder, binFolder))
     cat('Getting list of all binary files in folder. This may take a while...\n')
-    binlist <- list.files(binfolder, recursive = TRUE, full.names = TRUE, pattern = 'pgdf')
+    binlist <- list.files(binFolder, recursive = TRUE, full.names = TRUE, pattern = 'pgdf')
     prs@binaries$list <- unique(c(prs@binaries$list, binlist))
     prs
 }

@@ -4,7 +4,7 @@
 \alias{addFunction}
 \title{Add a Function to a PAMrSettings Object}
 \usage{
-addFunction(prs, fun, module)
+addFunction(prs, fun, module = NULL)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to add a function to}

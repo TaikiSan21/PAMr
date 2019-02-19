@@ -5,7 +5,8 @@
 #'
 #' @param prs a \linkS4class{PAMrSettings} object to remove a function from
 #' @param index index indicating which function to move, counting from
-#'   \code{ClickDetector} functions first, then \code{WhistlesMoans} functions.
+#'   \code{ClickDetector} functions first, then \code{WhistlesMoans} functions,
+#'   then \code{Cepstrum} functions.
 #'   This is the same order functions appear in when examining the prs object.
 #'   For example, if there are two Click functions and one Whistle function, the
 #'   Whistle function would have an index of 3. If missing, user can select
@@ -19,12 +20,12 @@
 #' @importFrom utils menu capture.output
 #' @export
 #'
-removeFunction <- function(prs, index) {
-    if(missing(index)) {
+removeFunction <- function(prs, index=NULL) {
+    if(is.null(index)) {
         index <- menu(title = 'Choose a function to remove:',
                       choices=unlist(sapply(prs@functions, function(x) {
                           paste(names(x), sapply(x, function(y) {
-                              capture.output(str(y))
+                              capture.output(str(y))[[1]]
                           }))
                       })))
     }
@@ -36,6 +37,7 @@ removeFunction <- function(prs, index) {
             next
         }
         prs@functions[[m]] <- prs@functions[[m]][-index]
+        break
     }
     prs
 }

@@ -13,8 +13,8 @@
 #'
 #' @export
 #'
-addDatabase <- function(prs, db) {
-    if(missing(db)) {
+addDatabase <- function(prs, db=NULL) {
+    if(is.null(db)) {
         cat('Please select a database file if you have one.',
             'Multiple selections are ok, or cancel if you do not.\n')
         db <- choose.files(caption='Select database(s):')

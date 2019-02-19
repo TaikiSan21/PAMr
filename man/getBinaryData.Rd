@@ -9,7 +9,7 @@ getBinaryData(acEv, UID)
 \arguments{
 \item{acEv}{a \linkS4class{AcousticEvent} object}
 
-\item{UID}{the UID(s) of the individual detections to fetch the binary 
+\item{UID}{the UID(s) of the individual detections to fetch the binary
 data for}
 }
 \value{

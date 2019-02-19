@@ -167,6 +167,31 @@
 
 # DILEMMA: I can make things work probably a little sexier by making more things into S4/3 classes
 # (having plotting function for calibration function maybe?), but then it gets weirder for some
-# rando to use. Balancing that kind of weirdness (WTF is a CalSettingsDOnger object?) is hard. I 
+# rando to use. Balancing that kind of weirdness (WTF is a CalSettingsDOnger object?) is hard. I
 # dont know what is less confusing - more stuff done with less work with weird names I dont
 # know how to interact with?
+
+# CALIBRATION - calibration must be set to NULL, check if not NULL then we search globalenv for PRS
+# objects, then search those for calibration with matching name. Spits out df with 'Frequency' and
+# 'dB' in 20log10(spec) units dB
+
+# CALIBRATION REDO - can I use get/set in a closure to make the calibration shit work?
+
+# TUTORIAL / README / DOCUMENTATION - should have a list of warnings with more explanations
+
+# NEW POSSIBILITY can we have a PAMr function class that can contain a calibration? maybeeeeee
+
+# maybe i should change missing() checks to is.null() check and replace defaults with NULL
+
+# on.exit(add=TRUE) is a thing that always runs when function goes regardless of how it ends
+
+# NOTES FROM PSAW:
+# MAPPING: leaflet package for interactive maps seems preettttyyyy sweet
+# WignerCalcs - use `sf` package can centroid ez bro
+# gganimate seems fun. If theres a use case?
+# Notes
+# ggspatial package allows scale bars and shit
+# geom_sf is now in ggplot2, native support for sf spatial objects,
+# uses coord_sf instead of coord_map
+# ANOTHAONE:
+# what does purrr::walk do? used it to unzip some shit

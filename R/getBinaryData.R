@@ -2,9 +2,9 @@
 #'
 #' @description Fetches matching binary data from a single or multiple
 #'   detections in an \linkS4class{AcousticEvent} object
-#' 
+#'
 #' @param acEv a \linkS4class{AcousticEvent} object
-#' @param UID the UID(s) of the individual detections to fetch the binary 
+#' @param UID the UID(s) of the individual detections to fetch the binary
 #'   data for
 #'
 #' @return a list of \code{PamBinary} objects for each \code{UID}
@@ -47,10 +47,14 @@ getBinaryData <- function(acEv, UID) {
             warning('More than one binary file found for ', bin, ' only using first one.')
             fullBin <- fullBin[1]
         }
+        if(!file.exists(fullBin)) {
+            warning('Binary file ', fullBin, ' does not exist, please check (this file name',
+                    ' should be the full file path).')
+            return(NULL)
+        }
         loadPamguardBinaryFile(fullBin, skipLarge = FALSE, convertDate = TRUE,
                                keepUIDs = bins$UID[bins$BinaryFile == bin])$data
     })
     # list named by UID as result
     unlist(result, recursive = FALSE)
 }
-    

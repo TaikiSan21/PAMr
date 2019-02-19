@@ -54,14 +54,14 @@ getPgDetections <- function(prs, ...) {
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 #'
-getPgDetectionsAll <- function(prs, sampleRate) {
+getPgDetectionsAll <- function(prs, sampleRate=NULL) {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
     binList <- prs@binaries$list
     binFuns <- prs@functions
-    if(missing(sampleRate)) {
+    if(is.null(sampleRate)) {
         sampleRate <- readline(prompt =
                                    paste0('What is the sample rate for this data? ',
                                           '(When processing all binaries, sample rate must be the same) '))
@@ -264,7 +264,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     allDetections <- allDetections %>%
         mutate(BinaryFile = str_trim(BinaryFile),
                # UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC')) %>%
-               UTC = pgDateToPosix(UTC)) %>% 
+               UTC = pgDateToPosix(UTC)) %>%
         select_(.dots=unique(c(eventColumns, 'UTC', 'Id', 'UID', 'parentUID', 'BinaryFile'))) %>%
         data.table() %>% setkey(UTC)
 

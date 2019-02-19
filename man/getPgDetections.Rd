@@ -8,7 +8,7 @@
 \usage{
 getPgDetections(prs, ...)
 
-getPgDetectionsAll(prs, sampleRate)
+getPgDetectionsAll(prs, sampleRate = NULL)
 
 getPgDetectionsDb(prs, grouping = "event")
 }

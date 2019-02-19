@@ -4,16 +4,16 @@
 \alias{addBinaries}
 \title{Add Binaries to a PAMrSettings Object}
 \usage{
-addBinaries(prs, binfolder)
+addBinaries(prs, binFolder = NULL)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
 
-\item{binfolder}{a folder of binaries to add}
+\item{binFolder}{a folder of binaries to add}
 }
 \value{
 the same \linkS4class{PAMrSettings} object as prs, with the binary
-  files contained in \code{binfolder} added to the "binaries" slot
+  files contained in \code{binFolder} added to the "binaries" slot
 }
 \description{
 Adds a new function to the "function" slot in a PAMrSettings

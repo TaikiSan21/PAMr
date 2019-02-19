@@ -4,7 +4,7 @@
 \alias{addDatabase}
 \title{Add a Database to a PAMrSettings Object}
 \usage{
-addDatabase(prs, db)
+addDatabase(prs, db = NULL)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to add a database to}

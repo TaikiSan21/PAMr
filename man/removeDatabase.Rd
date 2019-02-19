@@ -4,7 +4,7 @@
 \alias{removeDatabase}
 \title{Remove a Database from a PAMrSettings Object}
 \usage{
-removeDatabase(prs, index)
+removeDatabase(prs, index = NULL)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to remove a database from}

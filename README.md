@@ -12,6 +12,10 @@ Install the latest version from GitHub:
 if(!require('devtools')) install.packages('devtools')
 # install from GitHub
 devtools::install_github('TaikiSan21/PAMr')
+# you will also need these packages from GitHub
+devtools::install_github('TaikiSan21/PamBinaries')
+devtools::install_github('TaikiSan21/PAMmisc')
+
 ```
 
 ### Tutorial
@@ -119,7 +123,12 @@ should be a dataframe that has one row for each channel, there can be as many
 columns as you like. `addFunction` will do a quick check of the function you
 try to add on a sample click.
 
-WhistlesMoans function are not yet implemented.
+For WhistlesMoans functions, the function should have an input "data" that is
+a list with two parts: `data$freq` and `data$time`. `freq` should contain the
+contour of the whistle, stored as a vector of frequencies. `time` should be
+the time in seconds at each of these frequencies. The output of this function
+should be a dataframe with one row, or an object that is easily coerced to a
+dataframe (e.g. a list where all elements have length 1). 
 
 Functions can also be added from a separate PRS object by passing the other
 PRS object in as the second input. In this case all functions from the second
@@ -133,6 +142,9 @@ data.
 newPrs <- myPrs
 myPrs <- addFunction(myPrs, newPrs)
 ```
+
+#### Calibration
+
 !!IMPORTANT!! If you are adding your own functions to a PRS object and you make
 a change to your function and source it again, the function *will not be changed*
 in the existing PRS object. You must remove the function and add it again, bringing
@@ -152,6 +164,19 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+
+**0.3.0**
+
+* Added `addCalibration`, `applyCalibration`, and `findCalibration` functions,
+as well as a `plot` method that will show the calibration function used. See
+the  *Calibration* section above for more details.
+
+* Fixed a bug in `removeFunction` that would cause the incorrect number of
+functions to show in certain cases, and that would cause all functions to
+be removed when only one was selected.
+
+* `standardClickCalcs` has been adjusted to work with the new calibration
+methods. See *Calibration* section above for more details.
 
 **0.2.2** 
 

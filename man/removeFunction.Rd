@@ -4,13 +4,14 @@
 \alias{removeFunction}
 \title{Remove a Function from a PAMrSettings Object}
 \usage{
-removeFunction(prs, index)
+removeFunction(prs, index = NULL)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to remove a function from}
 
 \item{index}{index indicating which function to move, counting from
-\code{ClickDetector} functions first, then \code{WhistlesMoans} functions.
+\code{ClickDetector} functions first, then \code{WhistlesMoans} functions,
+then \code{Cepstrum} functions.
 This is the same order functions appear in when examining the prs object.
 For example, if there are two Click functions and one Whistle function, the
 Whistle function would have an index of 3. If missing, user can select

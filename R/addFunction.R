@@ -16,7 +16,7 @@
 #' @importFrom utils menu
 #' @export
 #'
-addFunction <- function(prs, fun, module) {
+addFunction <- function(prs, fun, module=NULL) {
     modsAllowed <- c('ClickDetector', 'WhistlesMoans', 'Cepstrum')
     if(class(fun) == 'PAMrSettings') {
         for(m in modsAllowed) {
@@ -27,7 +27,7 @@ addFunction <- function(prs, fun, module) {
         return(prs)
     }
     fname <- deparse(substitute(fun))
-    if(missing(module) ||
+    if(is.null(module) ||
        !(module %in% modsAllowed)) {
         chooseMod <- menu(choices = modsAllowed,
                           title = c('What module type is this function for?'))

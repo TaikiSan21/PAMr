@@ -18,14 +18,14 @@
 #' @importFrom utils menu
 #' @export
 #'
-removeBinaries <- function(prs, index) {
-    if(missing(index)) {
+removeBinaries <- function(prs, index=NULL) {
+    if(is.null(index)) {
         if(length(prs@binaries$folder) > 20) {
             warning('Only showing first 20 binary folders.')
             choices <- prs@binaries$folder[1:20]
         }
         choices <- prs@binaries$folder
-        index <- menu('Choose a folder to remove:',
+        index <- menu(title = 'Choose a folder to remove:',
                       choices = choices)
     }
     if(max(index) > length(prs@binaries$folder)) warning('Index too large, no folder to remove.')

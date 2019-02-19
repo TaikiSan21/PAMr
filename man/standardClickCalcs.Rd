@@ -4,17 +4,17 @@
 \alias{standardClickCalcs}
 \title{Calculate a Set of Measurements for Clicks}
 \usage{
-standardClickCalcs(data, calibration, highpass_khz = 10,
+standardClickCalcs(data, calibration = NULL, highpass_khz = 10,
   winLen_sec = 0.0025)
 }
 \arguments{
 \item{data}{a list that must have 'wave' containing the wave form as a
 matrix with a separate column for each channel, and 'sampleRate' the
-sample rate of the data. Data can also be a \code{Wave} class 
+sample rate of the data. Data can also be a \code{Wave} class
 object, like one created by \code{\link[tuneR]{Wave}}.}
 
 \item{calibration}{a calibration function to apply to the spectrum, must be
-a gam. If missing no calibration will be applied (not recommended).}
+a gam. If NULL no calibration will be applied (not recommended).}
 
 \item{highpass_khz}{frequency in khz of highpass filter to apply}
 

@@ -5,10 +5,10 @@
 #'
 #' @param data a list that must have 'wave' containing the wave form as a
 #'   matrix with a separate column for each channel, and 'sampleRate' the
-#'   sample rate of the data. Data can also be a \code{Wave} class 
+#'   sample rate of the data. Data can also be a \code{Wave} class
 #'   object, like one created by \code{\link[tuneR]{Wave}}.
 #' @param calibration a calibration function to apply to the spectrum, must be
-#'   a gam. If missing no calibration will be applied (not recommended).
+#'   a gam. If NULL no calibration will be applied (not recommended).
 #' @param highpass_khz frequency in khz of highpass filter to apply
 #' @param winLen_sec length in seconds of fft window. The click wave is first
 #'   shortened to this number of samples around the peak of the wave,
@@ -30,7 +30,7 @@
 #' @importFrom stats median quantile
 #' @export
 #'
-standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0025) {
+standardClickCalcs <- function(data, calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
     result <- list()
     paramNames <- c('Channel', 'noiseLevel', 'duration', 'peak', 'peak2', 'peak3', 'trough',
                     'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'Q_10dB',
@@ -57,7 +57,7 @@ standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0
         if(highpass_khz > 0) {
             thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
         }
-        
+
         # 2.5ms window size - following Soldevilla paper JASA17
         fftSize <- round(sr * winLen_sec, 0)
         fftSize <- fftSize + (fftSize %% 2)
@@ -116,12 +116,14 @@ standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0
 
         # Calibration - I don't have a standardized way of doing this yet
         newClick <- data.frame(Freq=thisSpec[,1]*1e3, Sens = relDb)
-        if(!missing(calibration)) {
+        if(!is.null(calibration)) {
             #DO CAL
-            predValue <- predict.Gam(calibration[[chan]], newdata=newClick)
-            predValue <- predValue - predValue[1]
-            clickSens <- relDb-predValue
-            clickSens <- clickSens - max(clickSens)
+            # predValue <- predict.Gam(calibration[[chan]], newdata=newClick)
+            # predValue <- predValue - predValue[1]
+            # clickSens <- relDb-predValue
+            # clickSens <- clickSens - max(clickSens)
+            calFun <- findCalibration(calibration)
+            clickSens <- calFun(wave = thisWave, sr = sr)$dB
         } else {
             # if no cal, just use original relDb
             clickSens <- relDb - max(relDb)
@@ -135,6 +137,7 @@ standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0
         #     cat('peakfast and peaktrough not equal??')
         #     browser()
         # }
+        # peakData <- peakTrough(calibratedClick)
         thisDf <- cbind(thisDf, peakTrough(calibratedClick))
 
         # Finding 10/3 dB bandwidth - modified 'Q' function from seewave package
@@ -145,6 +148,7 @@ standardClickCalcs <- function(data, calibration, highpass_khz=10, winLen_sec=.0
         dbBW3 <- Qfast(calibratedClick, f=sr, level=-3, plot=FALSE)
         names(dbBW3) <- c('Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB')
         dbBW3$centerHz_3dB <- dbBW3$fmax_3dB - (dbBW3$BW_3dB/2)
+
         thisDf <- cbind(thisDf, dbBW10, dbBW3)
 
         # If you wanted to add more, just calculate it and add it as another column in this data frame
