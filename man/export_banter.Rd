@@ -14,7 +14,7 @@ a list with two items, \code{events} and \code{detections}.
   \code{events} is a dataframe with two columns. \code{event.id} is a
   unique identifier for each event, taken from the names of the event
   list. \code{species} is the species classification, taken from the
-  \code{specClass} slot labelled \code{id}. \code{detections} is a list
+  \code{species} slot labelled \code{id}. \code{detections} is a list
   of data frames containing all the detections and measurements. There is
   one list for each unique detector type found in the \code{detectors} slots
   of \code{eventList}. The data frames will only have columns with class

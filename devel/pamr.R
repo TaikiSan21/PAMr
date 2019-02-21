@@ -106,9 +106,6 @@
 # Add 'try' to the processing things so doesnt crash on a weird binary
 # Add filter method for AcEvs?
 
-
-# Save click spectrum somehow. After?
-
 # Should grouping default to both events and detection group? Or check other kind if
 # first one has none (currently just stops if theres nothing there, this may be bad)
 
@@ -181,9 +178,15 @@
 
 # NEW POSSIBILITY can we have a PAMr function class that can contain a calibration? maybeeeeee
 
-# maybe i should change missing() checks to is.null() check and replace defaults with NULL
-
 # on.exit(add=TRUE) is a thing that always runs when function goes regardless of how it ends
+
+# species id addition from PG event. Maybe a setSpecies method? Could check for multiples or just
+# use the eventType shit otherwise. List'em if ya got more can choose
+
+# ACEV update show method to be more relevant
+
+# What if we only want basic info, no functions? At least keep time too. ie. read all binaries
+# option. Thought came from talking to rando-Chris
 
 # NOTES FROM PSAW:
 # MAPPING: leaflet package for interactive maps seems preettttyyyy sweet
@@ -195,3 +198,5 @@
 # uses coord_sf instead of coord_map
 # ANOTHAONE:
 # what does purrr::walk do? used it to unzip some shit
+
+

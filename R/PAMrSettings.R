@@ -19,7 +19,7 @@
 #' @importFrom utils choose.files choose.dir
 #' @export
 #'
-PAMrSettings <- function(db, binaries, calibration) {
+PAMrSettings <- function(db=NULL, binaries=NULL, calibration=NULL) {
     prs <- new('PAMrSettings')
     prs <- addDatabase(prs, db)
     prs <- addBinaries(prs, binaries)

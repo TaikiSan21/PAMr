@@ -159,7 +159,7 @@ getPgDetectionsDb <- function(prs, grouping='event') {
             ev <- ev[sapply(ev, function(x) !is.null(x))]
             binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
                 unlist(recursive = FALSE) %>% unique()
-            binariesUsed <- grep(binariesUsed, binList, value=TRUE)
+            binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
             AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
                           files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
         })
@@ -195,7 +195,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
                detTables <- sapply(dgNames, function(x) grep(x, tables, value=TRUE))
                eventTables <- detTables[!grepl('Children', detTables)]
                detTables <- detTables[grepl('Children', detTables)]
-               eventColumns <- c('UID')
+               eventColumns <- c('UID', 'Text_Annotation')
            },
            {
                dbDisconnect(con)

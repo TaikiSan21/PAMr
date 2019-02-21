@@ -10,7 +10,7 @@
 #'   This is the same order functions appear in when examining the prs object.
 #'   For example, if there are two Click functions and one Whistle function, the
 #'   Whistle function would have an index of 3. If missing, user can select
-#'   from a list.
+#'   from a list. This can also be a vector to remove multiple functions at once.
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the function
 #'   removed from the "functions" slot
@@ -28,16 +28,22 @@ removeFunction <- function(prs, index=NULL) {
                               capture.output(str(y))[[1]]
                           }))
                       })))
+        if(index==0) return(prs)
     }
+    index <- sort(index) # needed if vector for recursion to work
     nFuns <- sapply(prs@functions, length)
-    if(index > sum(nFuns)) warning('Index too large, no function to remove.')
+    if(index[1] > sum(nFuns)) warning('Index too large, no function to remove.')
     for(m in seq_along(prs@functions)) {
-        if(index > nFuns[m]) {
-            index <- index - nFuns[m]
+        if(index[1] > nFuns[m]) {
+            index[1] <- index[1] - nFuns[m]
             next
         }
-        prs@functions[[m]] <- prs@functions[[m]][-index]
+        prs@functions[[m]] <- prs@functions[[m]][-index[1]]
         break
+    }
+    # allows for recursive removal of index as a vector. -1 cuz we dropped one function
+    if(length(index) > 1) {
+        return(removeFunction(prs, index[-1]-1))
     }
     prs
 }

@@ -4,7 +4,7 @@
 \alias{PAMrSettings}
 \title{Constructor for PAMrSettings Object}
 \usage{
-PAMrSettings(db, binaries, calibration)
+PAMrSettings(db = NULL, binaries = NULL, calibration = NULL)
 }
 \arguments{
 \item{db}{the full path to a PamGuard database file}

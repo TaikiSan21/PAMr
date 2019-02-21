@@ -27,6 +27,7 @@ removeBinaries <- function(prs, index=NULL) {
         choices <- prs@binaries$folder
         index <- menu(title = 'Choose a folder to remove:',
                       choices = choices)
+        if(index==0) return(prs)
     }
     if(max(index) > length(prs@binaries$folder)) warning('Index too large, no folder to remove.')
     dropNames <- prs@binaries$folder[index]

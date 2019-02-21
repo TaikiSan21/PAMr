@@ -15,7 +15,7 @@ then \code{Cepstrum} functions.
 This is the same order functions appear in when examining the prs object.
 For example, if there are two Click functions and one Whistle function, the
 Whistle function would have an index of 3. If missing, user can select
-from a list.}
+from a list. This can also be a vector to remove multiple functions at once.}
 }
 \value{
 the same \linkS4class{PAMrSettings} object as prs, with the function

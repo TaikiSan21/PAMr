@@ -26,6 +26,7 @@ removeDatabase <- function(prs, index=NULL) {
         }
         index <- menu(title = 'Choose a database to remove:',
                       choices = choices)
+        if(index==0) return(prs)
     }
     if(max(index) > length(prs@db)) warning('Index too large, no database to remove.')
     prs@db <- prs@db[-index]

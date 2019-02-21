@@ -4,10 +4,14 @@
 \alias{removeCalibration}
 \title{Remove a Calibration Function from a PAMrSettings Object}
 \usage{
-removeCalibration(prs, module = "ClickDetector")
+removeCalibration(prs, index = NULL, module = "ClickDetector")
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to remove a calibration from}
+
+\item{index}{index of the calibration function to remove. If \code{NULL}, user
+will be prompted to select from a list. This can also be a vector to remove
+multiple calibration functions at once.}
 
 \item{module}{the module of the calibration function to remove, currently
 not needed}
