@@ -96,7 +96,7 @@ getPgDetectionsAll <- function(prs, sampleRate=NULL) {
 #' @rdname getPgDetections
 #' @export
 #'
-getPgDetectionsDb <- function(prs, grouping='event') {
+getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
@@ -173,16 +173,28 @@ getPgDetectionsDb <- function(prs, grouping='event') {
 getDbData <- function(db, grouping=c('event', 'detGroup')) {
     # Combine all click/event tables, even by diff detector. Binary will have det name
     con <- dbConnect(SQLite(), db)
+    on.exit(dbDisconnect(con))
     tables <- dbListTables(con)
     # Read in event data from either offlineclicks/events or detection
     # group localiser. Click version has common naming convention,
     # det group does not so we have to go look it up. If we are just
     # reading in all the data we only care about SA data
+    if(length(grouping) > 1) {
+        return(
+            suppressWarnings(
+                bind_rows(
+                    lapply(grouping, function(x) {
+                        getDbData(db, x)
+                    }))
+            )
+        )
+    }
     switch(match.arg(grouping),
            'event' = {
                detTables <- grep('OfflineClicks', tables, value=TRUE)
                eventTables <- grep('OfflineEvents', tables, value=TRUE)
                eventColumns <- c('UID', 'eventType', 'comment')
+               evName <- 'OE'
            },
            'detGroup' = {
                modules <- dbReadTable(con, 'PamguardModules')
@@ -196,16 +208,15 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
                eventTables <- detTables[!grepl('Children', detTables)]
                detTables <- detTables[grepl('Children', detTables)]
                eventColumns <- c('UID', 'Text_Annotation')
+               evName <- 'DGL'
            },
            {
-               dbDisconnect(con)
                stop("I don't know how to group by ", grouping, '.\n')
            }
     )
 
     if(length(detTables)==0 ||
        length(eventTables)==0) {
-        dbDisconnect(con)
         warning('Could not find event tables for grouping method "', grouping,
              '" in database ', basename(db))
         return(NULL)
@@ -216,7 +227,6 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
         })
     )
     if(nrow(allDetections)==0) {
-        dbDisconnect(con)
         warning('No detections found for grouping method "', grouping,
              '" in database ', basename(db))
         return(NULL)
@@ -228,7 +238,6 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
         })
     )
     if(nrow(allEvents)==0) {
-        dbDisconnect(con)
         warning('No events found for grouping method "', grouping,
                 '" in database ', basename(db))
         return(NULL)
@@ -242,7 +251,6 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
        !('parentUID' %in% names(allDetections))) {
         warning('UID and parentUID columns not found in database ', basename(db),
                 ', these are required to process data. Please upgrade to Pamguard 2.0+.')
-        dbDisconnect(con)
         return(NULL)
     }
     allDetections <- inner_join(
@@ -259,7 +267,6 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
         select(UTC, sampleRate, SystemType) %>%
         distinct() %>%
         data.table() %>% setkey(UTC)
-    dbDisconnect(con)
 
     allDetections <- allDetections %>%
         mutate(BinaryFile = str_trim(BinaryFile),
@@ -291,7 +298,13 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
         )
         allDetections$sampleRate[srNa] <- srReplace
     }
+    # apply str_trim to all character columns
+    whichChar <- which(sapply(allDetections, function(x) 'character' %in% class(x)))
+    for(i in whichChar) {
+        allDetections[, i] <- str_trim(allDetections[, i])
+    }
     allDetections$UID <- as.character(allDetections$UID)
+    allDetections$parentUID <- paste0(evName, allDetections$parentUID)
     allDetections
 }
 

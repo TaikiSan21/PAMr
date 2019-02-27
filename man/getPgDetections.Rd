@@ -10,7 +10,7 @@ getPgDetections(prs, ...)
 
 getPgDetectionsAll(prs, sampleRate = NULL)
 
-getPgDetectionsDb(prs, grouping = "event")
+getPgDetectionsDb(prs, grouping = c("event", "detGroup"))
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object containing the databases,

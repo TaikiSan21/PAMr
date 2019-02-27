@@ -180,8 +180,7 @@
 
 # on.exit(add=TRUE) is a thing that always runs when function goes regardless of how it ends
 
-# species id addition from PG event. Maybe a setSpecies method? Could check for multiples or just
-# use the eventType shit otherwise. List'em if ya got more can choose
+# for now have suppressed warnings if event grouping is multiple, may want some kine warning
 
 # ACEV update show method to be more relevant
 
@@ -198,5 +197,3 @@
 # uses coord_sf instead of coord_map
 # ANOTHAONE:
 # what does purrr::walk do? used it to unzip some shit
-
-

@@ -165,6 +165,15 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.4.0**
+
+* Added `setSpecies` functions for assigning species classifications to 
+AcousticEvents.
+
+* Changed `getDbData` to default to looking for both OfflineEvents tables 
+and DetectionGroupLocaliser tables, will still only load one if a specific
+type is provided for `grouping`.
+
 **0.3.0**
 
 * Added `addCalibration`, `applyCalibration`, and `findCalibration` functions,
