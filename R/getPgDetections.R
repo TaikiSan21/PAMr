@@ -8,20 +8,31 @@
 #'   groups. If no database is provided, all detections in all of the
 #'   provided binary files will be processed, this can take an extremely
 #'   long time. This will also apply a set of functions to the binaray data
-#'   loaded. \code{getPgDetections} is just a wrapper that will call
-#'   either \code{getPgDetectionsAll} or \code{getPgDetectionsDb} based
-#'   on whether or not a database file is provided.
+#'   loaded. Can also provide a database or csv file to separate detections
+#'   from binaries into events by start and end times.
 #'
 #' @param prs a \linkS4class{PAMrSettings} object containing the databases,
 #'   binaries, and functions to use for processing data.
 #'   See \code{\link[PAMr]{PAMrSettings}}
+#' @param mode selector for how to organize your data in to events. \code{db}
+#'   will organize by events based on tables in the databases, \code{all} will
+#'   put all detections in the binaries into one single event, and \code{time}
+#'   will organize into events based on timestamps provided in \code{grouping}.
 #' @param sampleRate the sample rate of the data. If reading detections from
 #'   a database this will be read in from the SoundAcquisition table, if
-#'   loading all binary files this must be specified.
-#' @param grouping if reading from a database, the table to group events by.
+#'   \code{mode} is \code{all} or \code{time} this must be specified.
+#' @param grouping if \code{mode} is \code{db}, the table to group events by.
 #'   Either \code{event} to use the OfflineEvents table, or \code{detGroup} to
-#'   use the detection group localiser module groups.
-#' @param \dots other parameters to be passed on to other methods
+#'   use the detection group localiser module groups. If \code{mode} is
+#'   \code{time}, this should be a data frame with four columns and 1 row
+#'   for each separate event. \code{start} and \code{end} should specify the
+#'   start and end time of the event and must be in UTC. \code{id} should
+#'   specify a unique id for each event, and \code{species} should provide a
+#'   species ID if it is available (this column is optional). This can also
+#'   be a character with the file path to a csv file with these columns.
+#' @param format the date format for the \code{start} and \code{end} columns
+#'   in \code{grouping} if it is a csv. Times are assumed to be UTC. See
+#'   ?strptime for details.
 #'
 #' @return a list of \linkS4class{AcousticEvent} objects. If reading from a
 #'   database, there will be a separate AcousticEvent for each event found
@@ -39,26 +50,25 @@
 #' @import dplyr
 #' @export
 #'
-getPgDetections <- function(prs, ...) {
+getPgDetections <- function(prs, mode = c('db', 'all', 'time'), sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
-    if(length(prs@db)==0) {
-        return(getPgDetectionsAll(prs, ...))
-    }
-    getPgDetectionsDb(prs, ...)
+    switch(match.arg(mode),
+           'db' = getPgDetectionsDb(prs, grouping),
+           'all' = getPgDetectionsAll(prs, sampleRate),
+           'time' = getPgDetectionsTime(prs, sampleRate, grouping, format)
+    )
+    # if(length(prs@db)==0) {
+    #     return(getPgDetectionsAll(prs, ...))
+    # }
+    # getPgDetectionsDb(prs, ...)
 }
 
-#' @rdname getPgDetections
 #' @importFrom utils setTxtProgressBar txtProgressBar
-#' @export
 #'
 getPgDetectionsAll <- function(prs, sampleRate=NULL) {
-    if(class(prs) != 'PAMrSettings') {
-        stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
-                    ' function "PAMrSettings()"'))
-    }
     binList <- prs@binaries$list
     binFuns <- prs@functions
     if(is.null(sampleRate)) {
@@ -67,7 +77,9 @@ getPgDetectionsAll <- function(prs, sampleRate=NULL) {
                                           '(When processing all binaries, sample rate must be the same) '))
         sampleRate <- as.numeric(sampleRate)
     }
-    calibrationUsed <- 'None'
+    calibrationUsed <- names(prs@calibration[[1]])
+    if(length(calibrationUsed)==0) calibrationUsed <- 'None'
+
     cat('Processing binary files... \n')
     pb <- txtProgressBar(min=0, max=length(binList), style=3)
 
@@ -81,6 +93,7 @@ getPgDetectionsAll <- function(prs, sampleRate=NULL) {
         thisBinData
     })
     binData <- binData[sapply(binData, function(x) !is.null(x))]
+    # for clicks we have split the broad detector into separate ones by classification
     binData <- lapply(binData, function(x) split(x, x$detectorName))
     binData <- unlist(binData, recursive = FALSE)
     binData <- squishList(binData)
@@ -93,14 +106,88 @@ getPgDetectionsAll <- function(prs, sampleRate=NULL) {
     acousticEvents
 }
 
-#' @rdname getPgDetections
-#' @export
+#' @importFrom readr read_csv cols col_character
+#'
+getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
+    # start with checking grouping - parse csv if missing or provided as character and fmt times
+    if(is.null(grouping)) {
+        cat('Please provide a csv file with columns "start", "end", "id", and',
+            'optionally "species" to group detections into events.')
+        grouping <- file.choose()
+    }
+    if('character' %in% class(grouping)) {
+        stopifnot(file.exists(grouping))
+        grouping <- read_csv(grouping, col_types = cols(.default=col_character()))
+    }
+    colsNeeded <- c('start', 'end', 'id')
+    if('data.frame' %in% class(grouping)) {
+        colnames(grouping) <- tolower(colnames(grouping))
+        if(!all(colsNeeded %in% colnames(grouping))) {
+            stop('"grouping" must have columns "start", "end" and "id".')
+        }
+        if('character' %in% class(grouping$start)) {
+            grouping$start <- as.POSIXct(grouping$start, format=format, tz='UTC')
+        }
+        if('character' %in% class(grouping$end)) {
+            grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
+        }
+        grouping$id <- as.character(grouping$id)
+    }
+
+    binList <- prs@binaries$list
+    binFuns <- prs@functions
+    if(is.null(sampleRate)) {
+        sampleRate <- readline(prompt =
+                                   paste0('What is the sample rate for this data? ',
+                                          '(When processing all binaries, sample rate must be the same) '))
+        sampleRate <- as.numeric(sampleRate)
+    }
+    calibrationUsed <- names(prs@calibration[[1]])
+    if(length(calibrationUsed)==0) calibrationUsed <- 'None'
+
+    cat('Processing binary files... \n')
+    pb <- txtProgressBar(min=0, max=length(binList), style=3)
+
+    binData <- lapply(binList, function(bin) {
+        thisBin <- loadPamguardBinaryFile(bin)
+        for(i in seq_along(thisBin$data)) {
+            thisBin$data[[i]]$sampleRate <- sampleRate
+        }
+        thisBinData <- calculateModuleData(thisBin, binFuns)
+        setTxtProgressBar(pb, value=which(binList==bin))
+        thisBinData
+    })
+    binData <- binData[sapply(binData, function(x) !is.null(x))]
+    # for clicks we have split the broad detector into separate ones by classification
+    binData <- lapply(binData, function(x) split(x, x$detectorName))
+    binData <- unlist(binData, recursive = FALSE)
+    binData <- squishList(binData)
+
+    # Should this function store the event ID? Right now its just the name
+    # in the list, but is this reliable? Probably not
+    acousticEvents <- vector('list', length = nrow(grouping))
+    names(acousticEvents) <- grouping$id
+    for(i in seq_along(acousticEvents)) {
+        thisData <- lapply(binData, function(x) {
+            data <- filter(x, x$UTC >= grouping$start[i], x$UTC <= grouping$end[i])
+            if(nrow(data) == 0) return(NULL)
+            data
+        })
+        binariesUsed <- sapply(thisData, function(x) unique(x$BinaryFile)) %>%
+            unlist(recursive = FALSE) %>% unique()
+        binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
+        acousticEvents[[i]] <- AcousticEvent(detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
+                                    files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
+    }
+    if('species' %in% colnames(grouping)) {
+        grouping$species <- as.character(grouping$species)
+        acousticEvents <- setSpecies(acousticEvents, method = 'manual', value = grouping$species)
+    }
+    acousticEvents
+}
+
 #'
 getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
-    if(class(prs) != 'PAMrSettings') {
-        stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
-                    ' function "PAMrSettings()"'))
-    }
     allDb <- prs@db
     cat('Processing databases... \n')
     pb <- txtProgressBar(min=0, max=length(allDb), style=3)
@@ -119,7 +206,8 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
         }
         thisSource <- unique(dbData$SystemType)
         dbData <- select(dbData, -SystemType)
-        calibrationUsed <- 'None'
+        calibrationUsed <- names(prs@calibration[[1]])
+        if(length(calibrationUsed)==0) calibrationUsed <- 'None'
 
         dbData <- lapply(
             split(dbData, dbData$BinaryFile), function(x) {
@@ -303,6 +391,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     for(i in whichChar) {
         allDetections[, i] <- str_trim(allDetections[, i])
     }
+    allDetections <- select(allDetections, -UTC)
     allDetections$UID <- as.character(allDetections$UID)
     allDetections$parentUID <- paste0(evName, allDetections$parentUID)
     allDetections

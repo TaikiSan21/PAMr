@@ -145,7 +145,6 @@
 # Add note to readme for adding functions: use PKG::FUN for th ings
 # Double check/re-think pamguard dependencies for the future
 # Mean spectra for an event
-# Shorten wigner window back to same amount
 # SHOW FUNCTIONS - X-Axes all same units in time, Y-axes same units
 
 # What if no matching UIDs are found - AutoPAM test case binaries just arent the right ones.
@@ -183,6 +182,18 @@
 # for now have suppressed warnings if event grouping is multiple, may want some kine warning
 
 # ACEV update show method to be more relevant
+
+# Do AcEv need a name / ID slot? probs.
+
+# Make events based on timestamps
+
+# "CalibrationUsed" in getPgDetections stuff
+
+# picking out shit like EKG false detections needs to happen during analysis
+
+# LIST OF ACOUSTICEVENTS ????
+
+# Add reading csv part to time split events
 
 # What if we only want basic info, no functions? At least keep time too. ie. read all binaries
 # option. Thought came from talking to rando-Chris

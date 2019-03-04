@@ -66,19 +66,23 @@ myPrs <- PAMrSettings(db = myDb, binaries = myBinaryFolder)
 
 #### Processing Data
 
-Once you have a PRS object, processing your data is easy. There are two
-functions that do this, `getPgDetectionsDb` and `getPgDetectionsAll`. The "Db"
-function just requires the PRS as input, and will load all of the data found
+Once you have a PRS object, processing your data is easy. There are three ways
+to do this, specified using the `mode` argument of `getPgDetections`. Mode `db`
+just requires the PRS as input, and will load all of the data found
 in the `db` slot of your PRS object. It will group these detections into events
 based on either the Detection Group Localiser module, or the Click Event module.
 All functions in the `functions` slot of the PRS will be applied to the appropriate
-module type, and the results will get stored as a dataframe. The "All" function
+module type, and the results will get stored as a dataframe. Mode `all`
 requires the PRS and the sample rate of your data as inputs (normally this is read
-from a database), then applies all the calculations.
+from a database), then applies all the calculations to every detection in every binary
+file. Mode `time` requires a dataframe or csv file specifying the start and end times
+of events as well as an event id and optionally a species id. See `?getPgDetections` for
+more info on this mode.
 
 ```r
-myDataDb <- getPgDetectionsDb(myPrs)
-myDataAll <- getPgDetectionsAll(myPrs, 192000)
+myDataDb <- getPgDetections(myPrs, mode='db')
+myDataAll <- getPgDetections(myPrs, mode='all', sampleRate=192000)
+myDataTimes <- getPgDetections(myPrs, mode='time', sampleRate=192e3, grouping='myEvents.csv')
 ```
 
 #### Adding to Your PRS
@@ -145,6 +149,8 @@ myPrs <- addFunction(myPrs, newPrs)
 
 #### Calibration
 
+*under construction*
+
 !!IMPORTANT!! If you are adding your own functions to a PRS object and you make
 a change to your function and source it again, the function *will not be changed*
 in the existing PRS object. You must remove the function and add it again, bringing
@@ -164,6 +170,15 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+
+**0.5.0**
+
+* `getPgDetections` changed to work by specifying a `mode` as an argument instead of
+calling separate functions. Can now create events using a csv or dataframe with 
+start and end times specified.
+
+* Changed `export_banter` to export a list with named item `detectors` instead of 
+`detections`, no other functional change.
 
 **0.4.0**
 

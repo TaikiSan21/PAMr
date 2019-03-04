@@ -20,6 +20,7 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @import dplyr
+#' @importFrom PamBinaries convertPgDate
 #' @export
 #'
 calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(standardClickCalcs))) {
@@ -47,25 +48,30 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
        length(binFuns[[moduleType]])==0) {
         warning("I don't have functions for Module Type ", moduleType)
         # If nothing, just UID and detectorName? Fine for now
-        result <- data.frame(UID = as.character(names(binData$data)))
+        result <- data.frame(UID = sapply(binData$data, function(x) x$UID),
+                             UTC = sapply(binData$data, function(x) x$date))
+        result$UID <- as.character(result$UID)
+        result$UTC <- convertPgDate(result$UTC)
         result$detectorName <- rep(detName, nrow(result))
         result$BinaryFile <- rep(basename(binData$fileInfo$fileName), nrow(result))
         return(result)
     }
-    # Adding this to binFuns for PG version so we always at least get UID
+    # Adding this to binFuns for PG version so we always at least get UID and time
     # ClickDetector gets 1 row for each channel, has 'nChan' in it
-    getUID <- function(x) {
+    getBasic <- function(x) {
         nRep <- if('nChan' %in% names(x)) {
             x$nChan
         } else {
             1
         }
-        data.frame(UID =rep(as.character(x$UID), nRep), stringsAsFactors = FALSE)
+        data.frame(UID = rep(as.character(x$UID), nRep),
+                   UTC = rep(x$date, nRep),
+                   stringsAsFactors = FALSE)
     }
     result <- switch(
         moduleType,
         'ClickDetector' = {
-            allClicks <- doClickCalcs(binData$data, c(getUID, binFuns[['ClickDetector']]))
+            allClicks <- doClickCalcs(binData$data, c(getBasic, binFuns[['ClickDetector']]))
             # We want each 'type' of click to be separate 'detector'. This is PG only.
             allNames <- bind_rows(
                 lapply(binData$data[as.character(allClicks$UID)], function(x) {
@@ -77,18 +83,19 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
             left_join(allClicks, allNames, by='UID')
         },
         'WhistlesMoans' = {
-            allWhistles <- doWhistleCalcs(binData$data, c(getUID, binFuns[['WhistlesMoans']]))
+            allWhistles <- doWhistleCalcs(binData$data, c(getBasic, binFuns[['WhistlesMoans']]))
             allWhistles$detectorName <- detName
             allWhistles
         },
         'Cepstrum' = {
-            allCepstrum <- doCepstrumCalcs(binData$data, c(getUID, binFuns[['Cepstrum']]))
+            allCepstrum <- doCepstrumCalcs(binData$data, c(getBasic, binFuns[['Cepstrum']]))
             allCepstrum$detectorName <- detName
             allCepstrum
         },
         warning("I don't know how to deal with Module Type ", moduleType)
     )
     result$BinaryFile <- basename(binData$fileInfo$fileName)
+    result$UTC <- convertPgDate(result$UTC)
     result
 }
 

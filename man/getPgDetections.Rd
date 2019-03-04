@@ -2,30 +2,38 @@
 % Please edit documentation in R/getPgDetections.R
 \name{getPgDetections}
 \alias{getPgDetections}
-\alias{getPgDetectionsAll}
-\alias{getPgDetectionsDb}
 \title{Load and Process Detections from Pamguard}
 \usage{
-getPgDetections(prs, ...)
-
-getPgDetectionsAll(prs, sampleRate = NULL)
-
-getPgDetectionsDb(prs, grouping = c("event", "detGroup"))
+getPgDetections(prs, mode = c("db", "all", "time"), sampleRate = NULL,
+  grouping = NULL, format = "\%Y-\%m-\%d \%H:\%M:\%OS")
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object containing the databases,
 binaries, and functions to use for processing data.
 See \code{\link[PAMr]{PAMrSettings}}}
 
-\item{\dots}{other parameters to be passed on to other methods}
+\item{mode}{selector for how to organize your data in to events. \code{db}
+will organize by events based on tables in the databases, \code{all} will
+put all detections in the binaries into one single event, and \code{time}
+will organize into events based on timestamps provided in \code{grouping}.}
 
 \item{sampleRate}{the sample rate of the data. If reading detections from
 a database this will be read in from the SoundAcquisition table, if
-loading all binary files this must be specified.}
+\code{mode} is \code{all} or \code{time} this must be specified.}
 
-\item{grouping}{if reading from a database, the table to group events by.
+\item{grouping}{if \code{mode} is \code{db}, the table to group events by.
 Either \code{event} to use the OfflineEvents table, or \code{detGroup} to
-use the detection group localiser module groups.}
+use the detection group localiser module groups. If \code{mode} is
+\code{time}, this should be a data frame with four columns and 1 row
+for each separate event. \code{start} and \code{end} should specify the
+start and end time of the event and must be in UTC. \code{id} should
+specify a unique id for each event, and \code{species} should provide a
+species ID if it is available (this column is optional). This can also
+be a character with the file path to a csv file with these columns.}
+
+\item{format}{the date format for the \code{start} and \code{end} columns
+in \code{grouping} if it is a csv. Times are assumed to be UTC. See
+?strptime for details.}
 }
 \value{
 a list of \linkS4class{AcousticEvent} objects. If reading from a
@@ -42,9 +50,8 @@ Loads in acoustic detection data that has been run thorugh
   groups. If no database is provided, all detections in all of the
   provided binary files will be processed, this can take an extremely
   long time. This will also apply a set of functions to the binaray data
-  loaded. \code{getPgDetections} is just a wrapper that will call
-  either \code{getPgDetectionsAll} or \code{getPgDetectionsDb} based
-  on whether or not a database file is provided.
+  loaded. Can also provide a database or csv file to separate detections
+  from binaries into events by start and end times.
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

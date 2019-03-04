@@ -5,11 +5,11 @@
 #'
 #' @param eventList a list of \linkS4class{AcousticEvent} objects.
 #'
-#' @return a list with two items, \code{events} and \code{detections}.
+#' @return a list with two items, \code{events} and \code{detectors}.
 #'   \code{events} is a dataframe with two columns. \code{event.id} is a
 #'   unique identifier for each event, taken from the names of the event
 #'   list. \code{species} is the species classification, taken from the
-#'   \code{species} slot labelled \code{id}. \code{detections} is a list
+#'   \code{species} slot labelled \code{id}. \code{detectors} is a list
 #'   of data frames containing all the detections and measurements. There is
 #'   one list for each unique detector type found in the \code{detectors} slots
 #'   of \code{eventList}. The data frames will only have columns with class
@@ -25,10 +25,15 @@
 #' @export
 #'
 export_banter <- function(eventList) {
+    sp <- sapply(eventList, function(x) species(x)$id)
+    spNull <- sapply(sp, is.null)
+    if(any(spNull)) {
+        stop('Events ', paste(names(eventList)[which(spNull)], collapse=', '),
+             ' do not have a species ID. Cannot complete export_banter.')
+    }
     events <- data.frame(event.id = names(eventList),
-                         species = sapply(eventList, function(x) {
-                             species(x)$id
-                         }), stringsAsFactors = FALSE)
+                         species = sp,
+                         stringsAsFactors = FALSE)
     for(e in names(eventList)) {
         thisEv <- eventList[[e]]
         for(d in seq_along(detectors(thisEv))) {
@@ -48,5 +53,5 @@ export_banter <- function(eventList) {
     dets <- lapply(eventList, detectors)
     names(dets) <- NULL
     dets <- squishList(unlist(dets, recursive = FALSE))
-    list(events=events, detections=dets)
+    list(events=events, detectors=dets)
 }
