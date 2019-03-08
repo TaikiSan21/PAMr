@@ -85,7 +85,9 @@ makeCalibration <- function(calFile) {
     calFun <- function(wave, sr, ...) {
         specData <- spec(wave = wave, f = sr, norm = FALSE,
                                   correction = 'amplitude', plot = FALSE, ...)
-        specData <- data.frame(Frequency = specData[, 1] * 1e3,
+        # This is for integer overflow spec jankiness fixing
+        freq <- seq(from = 0, by = specData[2, 1] - specData[1,1], length.out = nrow(specData))
+        specData <- data.frame(Frequency = freq * 1e3,
                                Sensitivity = specData[, 2])
         specData$Sensitivity <- 20 * log10(specData$Sensitivity)
         specData$Sensitivity[!is.finite(specData$Sensitivity)] <- NA

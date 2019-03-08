@@ -113,9 +113,10 @@ standardClickCalcs <- function(data, calibration=NULL, highpass_khz=10, winLen_s
         thisSpec <- spec(thisWave, f=sr, wl=fftSize, norm=FALSE, correction='amplitude', plot=FALSE)
         relDb <- 20*log10(thisSpec[,2])
         relDb[!is.finite(relDb)] <- NA
-
+        # This is for integer overflow spec jankiness fixing
+        freq <- seq(from=0, by = thisSpec[2,1] - thisSpec[1,1], length.out = nrow(thisSpec))
         # Calibration - I don't have a standardized way of doing this yet
-        newClick <- data.frame(Freq=thisSpec[,1]*1e3, Sens = relDb)
+        # newClick <- data.frame(Freq=thisSpec[,1]*1e3, Sens = relDb)
         if(!is.null(calibration)) {
             #DO CAL
             # predValue <- predict.Gam(calibration[[chan]], newdata=newClick)
@@ -128,7 +129,7 @@ standardClickCalcs <- function(data, calibration=NULL, highpass_khz=10, winLen_s
             # if no cal, just use original relDb
             clickSens <- relDb - max(relDb)
         }
-        calibratedClick <- cbind(newClick$Freq/1e3, clickSens)
+        calibratedClick <- cbind(freq, clickSens)
 
         # Simple peak / trough calculations
         # pt <- peakTrough(calibratedClick)

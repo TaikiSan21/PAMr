@@ -171,6 +171,12 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.1**
+
+* Minor bug fix when using `seewave::spec`, it can produce NA values for the frequency
+if the input wave is long. Adjusted parts `standardClickCalcs` and `addCalibration` to
+work around this.
+
 **0.5.0**
 
 * `getPgDetections` changed to work by specifying a `mode` as an argument instead of
