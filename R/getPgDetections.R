@@ -177,7 +177,7 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
             unlist(recursive = FALSE) %>% unique()
         binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
         acousticEvents[[i]] <- AcousticEvent(detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
-                                    files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
+                                             files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
     }
     if('species' %in% colnames(grouping)) {
         grouping$species <- as.character(grouping$species)
@@ -192,67 +192,74 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
     cat('Processing databases... \n')
     pb <- txtProgressBar(min=0, max=length(allDb), style=3)
     allAcEv <- lapply(allDb, function(db) {
-        binList <- prs@binaries$list
-        binFuns <- prs@functions
-        dbData <- getDbData(db, grouping)
-        if(is.null(dbData)) {
+        tryCatch({
+            binList <- prs@binaries$list
+            binFuns <- prs@functions
+            dbData <- getDbData(db, grouping)
+            if(is.null(dbData)) {
+                setTxtProgressBar(pb, value = which(allDb == db))
+                return(NULL)
+            }
+            thisSr <- unique(dbData$sampleRate)
+            if(length(thisSr) > 1) {
+                warning('More than 1 sample rate found in database ',
+                        basename(db),'.')
+            }
+            thisSource <- unique(dbData$SystemType)
+            dbData <- select(dbData, -SystemType)
+            calibrationUsed <- names(prs@calibration[[1]])
+            if(length(calibrationUsed)==0) calibrationUsed <- 'None'
+
+            dbData <- lapply(
+                split(dbData, dbData$BinaryFile), function(x) {
+                    thisBin <- getMatchingBinaryData(x, binList, basename(db))
+                    if(length(thisBin)==0) {
+                        warning('Could not find the matching binary file for ', x$BinaryFile[1],
+                                ' in database ', basename(db))
+                        return(NULL)
+                    }
+                    binData <- calculateModuleData(thisBin, binFuns)
+                    if(!is.null(binData)) {
+                        binData %>%
+                            select(-BinaryFile) %>%
+                            inner_join(x, by='UID') %>% distinct()
+                    }
+                })
+
+            # This is a list for each binary, we want for each detector
+            dbData <- dbData[sapply(dbData, function(x) !is.null(x))]
+
+            dbData <- lapply(dbData, function(x) split(x, x$detectorName))
+            names(dbData) <- NULL
+            dbData <- unlist(dbData, recursive = FALSE)
+            dbData <- squishList(dbData)
+
+            # Split into events, then swap from Detector(Events) to Event(Detectors)
+            # .names necessary to make sure we have all event numbers
+            dbData <- transpose(
+                lapply(dbData, function(x) split(x, x$parentUID)),
+                .names = unique(unlist(sapply(dbData, function(x) x$parentUID)))
+            )
+
+            # Should this function store the event ID? Right now its just the name
+            # in the list, but is this reliable? Probably not
+
+            acousticEvents <- lapply(dbData, function(ev) {
+                ev <- ev[sapply(ev, function(x) !is.null(x))]
+                binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
+                    unlist(recursive = FALSE) %>% unique()
+                binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
+                AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
+                              files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
+            })
+            setTxtProgressBar(pb, value = which(allDb == db))
+            acousticEvents
+        },
+        error = function(e) {
+            warning(e)
             setTxtProgressBar(pb, value = which(allDb == db))
             return(NULL)
-        }
-        thisSr <- unique(dbData$sampleRate)
-        if(length(thisSr) > 1) {
-            warning('More than 1 sample rate found in database ',
-                    basename(db),'.')
-        }
-        thisSource <- unique(dbData$SystemType)
-        dbData <- select(dbData, -SystemType)
-        calibrationUsed <- names(prs@calibration[[1]])
-        if(length(calibrationUsed)==0) calibrationUsed <- 'None'
-
-        dbData <- lapply(
-            split(dbData, dbData$BinaryFile), function(x) {
-                thisBin <- getMatchingBinaryData(x, binList, basename(db))
-                if(length(thisBin)==0) {
-                    warning('Could not find the matching binary file for ', x$BinaryFile[1],
-                            ' in database ', basename(db))
-                    return(NULL)
-                }
-                binData <- calculateModuleData(thisBin, binFuns)
-                if(!is.null(binData)) {
-                binData %>%
-                        select(-BinaryFile) %>%
-                        inner_join(x, by='UID') %>% distinct()
-                }
-            })
-
-        # This is a list for each binary, we want for each detector
-        dbData <- dbData[sapply(dbData, function(x) !is.null(x))]
-
-        dbData <- lapply(dbData, function(x) split(x, x$detectorName))
-        names(dbData) <- NULL
-        dbData <- unlist(dbData, recursive = FALSE)
-        dbData <- squishList(dbData)
-
-        # Split into events, then swap from Detector(Events) to Event(Detectors)
-        # .names necessary to make sure we have all event numbers
-        dbData <- transpose(
-            lapply(dbData, function(x) split(x, x$parentUID)),
-            .names = unique(unlist(sapply(dbData, function(x) x$parentUID)))
-        )
-
-        # Should this function store the event ID? Right now its just the name
-        # in the list, but is this reliable? Probably not
-
-        acousticEvents <- lapply(dbData, function(ev) {
-            ev <- ev[sapply(ev, function(x) !is.null(x))]
-            binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
-                unlist(recursive = FALSE) %>% unique()
-            binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
-            AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
-                          files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
         })
-        setTxtProgressBar(pb, value = which(allDb == db))
-        acousticEvents
     })
     names(allAcEv) <- gsub('\\.sqlite3', '', basename(allDb))
     unlist(allAcEv, recursive = FALSE)
@@ -267,6 +274,9 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     # group localiser. Click version has common naming convention,
     # det group does not so we have to go look it up. If we are just
     # reading in all the data we only care about SA data
+    if(is.null(grouping)) {
+        grouping <- c('event', 'detGroup')
+    }
     if(length(grouping) > 1) {
         return(
             suppressWarnings(
@@ -306,7 +316,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     if(length(detTables)==0 ||
        length(eventTables)==0) {
         warning('Could not find event tables for grouping method "', grouping,
-             '" in database ', basename(db))
+                '" in database ', basename(db))
         return(NULL)
     }
     allDetections <- bind_rows(
@@ -316,7 +326,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     )
     if(nrow(allDetections)==0) {
         warning('No detections found for grouping method "', grouping,
-             '" in database ', basename(db))
+                '" in database ', basename(db))
         return(NULL)
     }
 

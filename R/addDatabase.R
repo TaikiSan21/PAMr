@@ -26,6 +26,13 @@ addDatabase <- function(prs, db=NULL) {
     if(!all(exists)) {
         stop(paste0('Database ', db[!exists], ' does not exist'))
     }
+    isSqlite <- grepl('\\.sqlite3$', db)
+    if(any(!isSqlite)) {
+        warning('Some files selected that are not sqlite3 databases,',
+                ' these files have been removed from the selection: ',
+                paste0(db[!isSqlite], collapse = ', '))
+        db <- db[isSqlite]
+    }
     prs@db <- unique(c(prs@db, db))
     prs
 }

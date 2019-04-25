@@ -171,6 +171,13 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.2**
+
+* Added a check in `addDatabase` to see if all files are actually .sqlite3 databases
+
+* Added a `tryCatch` in `getPgDetections` for mode `db` so that it shouldn't 
+stop completely when encountering an error and lose all previously analysed DBs
+
 **0.5.1**
 
 * Minor bug fix when using `seewave::spec`, it can produce NA values for the frequency
