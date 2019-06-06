@@ -171,6 +171,11 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.3**
+
+* `standardClickCalcs` now supports manual input of sample rate. Default argument is `'auto'`,
+which will read from the database. User can supply a numeric value for sample rate in hertz instead.
+
 **0.5.2**
 
 * Added a check in `addDatabase` to see if all files are actually .sqlite3 databases

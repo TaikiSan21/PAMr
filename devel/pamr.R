@@ -185,15 +185,11 @@
 
 # Do AcEv need a name / ID slot? probs.
 
-# Make events based on timestamps
-
 # "CalibrationUsed" in getPgDetections stuff
 
 # picking out shit like EKG false detections needs to happen during analysis
 
 # LIST OF ACOUSTICEVENTS ????
-
-# Add reading csv part to time split events
 
 # What if we only want basic info, no functions? At least keep time too. ie. read all binaries
 # option. Thought came from talking to rando-Chris
@@ -208,3 +204,33 @@
 # uses coord_sf instead of coord_map
 # ANOTHAONE:
 # what does purrr::walk do? used it to unzip some shit
+
+
+# List only 20DBs at a time in removeDatabase(), add something to deal with that
+
+# Be smarter when doing events by timestamps - right now it reads and calculates all binary
+# files, then filters by event times. Could skip a lot
+
+# Different samplerates for different detectors - might decimate your whistle detector or some shit
+
+# Update tutorial through feeding to banter - setSpecies part is not documented anywhere. AcEv needs
+# id field probably soon. Don't wanna rely on name in list I think
+
+# Tethys kine stuff -
+# make a pop-up form prompt style thing for people to fill in whatever bits we are missing that we
+# cant get from pamguard
+# passivePacker program for NCEI - program runs in backend using sqlite, the fields in that form
+# of what we need to populate usding PAMr. Make an sqlite db from PAMr to talk to tethys and all
+# talk to eachother
+
+# 'Cannot find event tables for grouping method "" ' error in pascal? why not named
+
+# Add guideline for making new functions - new functions should check if user has all
+# packages used there. Best practice for adding this to top of a function, update readme
+# accordingly.
+
+# pamr for individual calls? for whales
+# probably take everything from detectors, not broken by events
+
+# access using environment instead of list is fast??
+

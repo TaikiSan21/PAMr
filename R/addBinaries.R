@@ -16,7 +16,7 @@
 addBinaries <- function(prs, binFolder=NULL) {
     if(is.null(binFolder)) {
         cat('Please select the folder where the binaries are stored.\n')
-        binFolder <- choose.dir()
+        binFolder <- choose.dir(caption = 'Choose Binary Folder:')
     }
     # Case when cancelled, dont error
     if(is.na(binFolder)) return(prs)

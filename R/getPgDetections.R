@@ -131,6 +131,10 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         if('character' %in% class(grouping$end)) {
             grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
         }
+        if(any(is.na(grouping$start)) ||
+           any(is.na(grouping$end))) {
+            warning('Some event start/end times were not able to be converted, please check format.')
+        }
         grouping$id <- as.character(grouping$id)
     }
 

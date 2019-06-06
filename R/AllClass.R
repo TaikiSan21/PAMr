@@ -195,14 +195,6 @@ VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
 # Method, prediction, assignment probabilities
 # Duration? Files used? ID?
 
-# Will want to have an assign species method for these. When going from PAMr -> training BANTER
-# need a way to mark species by event outside of PAMGuard.
-# Could have option to do from OfflineEvent comment or eventType field. Should we read these in
-# to start? And somewhat hide them? PITA to go back and find them after, tho I guess we are
-# possibly going to save the DB info somewhere. Actually we should definitely save that somewhere.
-# Have a 'files used' or some shit with DB and all binary files read to make it
-
-# Or are we doing this at cruise level? seems wrong...
 # setClassUnion('VisOrNULL', c('VisObsData', 'NULL'))
 
 #' @title \code{AcousticEvent} Class

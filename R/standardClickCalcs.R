@@ -7,6 +7,9 @@
 #'   matrix with a separate column for each channel, and 'sampleRate' the
 #'   sample rate of the data. Data can also be a \code{Wave} class
 #'   object, like one created by \code{\link[tuneR]{Wave}}.
+#' @param sr_hz either \code{'auto'} (default) or the numeric value of the sample
+#'   rate in hertz. If \code{'auto'}, the sample rate will be read from the
+#'   'sampleRate' of \code{data}
 #' @param calibration a calibration function to apply to the spectrum, must be
 #'   a gam. If NULL no calibration will be applied (not recommended).
 #' @param highpass_khz frequency in khz of highpass filter to apply
@@ -30,7 +33,7 @@
 #' @importFrom stats median quantile
 #' @export
 #'
-standardClickCalcs <- function(data, calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
+standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
     result <- list()
     paramNames <- c('Channel', 'noiseLevel', 'duration', 'peak', 'peak2', 'peak3', 'trough',
                     'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'Q_10dB',
@@ -53,7 +56,11 @@ standardClickCalcs <- function(data, calibration=NULL, highpass_khz=10, winLen_s
             result[[chan]] <- blanks
             next
         }
-        sr <- data$sampleRate
+        if(sr_hz == 'auto') {
+            sr <- data$sampleRate
+        } else {
+            sr <- sr_hz
+        }
         if(highpass_khz > 0) {
             thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
         }
