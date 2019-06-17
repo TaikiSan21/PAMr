@@ -51,8 +51,9 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         thisDf <- data.frame(Channel = chan)
         thisWave <- data$wave[,chan]
         if(all(thisWave == 0)) {
-            blanks  <- data.frame(matrix(NA, nrow=1, ncol=23))
+            blanks  <- data.frame(matrix(NA, nrow=1, ncol=length(paramNames)))
             colnames(blanks) <- paramNames
+            blanks[['Channel']] <- chan
             result[[chan]] <- blanks
             next
         }
@@ -119,7 +120,10 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
 
         thisSpec <- spec(thisWave, f=sr, wl=fftSize, norm=FALSE, correction='amplitude', plot=FALSE)
         relDb <- 20*log10(thisSpec[,2])
-        relDb[!is.finite(relDb)] <- NA
+        # only put this in an IF so its easy to have a breakpoint
+        if(any(!is.finite(relDb))) {
+            relDb[!is.finite(relDb)] <- NA
+        }
         # This is for integer overflow spec jankiness fixing
         freq <- seq(from=0, by = thisSpec[2,1] - thisSpec[1,1], length.out = nrow(thisSpec))
         # Calibration - I don't have a standardized way of doing this yet
@@ -134,10 +138,10 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
             clickSens <- calFun(wave = thisWave, sr = sr)$dB
         } else {
             # if no cal, just use original relDb
-            clickSens <- relDb - max(relDb)
+            clickSens <- relDb - max(relDb, na.rm=TRUE)
         }
         calibratedClick <- cbind(freq, clickSens)
-
+        # if(any(is.na(clickSens))) browser()
         # Simple peak / trough calculations
         # pt <- peakTrough(calibratedClick)
         # pf <- peakFast(calibratedClick)

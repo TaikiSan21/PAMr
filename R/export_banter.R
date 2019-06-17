@@ -38,6 +38,7 @@ export_banter <- function(eventList) {
         thisEv <- eventList[[e]]
         for(d in seq_along(detectors(thisEv))) {
             thisDet <- detectors(thisEv)[[d]]
+            if(is.null(thisDet)) next
             thisDet$event.id <- e
             thisDet$call.id <- paste0(e, thisDet$UID)
             if('Channel' %in% colnames(thisDet)) {
@@ -50,7 +51,10 @@ export_banter <- function(eventList) {
         }
         eventList[[e]] <- thisEv
     }
-    dets <- lapply(eventList, detectors)
+    dets <- lapply(eventList, function(x) {
+        tmpDet <- detectors(x)
+        tmpDet[sapply(tmpDet, function(y) !is.null(y))]
+    })
     names(dets) <- NULL
     dets <- squishList(unlist(dets, recursive = FALSE))
     list(events=events, detectors=dets)

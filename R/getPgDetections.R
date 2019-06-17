@@ -170,13 +170,18 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
     # Should this function store the event ID? Right now its just the name
     # in the list, but is this reliable? Probably not
     acousticEvents <- vector('list', length = nrow(grouping))
-    names(acousticEvents) <- grouping$id
+    evName <- grouping$id
+    for(i in unique(evName)) {
+        evName[evName == i] <- paste0(i, 1:(sum(evName == i)))
+    }
+    names(acousticEvents) <- evName
     for(i in seq_along(acousticEvents)) {
         thisData <- lapply(binData, function(x) {
             data <- filter(x, x$UTC >= grouping$start[i], x$UTC <= grouping$end[i])
             if(nrow(data) == 0) return(NULL)
             data
         })
+        thisData <- thisData[sapply(thisData, function(x) !is.null(x))]
         binariesUsed <- sapply(thisData, function(x) unique(x$BinaryFile)) %>%
             unlist(recursive = FALSE) %>% unique()
         binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)

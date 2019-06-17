@@ -171,6 +171,12 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.4**
+
+* Dealing with zero detection events better for `export_banter`
+
+* Temporary fix for click calculations with lots of zeroes in wave form - no more NA
+
 **0.5.3**
 
 * `standardClickCalcs` now supports manual input of sample rate. Default argument is `'auto'`,
