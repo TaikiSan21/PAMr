@@ -234,3 +234,21 @@
 
 # access using environment instead of list is fast??
 
+# if decimator, need to set SR manually for click calcs. Others should be fine,
+# calculated based on other shit in the binary.
+
+# PAMGUARD BUG - in kogia JK sent me had min 90k max 20k in binary. wtf
+
+# can menu force look at console? annoying to type things in not usr friendly
+# KeyboardSimulator package could do ctr + 2 or also for mac check OS. maybe doesnt
+# work
+
+# no browser for peaktrough
+
+# TKE threshold on really clean clicks probably isnt doing what we want - like
+# clicks with lots of zero's (JK e-mails circa 6/6 kogia). Insane low numbers for
+# noise level if this is supposed to be similar to dB
+
+# combine / add multiple AcEv
+
+# WAVEMC FOR SHIT WE ARE ONLY READING TWO CHANNELS DOOOOOOD

@@ -22,6 +22,7 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom PAMmisc squishList
+#' @importFrom dplyr distinct
 #' @export
 #'
 export_banter <- function(eventList) {
@@ -53,9 +54,10 @@ export_banter <- function(eventList) {
     }
     dets <- lapply(eventList, function(x) {
         tmpDet <- detectors(x)
-        tmpDet[sapply(tmpDet, function(y) !is.null(y))]
+        tmpDet[sapply(tmpDet, function(y) !is.null(y) && ncol(y) > 2)]
     })
     names(dets) <- NULL
     dets <- squishList(unlist(dets, recursive = FALSE))
+    dets <- lapply(dets, distinct)
     list(events=events, detectors=dets)
 }
