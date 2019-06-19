@@ -119,6 +119,13 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         thisDf$duration <- dur
 
         thisSpec <- spec(thisWave, f=sr, wl=fftSize, norm=FALSE, correction='amplitude', plot=FALSE)
+        if(any(is.nan(thisSpec[,2]))) {
+            blanks  <- data.frame(matrix(NA, nrow=1, ncol=length(paramNames)))
+            colnames(blanks) <- paramNames
+            blanks[['Channel']] <- chan
+            result[[chan]] <- blanks
+            next
+        }
         relDb <- 20*log10(thisSpec[,2])
         # only put this in an IF so its easy to have a breakpoint
         if(any(!is.finite(relDb))) {

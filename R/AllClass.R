@@ -111,7 +111,7 @@ DataSettings <- function(sampleRate=NA_integer_, soundSource='Not Found') {
         warning('"sampleRate" not specified.')
     }
     if(missing(soundSource)) {
-        warning('"soundSource" not found.')
+        # warning('"soundSource" not found.')
     }
     new('DataSettings', sampleRate=as.integer(sampleRate), soundSource=soundSource)
 }
@@ -235,14 +235,14 @@ setClass('AcousticEvent',
 setValidity('AcousticEvent',
             function(object) {
                 valid <- TRUE
-                if(length(object@detectors)==0) {
-                    cat('AcousticEvent object must have at least one detector. \n')
-                    valid <- FALSE
-                }
-                if(is.null(names(object@detectors))) {
-                    cat('All detectors in the "detectors" slot must be named. \n')
-                    valid <- FALSE
-                }
+                # if(length(object@detectors)==0) {
+                #     cat('AcousticEvent object must have at least one detector. \n')
+                #     valid <- FALSE
+                # }
+                # if(is.null(names(object@detectors))) {
+                #     cat('All detectors in the "detectors" slot must be named. \n')
+                #     valid <- FALSE
+                # }
                 valid
             }
 )

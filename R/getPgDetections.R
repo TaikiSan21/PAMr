@@ -185,6 +185,10 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         binariesUsed <- sapply(thisData, function(x) unique(x$BinaryFile)) %>%
             unlist(recursive = FALSE) %>% unique()
         binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
+        # Check and warning here for empty event
+        if(length(thisData) == 0) {
+            warning('No detections in Event ', names(acousticEvents)[i])
+        }
         acousticEvents[[i]] <- AcousticEvent(detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
                                              files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
     }
