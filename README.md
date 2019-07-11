@@ -171,6 +171,12 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.5**
+
+* `export_banter` now removes NA rows, and has reportNA option to see which ones are NA
+
+* Detector names have spaces replaced with _ to avoid weird issues later
+
 **0.5.4**
 
 * Dealing with zero detection events better for `export_banter`

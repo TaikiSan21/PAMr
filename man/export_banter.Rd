@@ -4,10 +4,13 @@
 \alias{export_banter}
 \title{Export a List of AcousticEvent Ojbects for Banter Model}
 \usage{
-export_banter(eventList)
+export_banter(eventList, reportNA = FALSE)
 }
 \arguments{
 \item{eventList}{a list of \linkS4class{AcousticEvent} objects.}
+
+\item{reportNA}{logical, if \code{TRUE} then only the UID's and
+Binary File names of any \code{NA} rows will be returned}
 }
 \value{
 a list with two items, \code{events} and \code{detectors}.

@@ -44,6 +44,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
        grepl('cepstrum', detName, ignore.case = TRUE)) {
         moduleType <- 'Cepstrum'
     }
+    detName <- gsub(' ', '_', detName)
     if(!(moduleType %in% names(binFuns)) ||
        length(binFuns[[moduleType]])==0) {
         warning("I don't have functions for Module Type ", moduleType)

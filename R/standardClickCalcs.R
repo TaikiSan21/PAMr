@@ -51,6 +51,8 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         thisDf <- data.frame(Channel = chan)
         thisWave <- data$wave[,chan]
         if(all(thisWave == 0)) {
+            # cant return NULL in this case - if other functions compute something useful
+            # we need to be able to bind_cols which requires same number of rows
             blanks  <- data.frame(matrix(NA, nrow=1, ncol=length(paramNames)))
             colnames(blanks) <- paramNames
             blanks[['Channel']] <- chan

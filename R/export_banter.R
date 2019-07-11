@@ -4,6 +4,8 @@
 #'   needed to run a banter model.
 #'
 #' @param eventList a list of \linkS4class{AcousticEvent} objects.
+#' @param reportNA logical, if \code{TRUE} then only the UID's and
+#'   Binary File names of any \code{NA} rows will be returned
 #'
 #' @return a list with two items, \code{events} and \code{detectors}.
 #'   \code{events} is a dataframe with two columns. \code{event.id} is a
@@ -23,9 +25,10 @@
 #'
 #' @importFrom PAMmisc squishList
 #' @importFrom dplyr distinct
+#' @importFrom purrr map reduce
 #' @export
 #'
-export_banter <- function(eventList) {
+export_banter <- function(eventList, reportNA=FALSE) {
     sp <- sapply(eventList, function(x) species(x)$id)
     spNull <- sapply(sp, is.null)
     if(any(spNull)) {
@@ -35,11 +38,13 @@ export_banter <- function(eventList) {
     events <- data.frame(event.id = names(eventList),
                          species = sp,
                          stringsAsFactors = FALSE)
+    detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
     for(e in names(eventList)) {
         thisEv <- eventList[[e]]
         for(d in seq_along(detectors(thisEv))) {
             thisDet <- detectors(thisEv)[[d]]
             if(is.null(thisDet)) next
+
             thisDet$event.id <- e
             thisDet$call.id <- paste0(e, thisDet$UID)
             if('Channel' %in% colnames(thisDet)) {
@@ -48,9 +53,15 @@ export_banter <- function(eventList) {
             useCols <- lapply(thisDet, class) %in% c('numeric', 'integer', 'factor', 'logical') &
                 !(colnames(thisDet) %in% c('UID', 'Id', 'parentUID', 'sampleRate', 'Channel')) |
                 colnames(thisDet) %in% c('event.id', 'call.id')
-            detectors(thisEv)[[d]] <- thisDet[, useCols]
+
+            whereNA <- reduce(map(thisDet[, useCols], is.na), `|`)
+            detNA <- rbind(detNA, thisDet[whereNA, c('UID', 'BinaryFile')])
+            detectors(thisEv)[[d]] <- thisDet[!whereNA, useCols]
         }
         eventList[[e]] <- thisEv
+    }
+    if(reportNA) {
+        return(detNA)
     }
     dets <- lapply(eventList, function(x) {
         tmpDet <- detectors(x)
@@ -59,5 +70,9 @@ export_banter <- function(eventList) {
     names(dets) <- NULL
     dets <- squishList(unlist(dets, recursive = FALSE))
     dets <- lapply(dets, distinct)
+    if(nrow(detNA) > 0) {
+        warning('Removing ', nrow(detNA), ' NA values, re-run export_banter with ',
+                'reportNA = TRUE to see affected UID(s) and BinaryFile(s).')
+    }
     list(events=events, detectors=dets)
 }
