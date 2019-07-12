@@ -173,7 +173,8 @@ myPrs <- removeFunction(myPrs)
 
 **0.5.6**
 
-* minor change to `export_banter` no longer using list names to index
+* minor change to `export_banter` no longer using list names to index and create unique event names
+
 **0.5.5**
 
 * `export_banter` now removes NA rows, and has reportNA option to see which ones are NA

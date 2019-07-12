@@ -35,10 +35,19 @@ export_banter <- function(eventList, reportNA=FALSE) {
         stop('Events ', paste(names(eventList)[which(spNull)], collapse=', '),
              ' do not have a species ID. Cannot complete export_banter.')
     }
+
+    detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
+    evName <- names(eventList)
+    if(!(length(unique(evName)) == length(evName))) {
+        warning('Duplicate event names found, these must be unique for BANTER. Adding numbers to event names.')
+        for(i in unique(evName)) {
+            evName[evName == i] <- paste0(i, 1:(sum(evName == i)))
+        }
+        names(eventList) <- evName
+    }
     events <- data.frame(event.id = names(eventList),
                          species = sp,
                          stringsAsFactors = FALSE)
-    detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
     for(e in seq_along(eventList)) {
         thisEv <- eventList[[e]]
         for(d in seq_along(detectors(thisEv))) {
