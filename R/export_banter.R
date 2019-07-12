@@ -39,14 +39,14 @@ export_banter <- function(eventList, reportNA=FALSE) {
                          species = sp,
                          stringsAsFactors = FALSE)
     detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
-    for(e in names(eventList)) {
+    for(e in seq_along(eventList)) {
         thisEv <- eventList[[e]]
         for(d in seq_along(detectors(thisEv))) {
             thisDet <- detectors(thisEv)[[d]]
             if(is.null(thisDet)) next
 
-            thisDet$event.id <- e
-            thisDet$call.id <- paste0(e, thisDet$UID)
+            thisDet$event.id <- names(eventList)[e]
+            thisDet$call.id <- paste0(names(eventList)[e], thisDet$UID)
             if('Channel' %in% colnames(thisDet)) {
                 thisDet$call.id <- paste0('C', thisDet$Channel, thisDet$call.id)
             }
