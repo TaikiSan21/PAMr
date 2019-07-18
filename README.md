@@ -171,6 +171,11 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.7**
+
+* Rocca whistle calcs minor change - boundary settings for sweeps set to "flat",
+should reduce number of inflection points
+
 **0.5.6**
 
 * minor change to `export_banter` no longer using list names to index and create unique event names

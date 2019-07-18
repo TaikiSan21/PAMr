@@ -211,7 +211,7 @@ setSweep <- function(freq) {
     freqSweep[(freqBefore <= freqNow) & (freqNow <= freqAfter)] <- 2L
     freqSweep[(freqBefore == freqNow) & (freqNow == freqAfter)] <- 1L
     # We've only set the 'middle' sweeps, ends don't have valid values so default to 0.
-    freqSweep <- c(0L, freqSweep, 0L)
+    freqSweep <- c(1L, freqSweep, 1L)
     for(i in seq_along(freqSweep)) {
         if(is.na(freqSweep[i])) {
             freqSweep[i] <- freqSweep[i-1]

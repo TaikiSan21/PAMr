@@ -139,7 +139,8 @@ doWhistleCalcs <- function(whistleData, whistleFuns) {
       allWhistles[[f]] <- bind_rows(
         lapply(whistleData, function(oneWhistle) {
             if(!('sampleRate' %in% names(oneWhistle))) {
-                oneWhistle$sampleRate <- fftLen * oneWhistle$maxFreq / max(unlist(oneWhistle$sliceData))
+                oneWhistle$sampleRate <- fftLen * oneWhistle$maxFreq /
+                    max(unlist(lapply(oneWhistle$sliceData, function(x) x$peakData)))
             }
             oneWhistle$freq <- oneWhistle$contour * oneWhistle$sampleRate / fftLen
             oneWhistle$time <- sapply(oneWhistle$sliceData,
