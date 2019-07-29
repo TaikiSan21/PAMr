@@ -74,6 +74,7 @@ export_banter <- function(eventList, reportNA=FALSE) {
     }
     dets <- lapply(eventList, function(x) {
         tmpDet <- detectors(x)
+        if(length(tmpDet) == 0) return(NULL)
         tmpDet[sapply(tmpDet, function(y) !is.null(y) && ncol(y) > 2)]
     })
     names(dets) <- NULL

@@ -171,6 +171,14 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.8**
+
+* Changed event naming for `mode='time'` in `getPgDetections`. Will now only append
+numbers if event is not unique, and will also insert an underscore before the number
+
+* `export_banter` now properly checks for cases when there are no detectors in an event
+instead of crashing confusingly
+
 **0.5.7**
 
 * Rocca whistle calcs minor change - boundary settings for sweeps set to "flat",
