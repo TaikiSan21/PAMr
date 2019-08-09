@@ -171,6 +171,11 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.5.9**
+
+* Fixed bug in SR / FFT parameter calculation in whistles if there was a gap in
+the whistle contour
+
 **0.5.8**
 
 * Changed event naming for `mode='time'` in `getPgDetections`. Will now only append

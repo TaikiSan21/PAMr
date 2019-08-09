@@ -132,7 +132,8 @@ doWhistleCalcs <- function(whistleData, whistleFuns) {
         tempData <- whistleData[[2]]
     }
     fftHop <- (tempData$startSample + 1)/tempData$sliceData[[1]]$sliceNumber
-    fftLen <- tempData$sampleDuration - (tempData$nSlices - 1) * fftHop
+    fftLen <- tempData$sampleDuration -
+        (tempData$sliceData[[tempData$nSlices]]$sliceNumber - tempData$sliceData[[1]]$sliceNumber) * fftHop
 
     allWhistles <- vector('list', length=length(whistleFuns))
     for(f in seq_along(whistleFuns)) {
