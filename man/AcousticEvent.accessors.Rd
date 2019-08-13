@@ -11,6 +11,10 @@
 \alias{localizations,AcousticEvent-method}
 \alias{localizations<-}
 \alias{localizations<-,AcousticEvent-method}
+\alias{id}
+\alias{id,AcousticEvent-method}
+\alias{id<-}
+\alias{id<-,AcousticEvent-method}
 \alias{detectors}
 \alias{detectors,AcousticEvent-method}
 \alias{detectors<-}
@@ -52,6 +56,14 @@ localizations(x, ...)
 localizations(x) <- value
 
 \S4method{localizations}{AcousticEvent}(x) <- value
+
+id(x, ...)
+
+\S4method{id}{AcousticEvent}(x, ...)
+
+id(x) <- value
+
+\S4method{id}{AcousticEvent}(x) <- value
 
 detectors(x, ...)
 
@@ -110,6 +122,7 @@ files(x) <- value
 }
 \value{
 \describe{
+  \item{id}{a unique id or name for this event}
   \item{settings}{a \linkS4class{DataSettings} object}
   \item{detectors}{a list of detector data frames}
   \item{localizations}{list of localizations}

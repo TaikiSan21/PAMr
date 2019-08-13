@@ -171,6 +171,14 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.6.0**
+
+* Added an `id` slot to `AcousticEvent` objects. Note that this will cause existing `AcousticEvent`
+objects to behave poorly until they have their `id` slot created / updated using the new
+`setIdSlot` function.
+
+* Added `setIdSlot` function to update older `AcousticEvent` objects to the new format
+
 **0.5.8**
 
 * Changed event naming for `mode='time'` in `getPgDetections`. Will now only append

@@ -201,6 +201,7 @@ VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
 #' @description An S4 class storing acoustic detections from an Acoustic Event
 #'   as well as other related metadata
 #'
+#' @slot id unique id or name for this event
 #' @slot detectors a list of data frames that have acoustic detections and
 #'   any measurements calculated on those detections. Each data frame is named
 #'   by the detector that made the detection
@@ -219,6 +220,7 @@ VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
 #'
 setClass('AcousticEvent',
          slots = c(
+             id = 'character',
              detectors = 'list',
              localizations = 'list',
              settings = 'DataSettings',
@@ -227,7 +229,7 @@ setClass('AcousticEvent',
              erddap = 'list',
              species = 'list',
              files = 'list'),
-         prototype = prototype(detectors=list(), localizations=list(), settings=DataSettings(),
+         prototype = prototype(id = character(), detectors=list(), localizations=list(), settings=DataSettings(),
                                visData=VisObsData(), behavior=list(), erddap=list(), species=list(id=NULL),
                                files = list())
 )
@@ -235,27 +237,20 @@ setClass('AcousticEvent',
 setValidity('AcousticEvent',
             function(object) {
                 valid <- TRUE
-                # if(length(object@detectors)==0) {
-                #     cat('AcousticEvent object must have at least one detector. \n')
-                #     valid <- FALSE
-                # }
-                # if(is.null(names(object@detectors))) {
-                #     cat('All detectors in the "detectors" slot must be named. \n')
-                #     valid <- FALSE
-                # }
                 valid
             }
 )
 # Basic constructor
-AcousticEvent <- function(detectors=list(), localizations=list(), settings=DataSettings(), visData=VisObsData(),
+AcousticEvent <- function(id = character(), detectors=list(), localizations=list(), settings=DataSettings(), visData=VisObsData(),
                           behavior=list(), erddap=list(), species=list(id=NULL), files=list()) {
-    new('AcousticEvent', detectors=detectors, localizations=localizations, settings=settings,
+    new('AcousticEvent', id = id, detectors=detectors, localizations=localizations, settings=settings,
         visData=visData, behavior=behavior, erddap=erddap, species=species, files=files)
 }
 
 setMethod('show', 'AcousticEvent',
           function(object) {
-              cat('AcousticEvent object with', length(object@detectors), 'detector(s): \n')
+              cat('AcousticEvent object "', id(object), '" with ',
+                  length(object@detectors), ' detector(s): \n', sep='')
               cat(paste(names(object@detectors), collapse=', '))
           }
 )

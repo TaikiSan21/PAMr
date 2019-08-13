@@ -4,7 +4,7 @@
 #'   Pamguard. Uses the binary file output from Pamguard and (optionally)
 #'   the database used. If a database is used then only detections found
 #'   in that database will be processed, and they will be grouped by either
-#'   the 'OfflineEvents' table or the 'Detection Group Localiser' module
+#'   the 'OfflineEvents' table or the 'Detection Group Localiser' modulef
 #'   groups. If no database is provided, all detections in all of the
 #'   provided binary files will be processed, this can take an extremely
 #'   long time. This will also apply a set of functions to the binaray data
@@ -18,6 +18,7 @@
 #'   will organize by events based on tables in the databases, \code{all} will
 #'   put all detections in the binaries into one single event, and \code{time}
 #'   will organize into events based on timestamps provided in \code{grouping}.
+#' @param id an event name or id for this event, only used for \code{mode='all'}
 #' @param sampleRate the sample rate of the data. If reading detections from
 #'   a database this will be read in from the SoundAcquisition table, if
 #'   \code{mode} is \code{all} or \code{time} this must be specified.
@@ -50,25 +51,22 @@
 #' @import dplyr
 #' @export
 #'
-getPgDetections <- function(prs, mode = c('db', 'all', 'time'), sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
+getPgDetections <- function(prs, mode = c('db', 'all', 'time'), id=NULL,
+                            sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
     switch(match.arg(mode),
            'db' = getPgDetectionsDb(prs, grouping),
-           'all' = getPgDetectionsAll(prs, sampleRate),
+           'all' = getPgDetectionsAll(prs, id, sampleRate),
            'time' = getPgDetectionsTime(prs, sampleRate, grouping, format)
     )
-    # if(length(prs@db)==0) {
-    #     return(getPgDetectionsAll(prs, ...))
-    # }
-    # getPgDetectionsDb(prs, ...)
 }
 
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #'
-getPgDetectionsAll <- function(prs, sampleRate=NULL) {
+getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
     binList <- prs@binaries$list
     binFuns <- prs@functions
     if(is.null(sampleRate)) {
@@ -76,6 +74,10 @@ getPgDetectionsAll <- function(prs, sampleRate=NULL) {
                                    paste0('What is the sample rate for this data? ',
                                           '(When processing all binaries, sample rate must be the same) '))
         sampleRate <- as.numeric(sampleRate)
+    }
+    if(is.null(id)) {
+        warning("No Id specified, using today's date.")
+        id <- as.character(Sys.Date())
     }
     calibrationUsed <- names(prs@calibration[[1]])
     if(length(calibrationUsed)==0) calibrationUsed <- 'None'
@@ -101,7 +103,7 @@ getPgDetectionsAll <- function(prs, sampleRate=NULL) {
     # Should this function store the event ID? Right now its just the name
     # in the list, but is this reliable? Probably not
 
-    acousticEvents <- AcousticEvent(detectors = binData, settings = DataSettings(sampleRate = sampleRate),
+    acousticEvents <- AcousticEvent(id = id, detectors = binData, settings = DataSettings(sampleRate = sampleRate),
                                     files = list(binaries=binList, database='None', calibration=calibrationUsed))
     acousticEvents
 }
@@ -191,8 +193,9 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         if(length(thisData) == 0) {
             warning('No detections in Event ', names(acousticEvents)[i])
         }
-        acousticEvents[[i]] <- AcousticEvent(detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
-                                             files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
+        acousticEvents[[i]] <-
+            AcousticEvent(id=evName[i], detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
+                          files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
     }
     if('species' %in% colnames(grouping)) {
         grouping$species <- as.character(grouping$species)
@@ -268,6 +271,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
                               files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
             })
             setTxtProgressBar(pb, value = which(allDb == db))
+            acousticEvents <- setIdSlot(acousticEvents)
             acousticEvents
         },
         error = function(e) {

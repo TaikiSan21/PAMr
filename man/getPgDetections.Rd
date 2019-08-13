@@ -4,8 +4,9 @@
 \alias{getPgDetections}
 \title{Load and Process Detections from Pamguard}
 \usage{
-getPgDetections(prs, mode = c("db", "all", "time"), sampleRate = NULL,
-  grouping = NULL, format = "\%Y-\%m-\%d \%H:\%M:\%OS")
+getPgDetections(prs, mode = c("db", "all", "time"), id = NULL,
+  sampleRate = NULL, grouping = NULL,
+  format = "\%Y-\%m-\%d \%H:\%M:\%OS")
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object containing the databases,
@@ -16,6 +17,8 @@ See \code{\link[PAMr]{PAMrSettings}}}
 will organize by events based on tables in the databases, \code{all} will
 put all detections in the binaries into one single event, and \code{time}
 will organize into events based on timestamps provided in \code{grouping}.}
+
+\item{id}{an event name or id for this event, only used for \code{mode='all'}}
 
 \item{sampleRate}{the sample rate of the data. If reading detections from
 a database this will be read in from the SoundAcquisition table, if
@@ -46,7 +49,7 @@ Loads in acoustic detection data that has been run thorugh
   Pamguard. Uses the binary file output from Pamguard and (optionally)
   the database used. If a database is used then only detections found
   in that database will be processed, and they will be grouped by either
-  the 'OfflineEvents' table or the 'Detection Group Localiser' module
+  the 'OfflineEvents' table or the 'Detection Group Localiser' modulef
   groups. If no database is provided, all detections in all of the
   provided binary files will be processed, this can take an extremely
   long time. This will also apply a set of functions to the binaray data
