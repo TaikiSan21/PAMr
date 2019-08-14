@@ -171,6 +171,14 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.6.0**
+
+* Added an `id` slot to `AcousticEvent` objects. Note that this will cause existing `AcousticEvent`
+objects to behave poorly until they have their `id` slot created / updated using the new
+`setIdSlot` function.
+
+* Added `setIdSlot` function to update older `AcousticEvent` objects to the new format
+
 **0.5.9**
 
 * Fixed bug in SR / FFT parameter calculation in whistles if there was a gap in

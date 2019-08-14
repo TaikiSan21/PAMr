@@ -31,6 +31,7 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom PAMmisc peakTrough
 #' @importFrom stats median quantile
+#' @importFrom tuneR WaveMC
 #' @export
 #'
 standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
@@ -40,8 +41,9 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
                     'PeakHz_10dB', 'fmin_10dB', 'fmax_10dB', 'BW_10dB', 'centerHz_10dB',
                     'Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB', 'centerHz_3dB')
     # Do for each channel
-    if('Wave' %in% class(data)) {
-        data <- list(wave = cbind(data@left, data@right), sampleRate = data@samp.rate)
+    if(inherits(data, 'Wave')) {
+        data <- WaveMC(data)
+        data <- list(wave = data@.Data, sampleRate = data@samp.rate)
     }
     if(!is.matrix(data$wave)) {
         data$wave <- matrix(data$wave, ncol=1)
@@ -75,21 +77,18 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         # Shortening click wave by getting numpoints=fftsize around peak of wav. Length fft+1
         # This removes a lot of the noise samples Pamguard takes - following what Jay/EG did
         wavPeak <- which.max(thisWave)
-        tryCatch({
-            if(length(thisWave) <= fftSize) {
-                # do nothing
-            } else if(wavPeak > fftSize/2) {
-                if((wavPeak + fftSize/2) <= length(thisWave)) {
-                    thisWave <- thisWave[(wavPeak - fftSize/2):(wavPeak + fftSize/2)]
-                } else {
-                    thisWave <- thisWave[(length(thisWave)-fftSize):length(thisWave)]
-                }
+
+        if(length(thisWave) <= fftSize) {
+            # do nothing
+        } else if(wavPeak > fftSize/2) {
+            if((wavPeak + fftSize/2) <= length(thisWave)) {
+                thisWave <- thisWave[(wavPeak - fftSize/2):(wavPeak + fftSize/2)]
             } else {
-                thisWave <- thisWave[1:(fftSize+1)]
+                thisWave <- thisWave[(length(thisWave)-fftSize):length(thisWave)]
             }
-        }, error = function(e) {
-            browser()
-        })
+        } else {
+            thisWave <- thisWave[1:(fftSize+1)]
+        }
 
         # Do any calculations you want. Here just getting peak frequency.
         # TKEO - skip 1st .001s to avoid startup artifacts, energy is 2nd col
