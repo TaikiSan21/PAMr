@@ -52,7 +52,7 @@
 #' @export
 #'
 getPgDetections <- function(prs, mode = c('db', 'all', 'time'), id=NULL,
-                            sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
+                            sampleRate=NULL, grouping=c('event', 'detGroup'), format='%Y-%m-%d %H:%M:%OS') {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
@@ -94,6 +94,7 @@ getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
         setTxtProgressBar(pb, value=which(binList==bin))
         thisBinData
     })
+    cat('\n')
     binData <- binData[sapply(binData, function(x) !is.null(x))]
     # for clicks we have split the broad detector into separate ones by classification
     binData <- lapply(binData, function(x) split(x, x$detectorName))
@@ -163,6 +164,7 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         setTxtProgressBar(pb, value=which(binList==bin))
         thisBinData
     })
+    cat('\n')
     binData <- binData[sapply(binData, function(x) !is.null(x))]
     # for clicks we have split the broad detector into separate ones by classification
     binData <- lapply(binData, function(x) split(x, x$detectorName))
@@ -214,7 +216,10 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
             binList <- prs@binaries$list
             binFuns <- prs@functions
             dbData <- getDbData(db, grouping)
-            if(is.null(dbData)) {
+            if(is.null(dbData) ||
+               nrow(dbData) == 0) {
+                warning('No detections found in databse ',
+                        basename(db), '.')
                 setTxtProgressBar(pb, value = which(allDb == db))
                 return(NULL)
             }
@@ -274,12 +279,18 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
             acousticEvents <- setIdSlot(acousticEvents)
             acousticEvents
         },
+        warning = function(w) {
+            warning(w)
+            setTxtProgressBar(pb, value = which(allDb == db))
+            return(NULL)
+        },
         error = function(e) {
             warning(e)
             setTxtProgressBar(pb, value = which(allDb == db))
             return(NULL)
         })
     })
+    cat('\n')
     names(allAcEv) <- gsub('\\.sqlite3', '', basename(allDb))
     unlist(allAcEv, recursive = FALSE)
 }
@@ -366,7 +377,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
     # left_join all det, inner_join ev only
     if(!('UID' %in% names(allEvents)) ||
        !('parentUID' %in% names(allDetections))) {
-        warning('UID and parentUID columns not found in database ', basename(db),
+        cat('UID and parentUID columns not found in database ', basename(db),
                 ', these are required to process data. Please upgrade to Pamguard 2.0+.')
         return(NULL)
     }

@@ -20,7 +20,7 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @import dplyr
-#' @importFrom PamBinaries convertPgDate
+#' @importFrom PamBinaries convertPgDate contourToFreq
 #' @export
 #'
 calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(standardClickCalcs))) {
@@ -127,28 +127,27 @@ doClickCalcs <- function(clickData, clickFuns) {
 doWhistleCalcs <- function(whistleData, whistleFuns) {
     # Does this die if 1st slice is #1 (or 0, w/e index is)
     # probably, so use next whistle
-    tempData <- whistleData[[1]]
-    if(tempData$sliceData[[1]]$sliceNumber == 0) {
-        tempData <- whistleData[[2]]
-    }
-    fftHop <- (tempData$startSample + 1)/tempData$sliceData[[1]]$sliceNumber
-    fftLen <- tempData$sampleDuration -
-        (tempData$sliceData[[tempData$nSlices]]$sliceNumber - tempData$sliceData[[1]]$sliceNumber) * fftHop
+    whistleData <- contourToFreq(whistleData)
+    # tempData <- whistleData[[1]]
+    # if(tempData$sliceData[[1]]$sliceNumber == 0) {
+    #     tempData <- whistleData[[2]]
+    # }
+    # fftHop <- (tempData$startSample + 1)/tempData$sliceData[[1]]$sliceNumber
+    # fftLen <- tempData$sampleDuration -
+    #     (tempData$sliceData[[tempData$nSlices]]$sliceNumber - tempData$sliceData[[1]]$sliceNumber) * fftHop
 
     allWhistles <- vector('list', length=length(whistleFuns))
     for(f in seq_along(whistleFuns)) {
-      allWhistles[[f]] <- bind_rows(
-        lapply(whistleData, function(oneWhistle) {
-            if(!('sampleRate' %in% names(oneWhistle))) {
-                oneWhistle$sampleRate <- fftLen * oneWhistle$maxFreq /
-                    max(unlist(lapply(oneWhistle$sliceData, function(x) x$peakData)))
-            }
-            oneWhistle$freq <- oneWhistle$contour * oneWhistle$sampleRate / fftLen
-            oneWhistle$time <- sapply(oneWhistle$sliceData,
-                                      function(x) x$sliceNumber) * fftHop / oneWhistle$sampleRate
-            whistleFuns[[f]](oneWhistle)
-        })
-      )
+        allWhistles[[f]] <- bind_rows(
+            lapply(whistleData, function(oneWhistle) {
+                # oneWhistle$sampleRate <- fftLen * oneWhistle$maxFreq /
+                #     max(unlist(lapply(oneWhistle$sliceData, function(x) x$peakData)))
+                # oneWhistle$freq <- oneWhistle$contour * oneWhistle$sampleRate / fftLen
+                # oneWhistle$time <- sapply(oneWhistle$sliceData,
+                #                           function(x) x$sliceNumber) * fftHop / oneWhistle$sampleRate
+                whistleFuns[[f]](oneWhistle)
+            })
+        )
     }
     bind_cols(allWhistles)
 }

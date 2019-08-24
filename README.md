@@ -171,6 +171,10 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.6.1**
+
+* Sometimes whistles would not get proper decimated sample rate, fixed
+
 **0.6.0**
 
 * Added an `id` slot to `AcousticEvent` objects. Note that this will cause existing `AcousticEvent`

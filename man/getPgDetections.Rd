@@ -5,7 +5,7 @@
 \title{Load and Process Detections from Pamguard}
 \usage{
 getPgDetections(prs, mode = c("db", "all", "time"), id = NULL,
-  sampleRate = NULL, grouping = NULL,
+  sampleRate = NULL, grouping = c("event", "detGroup"),
   format = "\%Y-\%m-\%d \%H:\%M:\%OS")
 }
 \arguments{

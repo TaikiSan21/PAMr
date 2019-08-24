@@ -1,7 +1,7 @@
 Package: PAMr
 Type: Package
 Title: What the Package Does (Title Case)
-Version: 0.6.0
+Version: 0.6.1
 Authors@R: c(
   TS = person("Taiki", "Sakai", email = "taiki.sakai@noaa.gov", role = c("aut", "cre")))
 Maintainer: The package maintainer <yourself@somewhere.net>
@@ -10,9 +10,10 @@ Description: More about what it does (maybe more than one line)
 License: GNU General Public License
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.3.0)
+Depends: 
+    R (>= 3.3.0),
+    PamBinaries (>= 1.2.6)
 Imports:
-    PamBinaries,
     dplyr,
     seewave,
     gam,

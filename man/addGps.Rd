@@ -9,7 +9,7 @@
 \alias{addGps,ANY-method}
 \title{Add GPS Locations to Data}
 \usage{
-addGps(x, gps, thresh, ...)
+addGps(x, gps, thresh = 3600, ...)
 
 \S4method{addGps}{data.frame}(x, gps, thresh = 3600, ...)
 
@@ -20,11 +20,11 @@ addGps(x, gps, thresh, ...)
 \S4method{addGps}{ANY}(x, gps, thresh = 3600, ...)
 }
 \arguments{
-\item{x}{data to add GPS coordinates to. Must have a column \code{UTC}, and 
+\item{x}{data to add GPS coordinates to. Must have a column \code{UTC}, and
 can also have an optional column \code{Channel}}
 
-\item{gps}{a data frame of GPS coordinates to match to data from \code{x}. 
-Must have columns \code{UTC}, \code{Latitude}, \code{Longitude}, and 
+\item{gps}{a data frame of GPS coordinates to match to data from \code{x}.
+Must have columns \code{UTC}, \code{Latitude}, \code{Longitude}, and
 optionally \code{Channel}.}
 
 \item{thresh}{maximum time in seconds for matching GPS coordinates to data.}
@@ -40,8 +40,8 @@ Add GPS Lat / Long to a variety of types of data.
 \details{
 Latitude and Longitude coordinates will be matched to the data
   by using data.tables rolling join with \code{roll='nearest'}. After the
-  join is done, the time difference between the matched rows is checked 
-  and any that are greater than the set threshold are set to NA. This is 
+  join is done, the time difference between the matched rows is checked
+  and any that are greater than the set threshold are set to NA. This is
   done to prevent accidentally matching weird things if an incomplete set
   of GPS data is provided.
 }
