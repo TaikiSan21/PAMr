@@ -171,6 +171,10 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.6.2**
+
+* Fixed an issue with repeated entries in click detections for modes other than `'db'`
+
 **0.6.1**
 
 * Sometimes whistles would not get proper decimated sample rate, fixed
