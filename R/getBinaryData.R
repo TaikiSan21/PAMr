@@ -18,7 +18,7 @@
 getBinaryData <- function(acEv, UID) {
     bins <- bind_rows(
         lapply(acEv@detectors, function(df) {
-            df[df$UID %in% UID, c('UID', 'BinaryFile')]
+            df[df[['UID']] %in% UID, c('UID', 'BinaryFile')]
         }))
     if(is.null(bins)) {
         warning('No matches found for UID(s) ', paste(UID, collapse=','), '.')
@@ -26,7 +26,7 @@ getBinaryData <- function(acEv, UID) {
     }
     bins <- unique(bins)
     nIn <- sapply(UID, function(x) {
-        sum(x %in% bins$UID)
+        sum(x == bins[['UID']])
     })
     if(any(nIn == 0)) {
         warning('No matches found for UID(s) ',
@@ -35,6 +35,7 @@ getBinaryData <- function(acEv, UID) {
     if(any(nIn > 1)) {
         warning('Multiple matches found for UID(s) ',
                 paste(UID[nIn > 1], collapse=','), '.')
+        print(bins[bins[['UID']] %in% UID[nIn > 1],])
     }
     result <- lapply(unique(bins$BinaryFile), function(bin) {
         # this has full path name
@@ -53,7 +54,7 @@ getBinaryData <- function(acEv, UID) {
             return(NULL)
         }
         loadPamguardBinaryFile(fullBin, skipLarge = FALSE, convertDate = TRUE,
-                               keepUIDs = bins$UID[bins$BinaryFile == bin])$data
+                               keepUIDs = bins[['UID']][bins$BinaryFile == bin])$data
     })
     # list named by UID as result
     unlist(result, recursive = FALSE)

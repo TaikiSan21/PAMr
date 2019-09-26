@@ -31,7 +31,7 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
     method <- match.arg(method)
     switch(method,
            'pamguard' = {
-               spCol <- c('Text_Annotation', 'eventType')
+               spCol <- c('Text_Annotation', 'eventType', 'eventLabel')
                for(i in seq_along(acev)) {
                    sp <- sapply(detectors(acev[[i]]), function(x) {
                        hasCol <- spCol[spCol %in% colnames(x)]

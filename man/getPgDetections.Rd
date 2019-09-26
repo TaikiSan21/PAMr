@@ -6,7 +6,7 @@
 \usage{
 getPgDetections(prs, mode = c("db", "all", "time"), id = NULL,
   sampleRate = NULL, grouping = c("event", "detGroup"),
-  format = "\%Y-\%m-\%d \%H:\%M:\%OS")
+  format = "\%Y-\%m-\%d \%H:\%M:\%OS", ...)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object containing the databases,
@@ -37,6 +37,8 @@ be a character with the file path to a csv file with these columns.}
 \item{format}{the date format for the \code{start} and \code{end} columns
 in \code{grouping} if it is a csv. Times are assumed to be UTC. See
 ?strptime for details.}
+
+\item{\dots}{additional arguments to pass onto to different methods}
 }
 \value{
 a list of \linkS4class{AcousticEvent} objects. If reading from a

@@ -34,6 +34,7 @@
 #' @param format the date format for the \code{start} and \code{end} columns
 #'   in \code{grouping} if it is a csv. Times are assumed to be UTC. See
 #'   ?strptime for details.
+#' @param \dots additional arguments to pass onto to different methods
 #'
 #' @return a list of \linkS4class{AcousticEvent} objects. If reading from a
 #'   database, there will be a separate AcousticEvent for each event found
@@ -52,13 +53,14 @@
 #' @export
 #'
 getPgDetections <- function(prs, mode = c('db', 'all', 'time'), id=NULL,
-                            sampleRate=NULL, grouping=c('event', 'detGroup'), format='%Y-%m-%d %H:%M:%OS') {
+                            sampleRate=NULL, grouping=c('event', 'detGroup'),
+                            format='%Y-%m-%d %H:%M:%OS', ...) {
     if(class(prs) != 'PAMrSettings') {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
     switch(match.arg(mode),
-           'db' = getPgDetectionsDb(prs, grouping),
+           'db' = getPgDetectionsDb(prs, grouping, ...),
            'all' = getPgDetectionsAll(prs, id, sampleRate),
            'time' = getPgDetectionsTime(prs, sampleRate, grouping, format)
     )
@@ -100,7 +102,10 @@ getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
     binData <- lapply(binData, function(x) split(x, x$detectorName))
     binData <- unlist(binData, recursive = FALSE)
     binData <- squishList(binData)
-
+    colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID')
+    binData <- lapply(binData, function(x) {
+        dropCols(x, colsToDrop)
+    })
     # Should this function store the event ID? Right now its just the name
     # in the list, but is this reliable? Probably not
 
@@ -118,20 +123,26 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
             'optionally "species" to group detections into events.')
         grouping <- file.choose()
     }
-    if('character' %in% class(grouping)) {
+    if(inherits(grouping, 'character')) {
         stopifnot(file.exists(grouping))
         grouping <- read_csv(grouping, col_types = cols(.default=col_character()))
     }
     colsNeeded <- c('start', 'end', 'id')
-    if('data.frame' %in% class(grouping)) {
+    if(inherits(grouping, 'data.frame')) {
         colnames(grouping) <- tolower(colnames(grouping))
         if(!all(colsNeeded %in% colnames(grouping))) {
             stop('"grouping" must have columns "start", "end" and "id".')
         }
-        if('character' %in% class(grouping$start)) {
+        if(inherits(grouping$start, 'factor')) {
+            grouping$start <- as.character(grouping$start)
+        }
+        if(inherits(grouping$start, 'character')) {
             grouping$start <- as.POSIXct(grouping$start, format=format, tz='UTC')
         }
-        if('character' %in% class(grouping$end)) {
+        if(inherits(grouping$end, 'factor')) {
+            grouping$end <- as.character(grouping$end)
+        }
+        if(inherits(grouping$end, 'character')) {
             grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
         }
         if(any(is.na(grouping$start)) ||
@@ -180,6 +191,7 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         if(evTable[i] == 1) next
         evName[evName == i] <- paste0(i, '_',  1:evTable[i])
     }
+    colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID')
     names(acousticEvents) <- evName
     for(i in seq_along(acousticEvents)) {
         thisData <- lapply(binData, function(x) {
@@ -195,6 +207,9 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         if(length(thisData) == 0) {
             warning('No detections in Event ', names(acousticEvents)[i])
         }
+        thisData <- lapply(thisData, function(x) {
+            dropCols(x, colsToDrop)
+        })
         acousticEvents[[i]] <-
             AcousticEvent(id=evName[i], detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
                           files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
@@ -207,7 +222,7 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
 }
 
 #'
-getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
+getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), ...) {
     allDb <- prs@db
     cat('Processing databases... \n')
     pb <- txtProgressBar(min=0, max=length(allDb), style=3)
@@ -215,7 +230,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
         tryCatch({
             binList <- prs@binaries$list
             binFuns <- prs@functions
-            dbData <- getDbData(db, grouping)
+            dbData <- getDbData(db, grouping, ...)
             if(is.null(dbData) ||
                nrow(dbData) == 0) {
                 warning('No detections found in databse ',
@@ -266,24 +281,27 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
 
             # Should this function store the event ID? Right now its just the name
             # in the list, but is this reliable? Probably not
-
+            colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID')
             acousticEvents <- lapply(dbData, function(ev) {
                 ev <- ev[sapply(ev, function(x) !is.null(x))]
                 binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
                     unlist(recursive = FALSE) %>% unique()
                 binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
-                AcousticEvent(detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
+                id <- unique(ev[[1]]$parentUID)
+                ev <- lapply(ev, function(x) {
+                    dropCols(x, colsToDrop)
+                })
+                AcousticEvent(id = id, detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
                               files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
             })
             setTxtProgressBar(pb, value = which(allDb == db))
-            acousticEvents <- setIdSlot(acousticEvents)
             acousticEvents
         },
-        warning = function(w) {
-            warning(w)
-            setTxtProgressBar(pb, value = which(allDb == db))
-            return(NULL)
-        },
+        # warning = function(w) {
+        #     warning(w)
+        #     setTxtProgressBar(pb, value = which(allDb == db))
+        #     return(NULL)
+        # },
         error = function(e) {
             warning(e)
             setTxtProgressBar(pb, value = which(allDb == db))
@@ -295,7 +313,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup')) {
     unlist(allAcEv, recursive = FALSE)
 }
 
-getDbData <- function(db, grouping=c('event', 'detGroup')) {
+getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
     # Combine all click/event tables, even by diff detector. Binary will have det name
     con <- dbConnect(SQLite(), db)
     on.exit(dbDisconnect(con))
@@ -321,7 +339,11 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
            'event' = {
                detTables <- grep('OfflineClicks', tables, value=TRUE)
                eventTables <- grep('OfflineEvents', tables, value=TRUE)
-               eventColumns <- c('UID', 'eventType', 'comment')
+               # eventColumns <- c('UID', 'eventType', 'comment')
+               if(is.null(label)) {
+                   label <- 'eventType'
+               }
+               eventColumns <- c('UID', label)
                evName <- 'OE'
            },
            'detGroup' = {
@@ -335,7 +357,11 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
                detTables <- sapply(dgNames, function(x) grep(x, tables, value=TRUE))
                eventTables <- detTables[!grepl('Children', detTables)]
                detTables <- detTables[grepl('Children', detTables)]
-               eventColumns <- c('UID', 'Text_Annotation')
+               # eventColumns <- c('UID', 'Text_Annotation')
+               if(is.null(label)) {
+                   label <- 'Text_Annotation'
+               }
+               eventColumns <- c('UID', label)
                evName <- 'DGL'
            },
            {
@@ -373,6 +399,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
 
     eventColumns <- eventColumns[eventColumns %in% colnames(allEvents)]
     allEvents <- select_(allEvents, .dots=eventColumns)
+
     # Do i want all detections in clicks, or only all in events?
     # left_join all det, inner_join ev only
     if(!('UID' %in% names(allEvents)) ||
@@ -402,6 +429,9 @@ getDbData <- function(db, grouping=c('event', 'detGroup')) {
                UTC = pgDateToPosix(UTC)) %>%
         select_(.dots=unique(c(eventColumns, 'UTC', 'Id', 'UID', 'parentUID', 'BinaryFile'))) %>%
         data.table() %>% setkey(UTC)
+
+    # rename column to use as label - standardize across event group types
+    colnames(allDetections)[which(colnames(allDetections)==label)] <- 'eventLabel'
 
     # This rolling join rolls to the first time before. Since we filtered to only starts, it goes back
     # to whatever the last Start was.

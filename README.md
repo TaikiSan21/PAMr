@@ -171,6 +171,19 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.6.3**
+
+* Fixed an issue where `getPgDetections` would not work if both Detection Group Localizer
+and Offline Click events were present in a database.
+
+* Renamed `eventType` and `Text_Annotation` columns from event databases to `eventLabel`
+within detection dataframes so there is consistency between the two
+
+* Removed some unnecessary columns from detection dataframes, including `detectorName`,
+`sampleRate`, `Id`, `parentUID`, and `comment`
+
+* Fixed a bug in how `getBinaryData` was checking for multiple matches on the same UID
+
 **0.6.2**
 
 * Fixed an issue with repeated entries in click detections for modes other than `'db'`
