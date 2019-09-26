@@ -91,8 +91,10 @@ roccaWhistleCalcs <- function(data) {
 
     # Java 694
     freqCofmSum <- 0
-    for(i in seq(7, nSlices, 3)) { # java starts at ix=6 for some reason
-        freqCofmSum <- freqCofmSum + abs(contour$freq[i]-contour$freq[i-3])
+    if(nSlices >= 7) {
+        for(i in seq(7, nSlices, 3)) { # java starts at ix=6 for some reason
+            freqCofmSum <- freqCofmSum + abs(contour$freq[i]-contour$freq[i-3])
+        }
     }
     result$freqCofm <- freqCofmSum / 10000
 
