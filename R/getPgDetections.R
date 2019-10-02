@@ -149,6 +149,14 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
            any(is.na(grouping$end))) {
             warning('Some event start/end times were not able to be converted, please check format.')
         }
+        checkDate <- menu(title = paste0('The first event start time is ', grouping$start[1],
+                                         ', does this look okay?'),
+                          choices = c('Yes, continue processing.',
+                                      "No. I'll stop and check grouping data and the time format argument.")
+        )
+        if(checkDate != 1) {
+            stop('Stopped due to invalid event times.')
+        }
         grouping$id <- as.character(grouping$id)
     }
 
@@ -262,8 +270,8 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), ...) {
                             select(-BinaryFile) %>%
                             inner_join(x, by='UID') %>% distinct()
                     }
-                })
-
+                }
+            )
             # This is a list for each binary, we want for each detector
             dbData <- dbData[sapply(dbData, function(x) !is.null(x))]
 

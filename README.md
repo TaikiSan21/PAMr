@@ -171,6 +171,18 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+**0.6.4**
+
+* Better error tracking when functions cause `getPgDetections` to crash
+
+* Now reads in angles and angleErrors from click data
+
+* `export_banter` allows you to specify certain columns to not export
+
+* `'time'` mode for `getPgDetections` will now report a sample event time
+so you can see if times are being converted properly from your csv before
+proceeding with calculations
+
 **0.6.3**
 
 * Fixed an issue where `getPgDetections` would not work if both Detection Group Localizer

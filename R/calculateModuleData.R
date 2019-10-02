@@ -59,20 +59,41 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
     }
     # Adding this to binFuns for PG version so we always at least get UID and time
     # ClickDetector gets 1 row for each channel, has 'nChan' in it
-    getBasic <- function(x) {
-        nRep <- if('nChan' %in% names(x)) {
-            x$nChan
-        } else {
-            1
-        }
-        data.frame(UID = rep(as.character(x$UID), nRep),
-                   UTC = rep(x$date, nRep),
-                   stringsAsFactors = FALSE)
+    getBasic <- function(type) {
+        switch(type,
+               'ClickDetector' = function(x) {
+                   nRep <- if('nChan' %in% names(x)) {
+                       x$nChan
+                   } else {
+                       1
+                   }
+                   result <- data.frame(UID = rep(as.character(x$UID), nRep),
+                                        UTC = rep(x$date, nRep),
+                                        stringsAsFactors = FALSE)
+                   angs <- x$angles
+                   if(length(angs) == 2) {
+                       warning('More than one angle for click UID' , result$UID[1],
+                               ', only using first.')
+                   }
+                   result$angle <- angs[1]
+                   result$angleError <- x$angleErrors[1]
+                   result
+               }, function(x) {
+                   nRep <- if('nChan' %in% names(x)) {
+                       x$nChan
+                   } else {
+                       1
+                   }
+                   data.frame(UID = rep(as.character(x$UID), nRep),
+                              UTC = rep(x$date, nRep),
+                              stringsAsFactors = FALSE)
+               })
+
     }
     result <- switch(
         moduleType,
         'ClickDetector' = {
-            allClicks <- doClickCalcs(binData$data, c(getBasic, binFuns[['ClickDetector']]))
+            allClicks <- doClickCalcs(binData$data, c(getBasic(moduleType), binFuns[['ClickDetector']]))
             # We want each 'type' of click to be separate 'detector'. This is PG only.
             allNames <- bind_rows(
                 lapply(binData$data[unique(as.character(allClicks$UID))], function(x) {
@@ -84,12 +105,12 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
             left_join(allClicks, allNames, by='UID')
         },
         'WhistlesMoans' = {
-            allWhistles <- doWhistleCalcs(binData$data, c(getBasic, binFuns[['WhistlesMoans']]))
+            allWhistles <- doWhistleCalcs(binData$data, c(getBasic(moduleType), binFuns[['WhistlesMoans']]))
             allWhistles$detectorName <- detName
             allWhistles
         },
         'Cepstrum' = {
-            allCepstrum <- doCepstrumCalcs(binData$data, c(getBasic, binFuns[['Cepstrum']]))
+            allCepstrum <- doCepstrumCalcs(binData$data, c(getBasic(moduleType), binFuns[['Cepstrum']]))
             allCepstrum$detectorName <- detName
             allCepstrum
         },
@@ -108,7 +129,15 @@ doClickCalcs <- function(clickData, clickFuns) {
         # Apply this function to each datapoint in binary
         allClicks[[f]] <- bind_rows(
             lapply(clickData, function(oneClick) {
-                clickFuns[[f]](oneClick)
+                tryCatch({
+                    clickFuns[[f]](oneClick)
+                }, error = function(e) {
+                    # browser()
+                    cat('Error in function ', names(clickFuns)[f],
+                        ': ', as.character(e$call[1]), '-', e$message,
+                        '. UID: ', oneClick$UID, sep='')
+                }
+                )
             })
         )
     }
@@ -145,7 +174,15 @@ doWhistleCalcs <- function(whistleData, whistleFuns) {
                 # oneWhistle$freq <- oneWhistle$contour * oneWhistle$sampleRate / fftLen
                 # oneWhistle$time <- sapply(oneWhistle$sliceData,
                 #                           function(x) x$sliceNumber) * fftHop / oneWhistle$sampleRate
-                whistleFuns[[f]](oneWhistle)
+                tryCatch({
+                    whistleFuns[[f]](oneWhistle)
+                }, error = function(e) {
+                    # browser()
+                    cat('Error in function ', names(whistleFuns)[f],
+                        ': ', as.character(e$call[1]), '-', e$message,
+                        '. UID: ', oneWhistle$UID, sep='')
+                }
+                )
             })
         )
     }
@@ -172,7 +209,15 @@ doCepstrumCalcs <- function(cepstrumData, cepstrumFuns) {
                 oneCeps$quefrency <- oneCeps$contour
                 oneCeps$time <- sapply(oneCeps$sliceData,
                                           function(x) x$sliceNumber) * fftHop / oneCeps$sampleRate
-                cepstrumFuns[[f]](oneCeps)
+                tryCatch({
+                    cepstrumFuns[[f]](oneCeps)
+                }, error = function(e) {
+                    # browser()
+                    cat('Error in function ', names(cepstrumFuns)[f],
+                        ': ', as.character(e$call[1]), '-', e$message,
+                        '. UID: ', oneCeps$UID, sep='')
+                }
+                )
             })
         )
     }

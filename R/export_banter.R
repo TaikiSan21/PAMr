@@ -4,6 +4,7 @@
 #'   needed to run a banter model.
 #'
 #' @param eventList a list of \linkS4class{AcousticEvent} objects.
+#' @param dropVars a vector of the names of any variables to remove
 #' @param reportNA logical, if \code{TRUE} then only the UID's and
 #'   Binary File names of any \code{NA} rows will be returned
 #'
@@ -17,9 +18,10 @@
 #'   of \code{eventList}. The data frames will only have columns with class
 #'   \code{numeric}, \code{integer}, \code{factor}, or \code{logical}, and
 #'   will also have columns named \code{UID}, \code{Id}, \code{parentUID},
-#'   \code{sampleRate}, and \code{Channel} removed so that these are not treated
-#'   as parameters for the banter random forest model. The dataframes will also
-#'   have columns \code{event.id} and \code{call.id} added.
+#'   \code{sampleRate}, \code{Channel}, \code{angle}, and \code{angleError},
+#'   removed so that these are not treated as parameters for the banter random
+#'   forest model. The dataframes will also have columns \code{event.id} and
+#'   \code{call.id} added.
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
@@ -28,7 +30,7 @@
 #' @importFrom purrr map reduce
 #' @export
 #'
-export_banter <- function(eventList, reportNA=FALSE) {
+export_banter <- function(eventList, dropVars=NULL, reportNA=FALSE) {
     sp <- sapply(eventList, function(x) species(x)$id)
     spNull <- sapply(sp, is.null)
     if(any(spNull)) {
@@ -59,8 +61,10 @@ export_banter <- function(eventList, reportNA=FALSE) {
             if('Channel' %in% colnames(thisDet)) {
                 thisDet$call.id <- paste0('C', thisDet$Channel, thisDet$call.id)
             }
+            colsToDrop <- c('UID', 'Id', 'parentUID', 'sampleRate', 'Channel', 'angle', 'angleError')
+            colsToDrop <- c(colsToDrop, dropVars)
             useCols <- lapply(thisDet, class) %in% c('numeric', 'integer', 'factor', 'logical') &
-                !(colnames(thisDet) %in% c('UID', 'Id', 'parentUID', 'sampleRate', 'Channel')) |
+                !(colnames(thisDet) %in% colsToDrop) |
                 colnames(thisDet) %in% c('event.id', 'call.id')
 
             whereNA <- reduce(map(thisDet[, useCols], is.na), `|`)

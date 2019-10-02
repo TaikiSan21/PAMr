@@ -4,10 +4,12 @@
 \alias{export_banter}
 \title{Export a List of AcousticEvent Ojbects for Banter Model}
 \usage{
-export_banter(eventList, reportNA = FALSE)
+export_banter(eventList, dropVars = NULL, reportNA = FALSE)
 }
 \arguments{
 \item{eventList}{a list of \linkS4class{AcousticEvent} objects.}
+
+\item{dropVars}{a vector of the names of any variables to remove}
 
 \item{reportNA}{logical, if \code{TRUE} then only the UID's and
 Binary File names of any \code{NA} rows will be returned}
@@ -23,9 +25,10 @@ a list with two items, \code{events} and \code{detectors}.
   of \code{eventList}. The data frames will only have columns with class
   \code{numeric}, \code{integer}, \code{factor}, or \code{logical}, and
   will also have columns named \code{UID}, \code{Id}, \code{parentUID},
-  \code{sampleRate}, and \code{Channel} removed so that these are not treated
-  as parameters for the banter random forest model. The dataframes will also
-  have columns \code{event.id} and \code{call.id} added.
+  \code{sampleRate}, \code{Channel}, \code{angle}, and \code{angleError},
+  removed so that these are not treated as parameters for the banter random
+  forest model. The dataframes will also have columns \code{event.id} and
+  \code{call.id} added.
 }
 \description{
 Formats a list of AcousticEvent objects into the structure
