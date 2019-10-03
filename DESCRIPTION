@@ -1,12 +1,14 @@
 Package: PAMr
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Load and Process Passive Acoustic Data
 Version: 0.6.4
 Authors@R: c(
   TS = person("Taiki", "Sakai", email = "taiki.sakai@noaa.gov", role = c("aut", "cre")))
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Maintainer: Taiki Sakai <taiki.sakai@noaa.gov>
+Description: A package for the general loading and handling of passive acoustic data.
+    This package contains tools for loading in data from Pamguard, applying various
+    processing functions to this data, and for exporting data for reports or external
+    modeling tools.
 License: GNU General Public License
 Encoding: UTF-8
 LazyData: true
