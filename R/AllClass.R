@@ -255,9 +255,9 @@ setMethod('show', 'AcousticEvent',
           }
 )
 
-## ---- Cruise Class ----------------------------------------------------------
-# Cruise class
-# Cruise (object)
+## ---- AcousticStudy Class ----------------------------------------------------------
+# AcousticStudy class
+# AcousticStudy (object)
 # Files / folders (dbs, bins, vis, enviro)      \folders
 # GPS                                           \gpsData
 # Acoustic event (obj) <--- this is really a list of AcEv? These need an ID for banter \acousticEvents
@@ -280,56 +280,47 @@ setMethod('show', 'AcousticEvent',
 # ??????
 
 
-#' @title \code{Cruise} Class
-#' @description An S4 class storing acoustic data from an entire cruise
-#'
-#' @slot folders a list of folders containing the cruise data
-#' @slot gpsData a data frame of gps coordinates for the entire cruise
-#' @slot acousticEvents a list of \linkS4class{AcousticEvent} objects with
-#'   detections from the cruise
-#' @slot detectorSettings a named list of settings for the detectors. Names should
-#'   match the detectors found in the \code{acousticEvents} list
-#' @slot localizationSettings a named list of settings for each type of localization done
-#' @slot effort something about effort
+#' @title \code{AcousticStudy} Class
+#' @description An S4 class storing acoustic data from an entire AcousticStudy
+#' @slot id a unique id for the study
+#' @slot files a list of folders and files containing the AcousticStudy data
+#' @slot gpsData a data frame of gps coordinates for the entire AcousticStudy
+#' @slot events a list of \linkS4class{AcousticEvent} objects with
+#'   detections from the AcousticStudy
+#' @slot prs the \linkS4class{PAMrSettings} object used to create this object
+#' @slot settings a named list of various settings for detectors, localizers, etc.
+#' @slot effort something about effort lol
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #' @export
 #'
-setClass('Cruise',
+setClass('AcousticStudy',
          slots = c(
-             folders = 'list',
+             id = 'character',
+             files = 'list',
              gpsData = 'data.frame',
-             acousticEvents = 'list',
-             detectorSettings = 'list',
-             localizationSettings = 'list',
+             events = 'list',
+             prs = 'PAMrSettings',
+             settings = 'list',
              effort = 'data.frame'), # maybe
          prototype = prototype(
-             folders=list(database='None', binaries='None', visData='None', enviroData='None'),
-             gpsData=data.frame(), acousticEvents=list(), detectorSettings=list(),
-             localizationSettings=list(), effort=data.frame())
+             id = character(),
+             files=list(database='None', binaries='None', visual='None', enviro='None'),
+             gpsData=data.frame(), events=list(), settings=list(),
+             prs = PAMrSettings(), effort=data.frame())
 )
 
-setValidity('Cruise',
+setValidity('AcousticStudy',
             function(object) {
                 valid <- TRUE
-                # This doesnt work if there are none. Required to have some or not?
-                if(!all(sapply(object@acousticEvents, function(x) class(x)=='AcousticEvent'))) {
-                    cat('Slot acousticEvents must be a list of AcousticEvent objects. \n')
-                    valid <- FALSE
-                }
-                if(!all(names(object@folders) %in% c('database', 'binaries', 'visData', 'enviroData'))) {
-                    cat('Slot folders must be a list with names "database", "binaries", "visData", and "enviroData". \n')
-                    valid <- FALSE
-                }
-                # check all detecotrs in acevs are in detectorSettings list
                 valid
             }
 )
 
 # Constructor
-Cruise <- function(folders=list(datbase='None', binaries='None', visData='None', enviroData='None'),
+AcousticStudy <- function(folders=list(datbase='None', binaries='None', visData='None', enviroData='None'),
                    gpsData=data.frame(), acousticEvents=list(), detectorSettings=list(),
                    localizationSettings=list(), effort=data.frame()) {
-    new('Cruise', folders=folders, gpsData=gpsData, acousticEvents=acousticEvents,
+    new('AcousticStudy', folders=folders, gpsData=gpsData, acousticEvents=acousticEvents,
         detectorSettings=detectorSettings, localizationSettings=localizationSettings, effort=effort)
 }

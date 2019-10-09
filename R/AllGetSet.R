@@ -274,12 +274,12 @@ setMethod('files<-', 'AcousticEvent', function(x, value) {
 })
 
 
-#  Get/Set for Cruise class -----------------------------------------------
-#' @title \code{Cruise} accessors
+#  Get/Set for AcousticStudy class -----------------------------------------------
+#' @title \code{AcousticStudy} accessors
 #'
-#' @description Accessors for slots in \linkS4class{Cruise} objects
+#' @description Accessors for slots in \linkS4class{AcousticStudy} objects
 #'
-#' @param x a \linkS4class{Cruise} object
+#' @param x a \linkS4class{AcousticStudy} object
 #' @param value value to assign with accessor
 #' @param \dots other arguments to pass to methods
 #'
@@ -295,163 +295,163 @@ setMethod('files<-', 'AcousticEvent', function(x, value) {
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
-#' @name Cruise.accessors
+#' @name AcousticStudy.accessors
 #'
 #' @importFrom methods setGeneric setMethod validObject
 #'
 NULL
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('folders', function(x, ...) standardGeneric('folders'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases folders
 #'
-setMethod('folders', 'Cruise', function(x, ...) x@folders)
+setMethod('folders', 'AcousticStudy', function(x, ...) x@folders)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('folders<-', function(x, value) standardGeneric('folders<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases folders
 #'
-setMethod('folders<-', 'Cruise', function(x, value) {
+setMethod('folders<-', 'AcousticStudy', function(x, value) {
     x@folders <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('gpsData', function(x, ...) standardGeneric('gpsData'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases gpsData
 #'
-setMethod('gpsData', 'Cruise', function(x, ...) x@gpsData)
+setMethod('gpsData', 'AcousticStudy', function(x, ...) x@gpsData)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('gpsData<-', function(x, value) standardGeneric('gpsData<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases gpsData
 #'
-setMethod('gpsData<-', 'Cruise', function(x, value) {
+setMethod('gpsData<-', 'AcousticStudy', function(x, value) {
     x@gpsData <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('acousticEvents', function(x, ...) standardGeneric('acousticEvents'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases acousticEvents
 #'
-setMethod('acousticEvents', 'Cruise', function(x, ...) x@acousticEvents)
+setMethod('acousticEvents', 'AcousticStudy', function(x, ...) x@acousticEvents)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('acousticEvents<-', function(x, value) standardGeneric('acousticEvents<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases acousticEvents
 #'
-setMethod('acousticEvents<-', 'Cruise', function(x, value) {
+setMethod('acousticEvents<-', 'AcousticStudy', function(x, value) {
     x@acousticEvents <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('detectorSettings', function(x, ...) standardGeneric('detectorSettings'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases detectorSettings
 #'
-setMethod('detectorSettings', 'Cruise', function(x, ...) x@detectorSettings)
+setMethod('detectorSettings', 'AcousticStudy', function(x, ...) x@detectorSettings)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('detectorSettings<-', function(x, value) standardGeneric('detectorSettings<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases detectorSettings
 #'
-setMethod('detectorSettings<-', 'Cruise', function(x, value) {
+setMethod('detectorSettings<-', 'AcousticStudy', function(x, value) {
     x@detectorSettings <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('localizationSettings', function(x, ...) standardGeneric('localizationSettings'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases localizationSettings
 #'
-setMethod('localizationSettings', 'Cruise', function(x, ...) x@localizationSettings)
+setMethod('localizationSettings', 'AcousticStudy', function(x, ...) x@localizationSettings)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('localizationSettings<-', function(x, value) standardGeneric('localizationSettings<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases localizationSettings
 #'
-setMethod('localizationSettings<-', 'Cruise', function(x, value) {
+setMethod('localizationSettings<-', 'AcousticStudy', function(x, value) {
     x@localizationSettings <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('effort', function(x, ...) standardGeneric('effort'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases effort
 #'
-setMethod('effort', 'Cruise', function(x, ...) x@effort)
+setMethod('effort', 'AcousticStudy', function(x, ...) x@effort)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #'
 setGeneric('effort<-', function(x, value) standardGeneric('effort<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname AcousticStudy.accessors
 #' @aliases effort
 #'
-setMethod('effort<-', 'Cruise', function(x, value) {
+setMethod('effort<-', 'AcousticStudy', function(x, value) {
     x@effort <- value
     validObject(x)
     x
