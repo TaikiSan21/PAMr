@@ -170,6 +170,11 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+**0.6.5**
+
+* Updated `export_banter` with options to exclude certain species and to
+export data without species codes to use for prediction only instead
+of training a banter model
 
 **0.6.4**
 

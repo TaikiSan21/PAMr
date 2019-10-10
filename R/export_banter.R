@@ -5,6 +5,9 @@
 #'
 #' @param eventList a list of \linkS4class{AcousticEvent} objects.
 #' @param dropVars a vector of the names of any variables to remove
+#' @param dropSpecies a vector of the names of any species to exclude
+#' @param training logical flag whether or not this will be used as a
+#'   training data set. Training sets must contain a species ID.
 #' @param reportNA logical, if \code{TRUE} then only the UID's and
 #'   Binary File names of any \code{NA} rows will be returned
 #'
@@ -30,12 +33,14 @@
 #' @importFrom purrr map reduce
 #' @export
 #'
-export_banter <- function(eventList, dropVars=NULL, reportNA=FALSE) {
+export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=TRUE, reportNA=FALSE) {
     sp <- sapply(eventList, function(x) species(x)$id)
-    spNull <- sapply(sp, is.null)
-    if(any(spNull)) {
-        stop('Events ', paste(names(eventList)[which(spNull)], collapse=', '),
-             ' do not have a species ID. Cannot complete export_banter.')
+    sp[is.null(sp)] <- NA_character_
+    spNa <- sapply(sp, is.na)
+    if(training && any(spNa)) {
+        warning('Events ', paste(names(eventList)[which(spNa)], collapse=', '),
+             ' do not have a species ID. Data can only be used for prediction, not model training.')
+        training <- FALSE
     }
 
     detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
@@ -48,8 +53,16 @@ export_banter <- function(eventList, dropVars=NULL, reportNA=FALSE) {
         names(eventList) <- evName
     }
     events <- data.frame(event.id = names(eventList),
-                         species = sp,
                          stringsAsFactors = FALSE)
+    if(training) {
+        events$species <- sp
+    }
+    if(!is.null(dropSpecies)) {
+        toDrop <- sp %in% dropSpecies
+        sp <- sp[!toDrop]
+        events <- events[!toDrop, , drop=FALSE]
+        eventList <- eventList[!toDrop]
+    }
     for(e in seq_along(eventList)) {
         thisEv <- eventList[[e]]
         for(d in seq_along(detectors(thisEv))) {
@@ -88,5 +101,13 @@ export_banter <- function(eventList, dropVars=NULL, reportNA=FALSE) {
         warning('Removing ', nrow(detNA), ' NA values, re-run export_banter with ',
                 'reportNA = TRUE to see affected UID(s) and BinaryFile(s).')
     }
+    cat('\nCreated data for ', nrow(events), ' events with ',
+        sum(sapply(dets, nrow)), ' total detections', sep='')
+    if(training) {
+        cat(' and ', length(unique(sp)),
+            ' unique species: ', paste0(unique(sp), collapse =', '), '.',
+            '\nRe-run with dropSpecies argument if any of these are not desired', sep='')
+    }
+    cat('.', sep='')
     list(events=events, detectors=dets)
 }

@@ -4,12 +4,18 @@
 \alias{export_banter}
 \title{Export a List of AcousticEvent Ojbects for Banter Model}
 \usage{
-export_banter(eventList, dropVars = NULL, reportNA = FALSE)
+export_banter(eventList, dropVars = NULL, dropSpecies = NULL,
+  training = TRUE, reportNA = FALSE)
 }
 \arguments{
 \item{eventList}{a list of \linkS4class{AcousticEvent} objects.}
 
 \item{dropVars}{a vector of the names of any variables to remove}
+
+\item{dropSpecies}{a vector of the names of any species to exclude}
+
+\item{training}{logical flag whether or not this will be used as a
+training data set. Training sets must contain a species ID.}
 
 \item{reportNA}{logical, if \code{TRUE} then only the UID's and
 Binary File names of any \code{NA} rows will be returned}
