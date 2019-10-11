@@ -19,7 +19,11 @@ species manually.}
 
 \item{value}{optional argument required if \code{method} is set to manual.
 Can either be a single value to assign to all events, or if assigning to
-a list a vector with length equal to the list.}
+a list a vector with length equal to the list. Can also be a dataframe
+with columns \code{event} and \code{species}, in which case species will
+be matched to corresponding event names instead of just relying on the
+order. If using this, please note the prefix OE or DGL present on most
+event numbers (see the \code{id} slot of your events).}
 }
 \value{
 the same object as \code{acev}, with species identifications assigned

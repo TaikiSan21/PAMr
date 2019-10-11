@@ -170,6 +170,11 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+**0.6.6**
+
+* `setSpecies` can now use a dataframe for `method = 'manual'`, and has
+a top secret option for SR
+
 **0.6.5**
 
 * Updated `export_banter` with options to exclude certain species and to
