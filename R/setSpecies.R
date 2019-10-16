@@ -12,12 +12,19 @@
 #'   species manually.
 #' @param value optional argument required if \code{method} is set to manual.
 #'   Can either be a single value to assign to all events, or if assigning to
-#'   a list a vector with length equal to the list.
+#'   a list a vector with length equal to the list. Can also be a dataframe
+#'   with columns \code{event} and \code{species}, in which case species will
+#'   be matched to corresponding event names instead of just relying on the
+#'   order. If using this, please note the prefix OE or DGL present on most
+#'   event numbers (see the \code{id} slot of your events).
 #' @return the same object as \code{acev}, with species identifications assigned
 #'   as an item named \code{type} in the \code{species} slot
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
+#' @importFrom dplyr distinct
+#' @importFrom stringr str_trim str_split
+#' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
 #' @export
 #'
 setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
@@ -28,7 +35,7 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
         acev <- list(acev)
         names(acev) <- tempName
     }
-    method <- match.arg(method)
+    method <- match.arg(method, choices = c('pamguard', 'manual', 'am'))
     switch(method,
            'pamguard' = {
                spCol <- c('Text_Annotation', 'eventType', 'eventLabel')
@@ -53,6 +60,23 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                    warning('Manual mode requires a "value" to set."')
                    return(acev)
                }
+               if(inherits(value, 'data.frame')) {
+                   if(!all(c('species', 'event') %in% colnames(value))) {
+                       warning('If "value" is a dataframe it must contain columns species and event.')
+                       return(acev)
+                   }
+                   allIds <- sapply(acev, id)
+                   hasId <- allIds %in% value$event
+                   if(!all(hasId)) {
+                       warning('No match found for event(s) ',
+                               paste0(allIds[!hasId], collapse=', '),
+                               ' (Event names in "value" must match exactly)')
+                   }
+                   for(i in which(hasId)) {
+                       species(acev[[i]])[[type]] <- value[value$event == id(acev[[i]]), 'species']
+                   }
+                   return(acev)
+               }
                if(length(value) != 1 &&
                   length(value) != length(acev)) {
                    warning('Length of "value" must be either 1 or the number of events.')
@@ -64,6 +88,38 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                for(i in seq_along(acev)) {
                    species(acev[[i]])[[type]] <- value[i]
                }
+           },
+           'am' = {
+               specDf <- distinct(do.call(rbind, lapply(acev, function(oneAe) {
+                   dbs <- files(oneAe)$database
+                   events <- do.call(rbind, lapply(dbs, function(x) {
+                       con <- dbConnect(x, drv=SQLite())
+                       evs <- dbReadTable(con, 'Click_Detector_OfflineEvents')
+                       dbDisconnect(con)
+                       # browser()
+                       evs <- evs[, c('UID', 'eventType', 'comment')]
+                       evs$event <- paste0(gsub('\\.sqlite3', '', basename(x)),
+                                              '.OE', as.character(evs$UID))
+                       evs$eventType <- str_trim(evs$eventType)
+                       evs$comment <- gsub('OFF EFF', '', evs$comment)
+                       evs$comment <- gsub("[[:punct:]]", '', evs$comment)
+                       evs$comment <- str_trim(evs$comment)
+                       evs
+                   }))
+                   # events$event <- paste0('OE', as.character(events$UID))
+                   events$species <- 'unid'
+                   goodEvents <- c('BEAK', 'FORG')
+                   events$species[events$eventType %in% goodEvents] <- str_split(events$comment[events$eventType %in% goodEvents],
+                                                                         ' ', simplify=TRUE)[, 1]
+                   events$species <- tolower(events$species)
+                   events
+               }
+               )))
+               specToAssign <- unique(specDf[specDf$event %in% sapply(acev, id), 'species'])
+               if(length(specToAssign) > 0) {
+                   cat('Assigning unique species: ', paste0(specToAssign, collapse = ', '), '.\n', sep = '')
+               }
+               return(setSpecies(acev, method = 'manual', type=type, value = specDf))
            },
            warning('Method ', method, ' not supported.')
     )
