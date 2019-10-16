@@ -170,6 +170,15 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+**0.6.8**
+
+* `getPgDetections` will name events with database appended for `method = 'db'` instead
+of just event ID number to ensure uniqueness across multiple databases
+
+**0.6.7**
+
+* I don't remember what happened here. I bet it was important
+
 **0.6.6**
 
 * `setSpecies` can now use a dataframe for `method = 'manual'`, and has

@@ -93,14 +93,15 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                        evs <- evs[, c('UID', 'eventType', 'comment')]
 
                        evs$eventType <- str_trim(evs$eventType)
-                       evs$comment <- gsub('OFF EFF\\.', '', evs$comment)
+                       evs$comment <- gsub('OFF EFF', '', evs$comment)
                        evs$comment <- gsub("[[:punct:]]", '', evs$comment)
                        evs$comment <- str_trim(evs$comment)
                        evs
                    }))
                    events$event <- paste0('OE', as.character(events$UID))
                    events$species <- 'unid'
-                   events$species[events$eventType=='BEAK'] <- str_split(events$comment[events$eventType=='BEAK'],
+                   goodEvents <- c('BEAK', 'FORG')
+                   events$species[events$eventType %in% goodEvents] <- str_split(events$comment[events$eventType %in% goodEvents],
                                                                          ' ', simplify=TRUE)[, 1]
                    events$species <- tolower(events$species)
                    events

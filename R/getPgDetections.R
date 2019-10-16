@@ -295,7 +295,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), ...) {
                 binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
                     unlist(recursive = FALSE) %>% unique()
                 binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
-                id <- unique(ev[[1]]$parentUID)
+                id <- paste0(gsub('\\.sqlite3', '', basename(db)), '.', unique(ev[[1]]$parentUID))
                 ev <- lapply(ev, function(x) {
                     dropCols(x, colsToDrop)
                 })
