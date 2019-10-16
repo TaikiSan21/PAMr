@@ -65,7 +65,14 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                        warning('If "value" is a dataframe it must contain columns species and event.')
                        return(acev)
                    }
-                   for(i in seq_along(acev)) {
+                   allIds <- sapply(acev, id)
+                   hasId <- allIds %in% value$event
+                   if(!all(hasId)) {
+                       warning('No match found for event(s) ',
+                               paste0(allIds[!hasId], collapse=', '),
+                               ' (Event names in "value" must match exactly)')
+                   }
+                   for(i in which(hasId)) {
                        species(acev[[i]])[[type]] <- value[value$event == id(acev[[i]]), 'species']
                    }
                    return(acev)
@@ -91,14 +98,15 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                        dbDisconnect(con)
                        # browser()
                        evs <- evs[, c('UID', 'eventType', 'comment')]
-
+                       evs$event <- paste0(gsub('\\.sqlite3', '', basename(x)),
+                                              '.OE', as.character(evs$UID))
                        evs$eventType <- str_trim(evs$eventType)
                        evs$comment <- gsub('OFF EFF', '', evs$comment)
                        evs$comment <- gsub("[[:punct:]]", '', evs$comment)
                        evs$comment <- str_trim(evs$comment)
                        evs
                    }))
-                   events$event <- paste0('OE', as.character(events$UID))
+                   # events$event <- paste0('OE', as.character(events$UID))
                    events$species <- 'unid'
                    goodEvents <- c('BEAK', 'FORG')
                    events$species[events$eventType %in% goodEvents] <- str_split(events$comment[events$eventType %in% goodEvents],
@@ -107,8 +115,10 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                    events
                }
                )))
-               cat('Assigning unique species: ', paste0(unique(specDf[specDf$event %in% sapply(acev, id), 'species']),
-                                                       collapse = ', '), '.', sep = '')
+               specToAssign <- unique(specDf[specDf$event %in% sapply(acev, id), 'species'])
+               if(length(specToAssign) > 0) {
+                   cat('Assigning unique species: ', paste0(specToAssign, collapse = ', '), '.\n', sep = '')
+               }
                return(setSpecies(acev, method = 'manual', type=type, value = specDf))
            },
            warning('Method ', method, ' not supported.')
