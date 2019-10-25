@@ -19,19 +19,15 @@ by the detector that made the detection}
 
 \item{\code{localizations}}{a named list storing localizations, named by method}
 
-\item{\code{settings}}{a \linkS4class{DataSettings} object for this event}
-
-\item{\code{visData}}{a \linkS4class{VisObsData} with visual data for this event}
-
-\item{\code{behavior}}{behavior data}
-
-\item{\code{erddap}}{environmental data}
+\item{\code{settings}}{a list of recorder settings}
 
 \item{\code{species}}{a list of species classifications for this event, named by
 classification method (ie. BANTER model, visual ID)}
 
 \item{\code{files}}{a list of files used to create this object, named by the type of
 file (ie. binaries, database)}
+
+\item{\code{ancillary}}{a list of miscellaneous extra stuff. Store whatever you want here}
 }}
 
 \author{

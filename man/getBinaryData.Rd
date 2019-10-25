@@ -4,13 +4,19 @@
 \alias{getBinaryData}
 \title{Get Binary Data for Detections from an Acoustic Event}
 \usage{
-getBinaryData(acEv, UID)
+getBinaryData(x, UID, quiet = FALSE, ...)
 }
 \arguments{
-\item{acEv}{a \linkS4class{AcousticEvent} object}
+\item{x}{a \linkS4class{AcousticStudy} object, a list of \linkS4class{AcousticEvent}
+objects, or a single \linkS4class{AcousticEvent} object}
 
 \item{UID}{the UID(s) of the individual detections to fetch the binary
 data for}
+
+\item{quiet}{logical flag to quiet some warnings, used internally}
+
+\item{\dots}{additional arguments to pass to
+\code{\link[PamBinaries]{loadPamguardBinaryFile}}}
 }
 \value{
 a list of \code{PamBinary} objects for each \code{UID}

@@ -3,7 +3,8 @@
 #' @description Sets the \code{species} slot of an \linkS4class{AcousticEvent}
 #'   object or list of objects
 #'
-#' @param acev a \linkS4class{AcousticEvent} object, or list of objects
+#' @param x a \linkS4class{AcousticStudy} object, a list of \linkS4class{AcousticEvent}
+#'   objects, or a single \linkS4class{AcousticEvent} object
 #' @param type the type of classification to set, this is just a label within
 #'   the \code{species} slot
 #' @param method the method for assigning species to an event. Currently supports
@@ -27,30 +28,40 @@
 #' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
 #' @export
 #'
-setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
-    # jank for now, using names to report shit
-    if('AcousticEvent' %in% class(acev)) {
-        tempName <- basename(files(acev)$database[1])
-        tempName <- gsub('\\..*$',  '', tempName)
-        acev <- list(acev)
-        names(acev) <- tempName
+setSpecies <- function(x, type='id', method=c('pamguard', 'manual'), value) {
+    if(length(method) > 1) {
+        stop('Please select a single assignment method.')
     }
     method <- match.arg(method, choices = c('pamguard', 'manual', 'am'))
+    # wrote code for just events before study existed, just work on those
+    if(is.AcousticStudy(x)) {
+        acev <- events(x)
+    # rest of code expects list for indexing because im bad and lazy
+    } else if(is.AcousticEvent(x)) {
+        acev <- list(x)
+    # i know this is ugly dont judge me
+    } else if(is.list(x)) {
+        acev <- x
+    }
     switch(method,
            'pamguard' = {
                spCol <- c('Text_Annotation', 'eventType', 'eventLabel')
                for(i in seq_along(acev)) {
-                   sp <- sapply(detectors(acev[[i]]), function(x) {
-                       hasCol <- spCol[spCol %in% colnames(x)]
-                       unique(x[, hasCol])
+                   sp <- sapply(detectors(acev[[i]]), function(y) {
+                       hasCol <- spCol[spCol %in% colnames(y)]
+                       unique(y[, hasCol])
                    })
                    sp <- unique(sp)
                    if(length(sp) > 1) {
                        spix <- menu(title = paste0('More than one species found for event ',
-                                                   names(acev)[i], ', select one to assign:'),
+                                                   id(acev[[i]]), ', select one to assign:'),
                                     choices = sp)
-                       if(spix == 0) return(acev) # or just NA and next?
-                       sp <- sp[spix]
+                       if(spix == 0) {
+                           warning('No species selected, assigning NA. Please fix later.')
+                           sp <- NA_character_
+                       } else {
+                           sp <- sp[spix]
+                       }
                    }
                    species(acev[[i]])[[type]] <- sp
                }
@@ -58,12 +69,12 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
            'manual' = {
                if(missing(value)) {
                    warning('Manual mode requires a "value" to set."')
-                   return(acev)
+                   return(x)
                }
                if(inherits(value, 'data.frame')) {
                    if(!all(c('species', 'event') %in% colnames(value))) {
                        warning('If "value" is a dataframe it must contain columns species and event.')
-                       return(acev)
+                       return(x)
                    }
                    allIds <- sapply(acev, id)
                    hasId <- allIds %in% value$event
@@ -75,30 +86,31 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                    for(i in which(hasId)) {
                        species(acev[[i]])[[type]] <- value[value$event == id(acev[[i]]), 'species']
                    }
-                   return(acev)
-               }
-               if(length(value) != 1 &&
-                  length(value) != length(acev)) {
-                   warning('Length of "value" must be either 1 or the number of events.')
-                   return(acev)
-               }
-               if(length(value) == 1) {
-                   value <- rep(value, length(acev))
-               }
-               for(i in seq_along(acev)) {
-                   species(acev[[i]])[[type]] <- value[i]
+                # case when no a data frame
+               } else {
+                   if(length(value) != 1 &&
+                      length(value) != length(acev)) {
+                       warning('Length of "value" must be either 1 or the number of events.')
+                       return(x)
+                   }
+                   if(length(value) == 1) {
+                       value <- rep(value, length(acev))
+                   }
+                   for(i in seq_along(acev)) {
+                       species(acev[[i]])[[type]] <- value[i]
+                   }
                }
            },
            'am' = {
                specDf <- distinct(do.call(rbind, lapply(acev, function(oneAe) {
                    dbs <- files(oneAe)$database
-                   events <- do.call(rbind, lapply(dbs, function(x) {
-                       con <- dbConnect(x, drv=SQLite())
+                   events <- do.call(rbind, lapply(dbs, function(y) {
+                       con <- dbConnect(y, drv=SQLite())
                        evs <- dbReadTable(con, 'Click_Detector_OfflineEvents')
                        dbDisconnect(con)
                        # browser()
                        evs <- evs[, c('UID', 'eventType', 'comment')]
-                       evs$event <- paste0(gsub('\\.sqlite3', '', basename(x)),
+                       evs$event <- paste0(gsub('\\.sqlite3', '', basename(y)),
                                               '.OE', as.character(evs$UID))
                        evs$eventType <- str_trim(evs$eventType)
                        evs$comment <- gsub('OFF EFF', '', evs$comment)
@@ -119,9 +131,16 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                if(length(specToAssign) > 0) {
                    cat('Assigning unique species: ', paste0(specToAssign, collapse = ', '), '.\n', sep = '')
                }
-               return(setSpecies(acev, method = 'manual', type=type, value = specDf))
+               acev <- setSpecies(acev, method = 'manual', type=type, value = specDf)
            },
            warning('Method ', method, ' not supported.')
     )
+    if(is.AcousticStudy(x)) {
+        events(x) <- acev
+        return(x)
+    }
+    if(is.AcousticEvent(x)) {
+        return(acev[[1]])
+    }
     acev
 }

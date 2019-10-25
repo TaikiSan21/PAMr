@@ -6,6 +6,7 @@
 \alias{addGps,data.frame-method}
 \alias{addGps,AcousticEvent-method}
 \alias{addGps,list-method}
+\alias{addGps,AcousticStudy-method}
 \alias{addGps,ANY-method}
 \title{Add GPS Locations to Data}
 \usage{
@@ -16,6 +17,8 @@ addGps(x, gps, thresh = 3600, ...)
 \S4method{addGps}{AcousticEvent}(x, gps, thresh = 3600, ...)
 
 \S4method{addGps}{list}(x, gps, thresh = 3600, ...)
+
+\S4method{addGps}{AcousticStudy}(x, gps, thresh = 3600, ...)
 
 \S4method{addGps}{ANY}(x, gps, thresh = 3600, ...)
 }

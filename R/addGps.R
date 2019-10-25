@@ -95,6 +95,15 @@ setMethod('addGps', 'list', function(x, gps, thresh = 3600, ...) {
 #' @rdname addGps
 #' @export
 #'
+setMethod('addGps', 'AcousticStudy', function(x, gps, thresh = 3600, ...) {
+    events(x) <- lapply(events(x), function(y) addGps(y, gps, thresh, ...))
+    gps(x) <- gps
+    x
+})
+
+#' @rdname addGps
+#' @export
+#'
 setMethod('addGps', 'ANY', function(x, gps, thresh = 3600, ...) {
     cat('No addGps method for object type', class(x))
     x

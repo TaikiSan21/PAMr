@@ -8,7 +8,8 @@ export_banter(eventList, dropVars = NULL, dropSpecies = NULL,
   training = TRUE, reportNA = FALSE)
 }
 \arguments{
-\item{eventList}{a list of \linkS4class{AcousticEvent} objects.}
+\item{eventList}{a \linkS4class{AcousticStudy} object or
+a list of \linkS4class{AcousticEvent} objects}
 
 \item{dropVars}{a vector of the names of any variables to remove}
 

@@ -4,10 +4,11 @@
 \alias{setSpecies}
 \title{Set the Species Classification of an Acoustic Event}
 \usage{
-setSpecies(acev, type = "id", method = c("pamguard", "manual"), value)
+setSpecies(x, type = "id", method = c("pamguard", "manual"), value)
 }
 \arguments{
-\item{acev}{a \linkS4class{AcousticEvent} object, or list of objects}
+\item{x}{a \linkS4class{AcousticStudy} object, a list of \linkS4class{AcousticEvent}
+objects, or a single \linkS4class{AcousticEvent} object}
 
 \item{type}{the type of classification to set, this is just a label within
 the \code{species} slot}

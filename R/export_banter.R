@@ -3,7 +3,8 @@
 #' @description Formats a list of AcousticEvent objects into the structure
 #'   needed to run a banter model.
 #'
-#' @param eventList a list of \linkS4class{AcousticEvent} objects.
+#' @param eventList a \linkS4class{AcousticStudy} object or
+#'   a list of \linkS4class{AcousticEvent} objects
 #' @param dropVars a vector of the names of any variables to remove
 #' @param dropSpecies a vector of the names of any species to exclude
 #' @param training logical flag whether or not this will be used as a
@@ -34,6 +35,9 @@
 #' @export
 #'
 export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=TRUE, reportNA=FALSE) {
+    if(is.AcousticStudy(eventList)) {
+        eventList <- events(eventList)
+    }
     sp <- sapply(eventList, function(x) species(x)$id)
     sp[is.null(sp)] <- NA_character_
     spNa <- sapply(sp, is.na)

@@ -6,17 +6,21 @@
 \alias{showWigner}
 \title{Show Graphical Representations of Waveforms}
 \usage{
-showWaveform(acEv, UID)
+showWaveform(x, UID)
 
-showSpectrogram(acEv, UID, ...)
+showSpectrogram(x, UID, sr = NULL, ...)
 
-showWigner(acEv, UID, ...)
+showWigner(x, UID, sr = NULL, ...)
 }
 \arguments{
-\item{acEv}{a \linkS4class{AcousticEvent} object}
+\item{x}{a \linkS4class{AcousticStudy} object, a list of \linkS4class{AcousticEvent}
+objects, or a single \linkS4class{AcousticEvent} object}
 
-\item{UID}{the UID(s) of the individual detections to fetch the binary 
+\item{UID}{the UID(s) of the individual detections to fetch the binary
 data for}
+
+\item{sr}{if \code{NULL} (default) will try to read sample rate from your
+data. If provided as a value will override sample rate in the data.}
 
 \item{\dots}{other arguments to pass to the spectrogram or wigner functions}
 }
@@ -30,7 +34,7 @@ Fetches matching binary data from a single or multiple
   the resulting data
 }
 \details{
-The \code{showSpectrogram} function uses the function 
+The \code{showSpectrogram} function uses the function
   \code{\link[signal]{specgram}} to plot the spectrogram, see this function
   for plotting options. The \code{showWigner} function uses the function
   \code{\link[PAMmisc]{wignerTransform}} to plot the Wigner-Ville transform,

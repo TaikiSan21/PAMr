@@ -109,7 +109,7 @@ getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
     # Should this function store the event ID? Right now its just the name
     # in the list, but is this reliable? Probably not
 
-    acousticEvents <- AcousticEvent(id = id, detectors = binData, settings = DataSettings(sampleRate = sampleRate),
+    acousticEvents <- AcousticEvent(id = id, detectors = binData, settings = list(sampleRate = sampleRate, source = 'Not Found'),
                                     files = list(binaries=binList, database='None', calibration=calibrationUsed))
     acousticEvents
 }
@@ -118,50 +118,15 @@ getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
 #'
 getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
     # start with checking grouping - parse csv if missing or provided as character and fmt times
-    if(is.null(grouping)) {
-        cat('Please provide a csv file with columns "start", "end", "id", and',
-            'optionally "species" to group detections into events.')
-        grouping <- file.choose()
-    }
-    if(inherits(grouping, 'character')) {
-        stopifnot(file.exists(grouping))
-        grouping <- read_csv(grouping, col_types = cols(.default=col_character()))
-    }
-    colsNeeded <- c('start', 'end', 'id')
-    if(inherits(grouping, 'data.frame')) {
-        colnames(grouping) <- tolower(colnames(grouping))
-        if(!all(colsNeeded %in% colnames(grouping))) {
-            stop('"grouping" must have columns "start", "end" and "id".')
-        }
-        if(inherits(grouping$start, 'factor')) {
-            grouping$start <- as.character(grouping$start)
-        }
-        if(inherits(grouping$start, 'character')) {
-            grouping$start <- as.POSIXct(grouping$start, format=format, tz='UTC')
-        }
-        if(inherits(grouping$end, 'factor')) {
-            grouping$end <- as.character(grouping$end)
-        }
-        if(inherits(grouping$end, 'character')) {
-            grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
-        }
-        if(any(is.na(grouping$start)) ||
-           any(is.na(grouping$end))) {
-            warning('Some event start/end times were not able to be converted, please check format.')
-        }
-        checkDate <- menu(title = paste0('The first event start time is ', grouping$start[1],
-                                         ', does this look okay?'),
-                          choices = c('Yes, continue processing.',
-                                      "No. I'll stop and check grouping data and the time format argument.")
-        )
-        if(checkDate != 1) {
-            stop('Stopped due to invalid event times.')
-        }
-        grouping$id <- as.character(grouping$id)
-    }
+    grouping <- checkGrouping(grouping, format)
 
     binList <- prs@binaries$list
     binFuns <- prs@functions
+    allDbs <- prs@db
+    # FIX FROM HERE READ SR IN FROM DB
+    # I think we match grouping events to databases by times in beg and end of
+    # sound_acq, max intersection? If tie ask to select
+    # grouping has id, start, end, species
     if(is.null(sampleRate)) {
         sampleRate <- readline(prompt =
                                    paste0('What is the sample rate for this data? ',
@@ -219,18 +184,25 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
             dropCols(x, colsToDrop)
         })
         acousticEvents[[i]] <-
-            AcousticEvent(id=evName[i], detectors = thisData, settings = DataSettings(sampleRate = sampleRate),
+            AcousticEvent(id=evName[i], detectors = thisData, settings = list(sampleRate = sampleRate, source = 'Not Found'),
                           files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
     }
     if('species' %in% colnames(grouping)) {
         grouping$species <- as.character(grouping$species)
         acousticEvents <- setSpecies(acousticEvents, method = 'manual', value = grouping$species)
     }
-    acousticEvents
+    allDbs <- unique(unlist(lapply(acousticEvents, function(x) {
+        files(x)$database
+    })))
+    allBins <- unique(unlist(lapply(acousticEvents, function(x) {
+        files(x)$binaries
+    })))
+    AcousticStudy(id=id, events = acousticEvents, prs = prs,
+                  files = list(database=allDbs, binaries=allBins))
 }
 
 #'
-getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), ...) {
+getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL, ...) {
     allDb <- prs@db
     cat('Processing databases... \n')
     pb <- txtProgressBar(min=0, max=length(allDb), style=3)
@@ -299,7 +271,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), ...) {
                 ev <- lapply(ev, function(x) {
                     dropCols(x, colsToDrop)
                 })
-                AcousticEvent(id = id, detectors = ev, settings = DataSettings(sampleRate = thisSr, soundSource=thisSource),
+                AcousticEvent(id = id, detectors = ev, settings = list(sampleRate = thisSr, source=thisSource),
                               files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
             })
             setTxtProgressBar(pb, value = which(allDb == db))
@@ -311,14 +283,23 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), ...) {
         #     return(NULL)
         # },
         error = function(e) {
-            warning(e)
+            warning('Error in processing db ', basename(db))
+            print(e)
             setTxtProgressBar(pb, value = which(allDb == db))
             return(NULL)
         })
     })
     cat('\n')
     names(allAcEv) <- gsub('\\.sqlite3', '', basename(allDb))
-    unlist(allAcEv, recursive = FALSE)
+    allAceEv <- unlist(allAcEv, recursive = FALSE)
+    allDbs <- unique(unlist(lapply(allAcEv, function(x) {
+        files(x)$database
+    })))
+    allBins <- unique(unlist(lapply(allAcEv, function(x) {
+        files(x)$binaries
+    })))
+    AcousticStudy(id=id, events = allAcEv, prs = prs,
+                  files = list(database=allDbs, binaries=allBins))
 }
 
 getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
@@ -420,50 +401,17 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
         allDetections, allEvents, by=c('parentUID'='UID')
     )
 
-    soundAcquisition <- dbReadTable(con, 'Sound_Acquisition') %>%
-        # mutate(UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC'),
-        mutate(UTC = pgDateToPosix(UTC),
-               Status = str_trim(Status),
-               SystemType = str_trim(SystemType)) %>%
-        filter(Status=='Start') %>%
-        arrange(UTC) %>%
-        select(UTC, sampleRate, SystemType) %>%
-        distinct() %>%
-        data.table() %>% setkey(UTC)
-
     allDetections <- allDetections %>%
         mutate(BinaryFile = str_trim(BinaryFile),
                # UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC')) %>%
                UTC = pgDateToPosix(UTC)) %>%
-        select_(.dots=unique(c(eventColumns, 'UTC', 'Id', 'UID', 'parentUID', 'BinaryFile'))) %>%
-        data.table() %>% setkey(UTC)
+        select_(.dots=unique(c(eventColumns, 'UTC', 'Id', 'UID', 'parentUID', 'BinaryFile')))
 
     # rename column to use as label - standardize across event group types
     colnames(allDetections)[which(colnames(allDetections)==label)] <- 'eventLabel'
 
-    # This rolling join rolls to the first time before. Since we filtered to only starts, it goes back
-    # to whatever the last Start was.
-    allDetections <- soundAcquisition[allDetections, roll = TRUE] %>%
-        data.frame()
-    srNa <- which(is.na(allDetections$sampleRate))
-    if(length(srNa) == nrow(allDetections)) {
-        srReplace <- as.integer(
-            readline(prompt = 'No Sample Rate found in SoundAcquisition table. Enter Sample Rate for this data:\n')
-        )
-        allDetections$sampleRate[srNa] <- srReplace
-    } else if(length(srNa) > 0) {
-        # get mode
-        mode <- which.max(tabulate(allDetections$sampleRate[-srNa]))
-        srChoice <- menu(title=paste0('Could not get Sample Rate for all detections from the "SoundAcquistion" table.',
-                                      ' Should missing values be replaced with ', mode, '(value found in table).'),
-                         choices = c('Yes', 'No (I want to enter my own SR)'))
-        srReplace <- switch(srChoice,
-                            '1' = mode,
-                            '2' = readline(prompt='What Sample Rate should be used?\n'),
-                            stop('Sample Rate required for calculations.')
-        )
-        allDetections$sampleRate[srNa] <- srReplace
-    }
+    allDetections <- matchSR(allDetections, db, extraCols=c('SystemType'))
+
     # apply str_trim to all character columns
     whichChar <- which(sapply(allDetections, function(x) 'character' %in% class(x)))
     for(i in whichChar) {
@@ -476,6 +424,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
 }
 
 getMatchingBinaryData <- function(dbData, binList, dbName) {
+    # dbData here has a single BinaryFile in it, we've split by that before here
     dbData <- arrange(dbData, UID)
     # This breaks if 'dbData' doesnt have binaryfile...
     # Borked if UID mismatch between dems
@@ -528,4 +477,64 @@ getMatchingBinaryData <- function(dbData, binList, dbName) {
         # If we made it here we didnt find a matching file
         return(NULL)
     }
+}
+
+checkGrouping <- function(grouping, format) {
+    if(is.null(grouping)) {
+        cat('Please provide a csv file with columns "start", "end", "id", and',
+            'optionally "species" to group detections into events.')
+        grouping <- file.choose()
+    }
+    if(inherits(grouping, 'character')) {
+        stopifnot(file.exists(grouping))
+        grouping <- read_csv(grouping, col_types = cols(.default=col_character()))
+    }
+    colsNeeded <- c('start', 'end', 'id')
+    if(inherits(grouping, 'data.frame')) {
+        colnames(grouping) <- tolower(colnames(grouping))
+        if(!all(colsNeeded %in% colnames(grouping))) {
+            stop('"grouping" must have columns "start", "end" and "id".')
+        }
+        if(inherits(grouping$start, 'factor')) {
+            grouping$start <- as.character(grouping$start)
+        }
+        if(inherits(grouping$start, 'character')) {
+            grouping$start <- as.POSIXct(grouping$start, format=format, tz='UTC')
+        }
+        if(inherits(grouping$end, 'factor')) {
+            grouping$end <- as.character(grouping$end)
+        }
+        if(inherits(grouping$end, 'character')) {
+            grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
+        }
+        if(any(is.na(grouping$start)) ||
+           any(is.na(grouping$end))) {
+            warning('Some event start/end times were not able to be converted, please check format.')
+        }
+        checkDate <- menu(title = paste0('The first event start time is ', grouping$start[1],
+                                         ', does this look okay?'),
+                          choices = c('Yes, continue processing.',
+                                      "No. I'll stop and check grouping data and the time format argument.")
+        )
+        if(checkDate != 1) {
+            stop('Stopped due to invalid event times.')
+        }
+        grouping$id <- as.character(grouping$id)
+    }
+    grouping
+}
+
+# map start/end times in events to db sound acq by overlap
+# can just check if "in" a database, if its in multiple ask them
+# to choose from the options
+# not in range of all, do start/stop within DB so have many start/stop
+# can save this grouping thing to ancillary??
+
+
+mapToDb <- function(events, dbs) {
+    dbTimes <- lapply(dbs, function(d) {
+        con <- dbConnect(d, drv=SQLite())
+        on.exit(dbDisconnect(con))
+        sa <- dbReadTable(con, 'Sound_Acquisition')
+    })
 }

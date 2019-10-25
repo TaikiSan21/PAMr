@@ -170,6 +170,17 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+
+**0.7.0**
+
+* Major update adding in `AcousticStudy` class. This will now be the class of object
+returned by `getPgDetections`, it stores your list of `AcousticEvent` objects with
+other important data. 
+
+* `getBinaryData` will now attempt to get the appropriate sample rate for each
+data point, either from the settings or matching by time using the database file
+if more than one sample rate was in your data.
+
 **0.6.8**
 
 * `getPgDetections` will name events with database appended for `method = 'db'` instead
