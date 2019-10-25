@@ -170,6 +170,10 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+**0.6.9**
+
+* minor changes in `setSpecies`
+
 **0.6.8**
 
 * `getPgDetections` will name events with database appended for `method = 'db'` instead

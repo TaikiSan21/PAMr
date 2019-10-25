@@ -72,6 +72,7 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                                paste0(allIds[!hasId], collapse=', '),
                                ' (Event names in "value" must match exactly)')
                    }
+                   cat('Assigning species ids to ', sum(hasId), ' events.\n', sep='')
                    for(i in which(hasId)) {
                        species(acev[[i]])[[type]] <- value[value$event == id(acev[[i]]), 'species']
                    }
@@ -112,6 +113,7 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
                    events$species[events$eventType %in% goodEvents] <- str_split(events$comment[events$eventType %in% goodEvents],
                                                                          ' ', simplify=TRUE)[, 1]
                    events$species <- tolower(events$species)
+                   events$species[events$species %in% c('mmme', 'mm')] <- 'unid'
                    events
                }
                )))
