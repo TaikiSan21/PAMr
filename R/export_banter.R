@@ -78,8 +78,9 @@ export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=T
             if('Channel' %in% colnames(thisDet)) {
                 thisDet$call.id <- paste0('C', thisDet$Channel, thisDet$call.id)
             }
-            colsToDrop <- c('UID', 'Id', 'parentUID', 'sampleRate', 'Channel', 'angle', 'angleError')
-            colsToDrop <- c(colsToDrop, dropVars)
+            colsToDrop <- c('UID', 'Id', 'parentUID', 'sampleRate', 'Channel',
+                            'angle', 'angleError', 'peakTime')
+            colsToDrop <- unique(c(colsToDrop, dropVars))
             useCols <- lapply(thisDet, class) %in% c('numeric', 'integer', 'factor', 'logical') &
                 !(colnames(thisDet) %in% colsToDrop) |
                 colnames(thisDet) %in% c('event.id', 'call.id')
