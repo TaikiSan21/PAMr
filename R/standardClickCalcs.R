@@ -36,7 +36,7 @@
 #'
 standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
     result <- list()
-    paramNames <- c('Channel', 'noiseLevel', 'duration', 'peak', 'peak2', 'peak3', 'trough',
+    paramNames <- c('Channel', 'noiseLevel', 'duration', 'peakTime', 'peak', 'peak2', 'peak3', 'trough',
                     'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'Q_10dB',
                     'PeakHz_10dB', 'fmin_10dB', 'fmax_10dB', 'BW_10dB', 'centerHz_10dB',
                     'Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB', 'centerHz_3dB')
@@ -66,9 +66,12 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         } else {
             sr <- sr_hz
         }
+
         if(highpass_khz > 0) {
             thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
         }
+        # -1 here because time after start time
+        peakTime <- (which.max(abs(thisWave)) - 1) / sr
 
         # 2.5ms window size - following Soldevilla paper JASA17
         fftSize <- round(sr * winLen_sec, 0)
@@ -118,7 +121,7 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
             dur <- 1e6*(max(dur[,1])-min(dur[,1]))
         }
         thisDf$duration <- dur
-
+        thisDf$peakTime <- peakTime
         thisSpec <- spec(thisWave, f=sr, wl=fftSize, norm=FALSE, correction='amplitude', plot=FALSE)
         if(any(is.nan(thisSpec[,2]))) {
             blanks  <- data.frame(matrix(NA, nrow=1, ncol=length(paramNames)))
