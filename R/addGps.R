@@ -37,7 +37,7 @@ setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
     needCols <- c('UTC', 'Latitude', 'Longitude')
     missingCols <- needCols[!(needCols %in% colnames(gps))]
     if(length(missingCols) > 0) {
-        warning('Gps data needs column(s) named', paste(missingCols, collapse = ', '))
+        warning('Gps data needs column(s) named ', paste(missingCols, collapse = ', '))
         return(x)
     }
     if(!('UTC' %in% colnames(x))) {

@@ -84,3 +84,21 @@ matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
     }
     data
 }
+
+# add list without replacing old one, only replace matching names
+safeListAdd <- function(x, value) {
+    if(!is.list(value) ||
+       is.null(names(value))) {
+        stop('Can only add named lists ')
+    }
+    hasName <- names(value) %in% names(x)
+    if(any(hasName)) {
+        for(n in names(value)[hasName]) {
+            x[[n]] <- value[[n]]
+        }
+    }
+    if(any(!hasName)) {
+        x <- c(x, value[!hasName])
+    }
+    x
+}

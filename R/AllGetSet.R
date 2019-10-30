@@ -212,7 +212,7 @@ setGeneric('ancillary<-', function(x, value) standardGeneric('ancillary<-'))
 #' @aliases ancillary
 #'
 setMethod('ancillary<-', 'AcousticEvent', function(x, value) {
-    x@ancillary <- value
+    x@ancillary <- safeListAdd(x@ancillary, value)
     validObject(x)
     x
 })
@@ -409,7 +409,7 @@ setMethod('ancillary', 'AcousticStudy', function(x, ...) x@ancillary)
 #' @aliases ancillary
 #'
 setMethod('ancillary<-', 'AcousticStudy', function(x, value) {
-    x@ancillary <- value
+    x@ancillary <- safeListAdd(x@ancillary, value)
     validObject(x)
     x
 })

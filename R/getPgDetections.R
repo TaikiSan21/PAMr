@@ -291,7 +291,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL, ...
     })
     cat('\n')
     names(allAcEv) <- gsub('\\.sqlite3', '', basename(allDb))
-    allAceEv <- unlist(allAcEv, recursive = FALSE)
+    allAcEv <- unlist(allAcEv, recursive = FALSE)
     allDbs <- unique(unlist(lapply(allAcEv, function(x) {
         files(x)$database
     })))
