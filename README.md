@@ -170,6 +170,14 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+**0.6.10**
+
+* temporary ICI calculations for banter export in `banterICI`, this will be removed in
+v 0.7.0
+
+* `standardClickCalcs` also adds in a `peakTime` value that is the time of the peak of 
+the waveform within the click
+
 **0.6.9**
 
 * minor changes in `setSpecies`

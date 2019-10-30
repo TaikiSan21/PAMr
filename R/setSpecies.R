@@ -35,7 +35,7 @@ setSpecies <- function(acev, type='id', method=c('pamguard', 'manual'), value) {
         acev <- list(acev)
         names(acev) <- tempName
     }
-    method <- match.arg(method, choices = c('pamguard', 'manual', 'am'))
+    method <- match.arg(method[1], choices = c('pamguard', 'manual', 'am'))
     switch(method,
            'pamguard' = {
                spCol <- c('Text_Annotation', 'eventType', 'eventLabel')
