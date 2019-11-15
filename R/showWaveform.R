@@ -54,12 +54,12 @@ showSpectrogram <- function(x, UID, sr=NULL, ...) {
             next
         }
         if(is.null(sr)) {
-            if(!('sampleRate' %in% names(data[[i]]))) {
+            if(!('sr' %in% names(data[[i]]))) {
                 sr <- as.numeric(
                     readline(prompt='Sample rate not found in data, what SR should we use?')
                 )
             } else {
-                sr <- data[[i]]$sampleRate
+                sr <- data[[i]]$sr
             }
         }
         wav <- data[[i]]$wave
@@ -81,12 +81,12 @@ showWigner <- function(x, UID, sr=NULL, ...) {
             next
         }
         if(is.null(sr)) {
-            if(!('sampleRate' %in% names(data[[i]]))) {
+            if(!('sr' %in% names(data[[i]]))) {
                 sr <- as.numeric(
                     readline(prompt='Sample rate not found in data, what SR should we use?')
                 )
             } else {
-                sr <- data[[i]]$sampleRate
+                sr <- data[[i]]$sr
             }
         }
         wav <- data[[i]]$wave

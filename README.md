@@ -181,6 +181,14 @@ other important data.
 data point, either from the settings or matching by time using the database file
 if more than one sample rate was in your data.
 
+* Many speed improvements - click calculations should take about half the time, and
+`getPgDetections` with `method='times'` will now skip over binaries that are outside
+of the time range of specified events
+
+* General naming consistency overhaul - `sr` and `db` should now be used in place of
+`sampleRate` and `database` wherever these were previously used, and this should be
+the naming convention going forward
+
 **0.6.8**
 
 * `getPgDetections` will name events with database appended for `method = 'db'` instead

@@ -36,25 +36,33 @@ whereUID <- function(study, UID, quiet=FALSE) {
 # match SR function
 # data needs UTC, thats it
 matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
-    if(!file.exists(db)) {
-        if(safe) return(NULL)
-        stop('Database ', db, ' does not exist.')
+    if(is.character(db)) {
+        if(!file.exists(db)) {
+            if(safe) return(NULL)
+            stop('Database ', db, ' does not exist.')
+        }
+        con <-dbConnect(db, drv=SQLite())
+        on.exit(dbDisconnect(con))
+        soundAcquisition <- dbReadTable(con, 'Sound_Acquisition')
+        soundAcquisition$UTC <- pgDateToPosix(soundAcquisition$UTC)
+    }
+    if(is.data.frame(db)) {
+        soundAcquisition <- db
     }
     if(!('UTC' %in% colnames(data)) ||
        !inherits(data$UTC, 'POSIXct')) {
         stop('Data must have a column "UTC" in POSIXct format.')
     }
-    con <-dbConnect(db, drv=SQLite())
-    on.exit(dbDisconnect(con))
-    soundAcquisition <- dbReadTable(con, 'Sound_Acquisition') %>%
-        mutate(UTC = pgDateToPosix(UTC),
-               Status = str_trim(Status),
+
+    soundAcquisition <- soundAcquisition %>%
+        mutate(Status = str_trim(Status),
                SystemType = str_trim(SystemType)) %>%
         filter(Status=='Start') %>%
         arrange(UTC) %>%
         select_(.dots = c('UTC', 'sampleRate', extraCols)) %>%
         distinct() %>%
-        data.table() %>% setkey(UTC)
+        data.table() %>%
+        setkey(UTC)
 
     data <- data.table(data) %>%
         setkey(UTC)
@@ -83,6 +91,43 @@ matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
         data$sampleRate[srNa] <- srReplace
     }
     data
+}
+
+# get sound acquisition start/stop intervals from a pg database
+
+# saIntervals <- function(db) {
+#     con <- dbConnect(db, drv=SQLite())
+#     on.exit(dbDisconnect(con))
+#     sa <- dbReadTable(con, 'Sound_Acquisition')
+#     sa$Status <- str_trim(sa$Status)
+#     sa$UTC <- pgDateToPosix(sa$UTC)
+#     sa <- sa[sa$Status %in% c('Start', 'Stop'), c('UTC', 'Status', 'sampleRate', 'SystemType')]
+#     first <- min(which(sa$Status == 'Start'))
+#     last <- max(which(sa$Status == 'Stop'))
+#     sa <- sa[first:last,]
+#     alt <- sa$Status[1:(nrow(sa)-1)] != sa$Status[2:nrow(sa)]
+#     sa <- sa[c(TRUE, alt), ]
+#     sa$id <- rep(1:(nrow(sa)/2), each=2)
+#     sa <- tidyr::spread(sa, 'Status', 'UTC')
+#     sa
+# }
+
+# check if in start/stop interval
+# bounds is a single start/stop, sa is sound acq table from db
+#' @importFrom tidyr spread
+#'
+inInterval <- function(bounds, sa) {
+    sa <- sa[sa$Status %in% c('Start', 'Stop'), c('UTC', 'Status', 'sampleRate')]
+    first <- min(which(sa$Status == 'Start'))
+    last <- max(which(sa$Status == 'Stop'))
+    sa <- sa[first:last,]
+    alt <- sa$Status[1:(nrow(sa)-1)] != sa$Status[2:nrow(sa)]
+    sa <- sa[c(TRUE, alt), ]
+    sa$id <- rep(1:(nrow(sa)/2), each=2)
+    sa <- tidyr::spread(sa, 'Status', 'UTC')
+    startIn <- (any((bounds[1] >= sa[['Start']]) & (bounds[1] <= sa[['Stop']])))
+    endIn <- (any((bounds[2] >= sa[['Start']]) & (bounds[2] <= sa[['Stop']])))
+    startIn && endIn
 }
 
 # add list without replacing old one, only replace matching names

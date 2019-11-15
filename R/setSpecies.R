@@ -103,7 +103,7 @@ setSpecies <- function(x, type='id', method=c('pamguard', 'manual'), value) {
            },
            'am' = {
                specDf <- distinct(do.call(rbind, lapply(acev, function(oneAe) {
-                   dbs <- files(oneAe)$database
+                   dbs <- files(oneAe)$db
                    events <- do.call(rbind, lapply(dbs, function(y) {
                        con <- dbConnect(y, drv=SQLite())
                        evs <- dbReadTable(con, 'Click_Detector_OfflineEvents')

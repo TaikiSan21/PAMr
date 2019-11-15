@@ -82,99 +82,17 @@ setMethod('show', 'PAMrSettings', function(object) {
     cat(nCal, 'click calibration function(s)\n')
 })
 
-## ---- DataSettings Class ----------------------------------------------------
-# Data Collection / Array Settings (obj)              \\settings
-# Hydro sens, sample rate, whatever. Make an object and we figure out what it needs
-# #' An S4 class to store data collection settings. Possible inclusions are
-# #' hydrophone sensitivity, sample rate, sound card, etc.
-# #'
-# #' @slot sampleRate the sample rate data was recorded at.
-# #' @slot soundSource the source of the recorded sound - sound card, recording
-# #'   system, or sound file
-
-# setClass('DataSettings',
-#          slots = c(
-#              sampleRate = 'integer',
-#              soundSource = 'character'
-#          ),
-#          prototype = prototype(sampleRate=NA_integer_, soundSource='Not Found')
-# )
-#
-# setValidity('DataSettings',
-#             function(object) {
-#                 TRUE
-#             }
-# )
-#
-# DataSettings <- function(sampleRate=NA_integer_, soundSource='Not Found') {
-#     if(missing(sampleRate)) {
-#         warning('"sampleRate" not specified.')
-#     }
-#     if(missing(soundSource)) {
-#         # warning('"soundSource" not found.')
-#     }
-#     new('DataSettings', sampleRate=as.integer(sampleRate), soundSource=soundSource)
-# }
-#
-# setMethod('show', 'DataSettings',
-#           function(object) {
-#               sampleRates <- object@sampleRate
-#               soundSources <- object@soundSource
-#               if(length(sampleRates) > 6) {
-#                   sampleRates <- c(sampleRates[1:6], '...')
-#               }
-#               if(length(soundSources) > 6) {
-#                   soundSources <- c(soundSources[1:6], '...')
-#               }
-#               sampleRates <- paste(sampleRates, collapse=', ')
-#               soundSources <- paste(soundSources, collapse=', ')
-#               cat('DataSettings object with settings:\nSample Rate(s):', sampleRates,
-#                   '\nSound Source(s):', soundSources)
-#           }
-# )
-
-
-# Were gonna get sampleRate and soundcard system type from SoundAcquisition table sampleRate and SystemType
-# Other stuff from a logger form? Iffy..for HICEAS this is split across different fuckiNG DATBASES
-
-## ---- VisObsData Class ------------------------------------------------------
-# Visual data (obj)                                   \\visData
-# Detection time, spp IDs, group size est, effort status. Multiple ways to read
-
-# #' @title \code{VisObsData} Class
-# #' @description An S4 class storing visual obsever data (UNFINISHED)
-# #'
-# #' @slot detectionTime detection time
-# #' @slot speciesId species id
-# #' @slot groupSizeEst group size estimate
-# #' @slot effortStatus effort status
-# #'
-# #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
-# #' @export
+#' Check if an Object is a PAMrSettings
 #'
-# setClass('VisObsData',
-#          slots = c(
-#              detectionTime = 'POSIXct',
-#              speciesId = 'character',
-#              groupSizeEst = 'numeric',
-#              effortStatus = 'character'
-#          ),
-#          prototype = prototype(detectionTime = Sys.time(), speciesId = 'None',
-#                                groupSizeEst = NaN, effortStatus = 'None')
-# )
-#
-# setValidity('VisObsData',
-#             function(object) {
-#                 TRUE
-#             }
-# )
-#
-# # Basic constructor
-# VisObsData <- function(detectionTime=Sys.time(), speciesId='None',
-#                        groupSizeEst=NaN, effortStatus='None') {
-#     new('VisObsData', detectionTime=detectionTime, speciesId=speciesId,
-#         groupSizeEst=groupSizeEst, effortStatus=effortStatus)
-# }
+#' Function to check if an object is a PAMrSettings
+#'
+#' @param x object to check
+#'
+#' @export
+#'
+is.PAMrSettings <- function(x) {
+    inherits(x, 'PAMrSettings')
+}
 
 ## ---- AcousticEvent Class ---------------------------------------------------
 
@@ -226,7 +144,7 @@ setClass('AcousticEvent',
              files = 'list',
              ancillary = 'list'),
          prototype = prototype(id = character(), detectors=list(), localizations=list(),
-                               settings=list(sampleRate = NA_integer_, source = 'Not Found'), species=list(id=NA_character_),
+                               settings=list(sr = NA_integer_, source = 'Not Found'), species=list(id=NA_character_),
                                files = list(), ancillary = list())
 )
 
@@ -238,7 +156,7 @@ setValidity('AcousticEvent',
 )
 # Basic constructor
 AcousticEvent <- function(id = character(), detectors=list(), localizations=list(),
-                          settings=list(sampleRate = NA_integer_, source = 'Not Found'),
+                          settings=list(sr = NA_integer_, source = 'Not Found'),
                           species=list(id=NA_character_), files=list(), ancillary = list()) {
     new('AcousticEvent', id = id, detectors=detectors, localizations=localizations, settings=settings,
         species=species, files=files, ancillary = ancillary)
@@ -319,7 +237,7 @@ setClass('AcousticStudy',
          prototype = prototype(
              id = character(),
              events=list(),
-             files=list(database='None', binaries='None', visual='None', enviro='None'),
+             files=list(db='None', binaries='None', visual='None', enviro='None'),
              gps=data.frame(),
              prs = new('PAMrSettings'),
              settings=list(detectors=list(), localizations=list()),
@@ -338,7 +256,7 @@ setValidity('AcousticStudy',
 # Constructor
 AcousticStudy <- function(id=NULL,
                           events=list(),
-                          files=list(database=NA_character_, binaries=NA_character_, visual=NA_character_, enviro=NA_character_),
+                          files=list(db=NA_character_, binaries=NA_character_, visual=NA_character_, enviro=NA_character_),
                           gps=data.frame(),
                           prs=new('PAMrSettings'),
                           settings=list(detectors=list(), localizations=list()),
@@ -350,7 +268,7 @@ AcousticStudy <- function(id=NULL,
         cat("No ID supplied for this AcousticStudy object, will use today's",
             ' date. Please supply a better name with id(study) <- "NAME"', sep='')
     }
-    fileTemp <- list(database=NA_character_, binaries=NA_character_, visual=NA_character_, enviro=NA_character_)
+    fileTemp <- list(db=NA_character_, binaries=NA_character_, visual=NA_character_, enviro=NA_character_)
     for(n in names(files)) {
         fileTemp[[n]] <- files[[n]]
     }

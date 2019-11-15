@@ -13,13 +13,15 @@
 #'
 #' @param prs a \linkS4class{PAMrSettings} object containing the databases,
 #'   binaries, and functions to use for processing data.
-#'   See \code{\link[PAMr]{PAMrSettings}}
+#'   See \code{\link[PAMr]{PAMrSettings}}. Can also be an
+#'   \linkS4class{AcousticStudy} object, in which case the \code{prs} slot
+#'   will be used.
 #' @param mode selector for how to organize your data in to events. \code{db}
 #'   will organize by events based on tables in the databases, \code{all} will
 #'   put all detections in the binaries into one single event, and \code{time}
 #'   will organize into events based on timestamps provided in \code{grouping}.
 #' @param id an event name or id for this event, only used for \code{mode='all'}
-#' @param sampleRate the sample rate of the data. If reading detections from
+#' @param sr the sample rate of the data. If reading detections from
 #'   a database this will be read in from the SoundAcquisition table, if
 #'   \code{mode} is \code{all} or \code{time} this must be specified.
 #' @param grouping if \code{mode} is \code{db}, the table to group events by.
@@ -53,29 +55,32 @@
 #' @export
 #'
 getPgDetections <- function(prs, mode = c('db', 'all', 'time'), id=NULL,
-                            sampleRate=NULL, grouping=c('event', 'detGroup'),
+                            sr=NULL, grouping=c('event', 'detGroup'),
                             format='%Y-%m-%d %H:%M:%OS', ...) {
-    if(class(prs) != 'PAMrSettings') {
+    if(is.AcousticStudy(prs)) {
+        prs <- prs(prs)
+    }
+    if(!is.PAMrSettings(prs)) {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
     switch(match.arg(mode),
            'db' = getPgDetectionsDb(prs, grouping, ...),
-           'all' = getPgDetectionsAll(prs, id, sampleRate),
-           'time' = getPgDetectionsTime(prs, sampleRate, grouping, format)
+           'all' = getPgDetectionsAll(prs, id, sr),
+           'time' = getPgDetectionsTime(prs, sr, grouping, format, id)
     )
 }
 
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #'
-getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
+getPgDetectionsAll <- function(prs, id=NULL, sr=NULL) {
     binList <- prs@binaries$list
     binFuns <- prs@functions
-    if(is.null(sampleRate)) {
-        sampleRate <- readline(prompt =
+    if(is.null(sr)) {
+        sr <- readline(prompt =
                                    paste0('What is the sample rate for this data? ',
                                           '(When processing all binaries, sample rate must be the same) '))
-        sampleRate <- as.numeric(sampleRate)
+        sr <- as.numeric(sr)
     }
     if(is.null(id)) {
         warning("No Id specified, using today's date.")
@@ -90,7 +95,7 @@ getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
     binData <- lapply(binList, function(bin) {
         thisBin <- loadPamguardBinaryFile(bin)
         for(i in seq_along(thisBin$data)) {
-            thisBin$data[[i]]$sampleRate <- sampleRate
+            thisBin$data[[i]]$sr <- sr
         }
         thisBinData <- calculateModuleData(thisBin, binFuns)
         setTxtProgressBar(pb, value=which(binList==bin))
@@ -102,37 +107,101 @@ getPgDetectionsAll <- function(prs, id=NULL, sampleRate=NULL) {
     binData <- lapply(binData, function(x) split(x, x$detectorName))
     binData <- unlist(binData, recursive = FALSE)
     binData <- squishList(binData)
-    colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID')
+    colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID', 'sr')
     binData <- lapply(binData, function(x) {
         dropCols(x, colsToDrop)
     })
     # Should this function store the event ID? Right now its just the name
     # in the list, but is this reliable? Probably not
 
-    acousticEvents <- AcousticEvent(id = id, detectors = binData, settings = list(sampleRate = sampleRate, source = 'Not Found'),
-                                    files = list(binaries=binList, database='None', calibration=calibrationUsed))
+    acousticEvents <- AcousticEvent(id = id, detectors = binData, settings = list(sr = sr, source = 'Not Found'),
+                                    files = list(binaries=binList, db='None', calibration=calibrationUsed))
     acousticEvents
 }
 
 #' @importFrom readr read_csv cols col_character
 #'
-getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS') {
+getPgDetectionsTime <- function(prs, sr=NULL, grouping=NULL, format='%Y-%m-%d %H:%M:%OS', id=NULL) {
     # start with checking grouping - parse csv if missing or provided as character and fmt times
     grouping <- checkGrouping(grouping, format)
 
     binList <- prs@binaries$list
     binFuns <- prs@functions
     allDbs <- prs@db
-    # FIX FROM HERE READ SR IN FROM DB
-    # I think we match grouping events to databases by times in beg and end of
-    # sound_acq, max intersection? If tie ask to select
-    # grouping has id, start, end, species
-    if(is.null(sampleRate)) {
-        sampleRate <- readline(prompt =
-                                   paste0('What is the sample rate for this data? ',
-                                          '(When processing all binaries, sample rate must be the same) '))
-        sampleRate <- as.numeric(sampleRate)
+
+    # Check for what DB shit should be associated with, get full list of SA data
+    # first, gonna match event times to that since its roughly the times assoicated
+    # with a database
+    saList <- lapply(allDbs, function(db) {
+        con <- dbConnect(db, drv=SQLite())
+        on.exit(dbDisconnect(con))
+        sa <- dbReadTable(con, 'Sound_Acquisition')
+        sa$Status <- str_trim(sa$Status)
+        sa$SystemType <- str_trim(sa$SystemType)
+        sa$UTC <- pgDateToPosix(sa$UTC)
+        sa
+        })
+    names(saList) <- allDbs
+    if(is.null(grouping$db)) {
+        grouping$db <- NA_character_
     }
+    # if they are there and are valid, assume they assigned
+    dbToAssign <- which(!file.exists(grouping$db))
+    # match db to events
+    for(i in dbToAssign) {
+        dbPossible <- allDbs[sapply(saList, function(x) {
+            inInterval(c(grouping$start[i], grouping$end[i]), x)
+        })]
+
+        if(length(dbPossible) == 0 ||
+           is.na(dbPossible)) {
+            myTitle <- paste0('No matching database found for event ', grouping$id[i],
+                              ' based on times, please choose one or select "0" to',
+                              ' leave as NA.')
+            myChoice <- menu(title = myTitle, choices = allDbs)
+            if(myChoice == 0) {
+                dbPossible <- NA_character_
+            } else {
+                dbPossible <- allDbs[myChoice]
+            }
+        } else if(length(dbPossible) > 1) {
+            myTitle <- paste0('Multiple candidate datbases found for event ', grouping$id[i],
+                              ' based on times, select one to associate with this event.')
+            myChoice <- menu(title = myTitle, choices = dbPossible)
+            if(myChoice == 0) {
+                dbPossible <- NA_character_
+            } else {
+                dbPossible <- dbPossible[myChoice]
+            }
+        }
+        grouping$db[i] <- dbPossible
+    }
+    # on.exit(SAVEMYDATABASE)
+
+    if(is.null(grouping$sr)) {
+        grouping$sr <- NA_integer_
+    }
+
+    # assign each db in grouping to its unique SRs so we dont have to search again later
+    saByDb <- lapply(saList, function(x) unique(x$sampleRate))
+    for(d in 1:nrow(grouping)) {
+        if(is.na(grouping$db[d])) next
+        grouping$sr[d] <- saByDb[grouping$db[d]]
+    }
+
+    # were gonna match SR by database, only need manual input if we have any
+    # missing DBs
+    if(any(is.na(grouping$sr)) &&
+       is.null(sr)) {
+        sr <- readline(prompt =
+                           paste0('Not all events have a database associated with them, ',
+                                  'what sample rate should be used for these events?'))
+        sr <- as.numeric(sr)
+    }
+    grouping$sr[is.na(grouping$sr)] <- sr
+    # from here can check "simple SR" mode - all SR in DBs and
+    # the one we selected are the same, avoid doing shit later
+
     calibrationUsed <- names(prs@calibration[[1]])
     if(length(calibrationUsed)==0) calibrationUsed <- 'None'
 
@@ -140,38 +209,63 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
     pb <- txtProgressBar(min=0, max=length(binList), style=3)
 
     binData <- lapply(binList, function(bin) {
+        # should i do here - read in head/foot only, then check those
+        # times against grouplist, if none can skip, if one we know
+        # what db to match sr with. if more than one... hope they have the
+        # same SR? or go fys?
+        thisHFOnly <- loadPamguardBinaryFile(bin, skipData=TRUE)$fileInfo
+        binBounds <- convertPgDate(c(thisHFOnly$fileHeader$dataDate, thisHFOnly$fileFooter$dataDate))
+        evPossible <- (binBounds[1] >= grouping$start & binBounds[1] <= grouping$end) |
+            (binBounds[2] >= grouping$start & binBounds[2] <= grouping$end) |
+            (binBounds[1] <= grouping$start & binBounds[2] >= grouping$end)
+        # if not overlapping any events, skip doing data part mobetta
+        if(!any(evPossible)) {
+            return(NULL)
+        }
         thisBin <- loadPamguardBinaryFile(bin)
-        for(i in seq_along(thisBin$data)) {
-            thisBin$data[[i]]$sampleRate <- sampleRate
+
+        srPossible <- unique(unlist(grouping$sr[evPossible]))
+        if(length(srPossible) == 1) {
+            for(i in seq_along(thisBin$data)) {
+                thisBin$data[[i]]$sr <- srPossible
+            }
+        } else if(length(srPossible) > 1) {
+            evDbs <- unique(grouping$db[evPossible])
+            thisSa <- do.call(rbind, saList[evDbs])
+            binTimes <- dplyr::bind_rows(lapply(thisBin$data, function(x) {
+                list(UID = x$UID, UTC = x$date)
+            }))
+            binTimes$UTC <- convertPgDate(binTimes$UTC)
+            binTimes <- matchSR(binTimes, thisSa)
+            for(i in seq_along(thisBin$data)) {
+                thisBin$data[[i]]$sr <- binTimes$sampleRate[i]
+            }
         }
         thisBinData <- calculateModuleData(thisBin, binFuns)
         setTxtProgressBar(pb, value=which(binList==bin))
         thisBinData
     })
-    cat('\n')
+
+    cat('\n') # space after progress bar finished
     binData <- binData[sapply(binData, function(x) !is.null(x))]
     # for clicks we have split the broad detector into separate ones by classification
     binData <- lapply(binData, function(x) split(x, x$detectorName))
     binData <- unlist(binData, recursive = FALSE)
     binData <- squishList(binData)
 
-    # Should this function store the event ID? Right now its just the name
-    # in the list, but is this reliable? Probably not
     acousticEvents <- vector('list', length = nrow(grouping))
     evName <- as.character(grouping$id)
-    evTable <- table(evName)
-    for(i in unique(evName)) {
-        if(evTable[i] == 1) next
-        evName[evName == i] <- paste0(i, '_',  1:evTable[i])
-    }
-    colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID')
+
+    colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID', 'sr')
     names(acousticEvents) <- evName
+
     for(i in seq_along(acousticEvents)) {
         thisData <- lapply(binData, function(x) {
             data <- filter(x, x$UTC >= grouping$start[i], x$UTC <= grouping$end[i])
             if(nrow(data) == 0) return(NULL)
             data
         })
+        # Check possible DBs by start/end time of events in sa list earlier
         thisData <- thisData[sapply(thisData, function(x) !is.null(x))]
         binariesUsed <- sapply(thisData, function(x) unique(x$BinaryFile)) %>%
             unlist(recursive = FALSE) %>% unique()
@@ -183,22 +277,33 @@ getPgDetectionsTime <- function(prs, sampleRate=NULL, grouping=NULL, format='%Y-
         thisData <- lapply(thisData, function(x) {
             dropCols(x, colsToDrop)
         })
+        thisSr <- grouping$sr[[i]]
+        if(is.na(grouping$db[i])) {
+            thisSource <- 'Not Found'
+        } else {
+            filtSa <- saList[[grouping$db[i]]]
+            filtSa <- filter(filtSa, filtSa$UTC <= grouping$end[i], filtSa$UTC >= grouping$start[i])
+            thisSource <- unique(filtSa$SystemType)
+        }
+
         acousticEvents[[i]] <-
-            AcousticEvent(id=evName[i], detectors = thisData, settings = list(sampleRate = sampleRate, source = 'Not Found'),
-                          files = list(binaries=binariesUsed, database='None', calibration=calibrationUsed))
+            AcousticEvent(id=evName[i], detectors = thisData, settings = list(sr = thisSr, source = thisSource),
+                          files = list(binaries=binariesUsed, db=grouping$db[i], calibration=calibrationUsed))
     }
     if('species' %in% colnames(grouping)) {
         grouping$species <- as.character(grouping$species)
         acousticEvents <- setSpecies(acousticEvents, method = 'manual', value = grouping$species)
     }
     allDbs <- unique(unlist(lapply(acousticEvents, function(x) {
-        files(x)$database
+        files(x)$db
     })))
     allBins <- unique(unlist(lapply(acousticEvents, function(x) {
         files(x)$binaries
     })))
+    # on.exit() # this cancels the on.exit 'save my grouping' call that is there if you crash
     AcousticStudy(id=id, events = acousticEvents, prs = prs,
-                  files = list(database=allDbs, binaries=allBins))
+                  files = list(db=allDbs, binaries=allBins),
+                  ancillary = list(grouping=grouping))
 }
 
 #'
@@ -213,7 +318,7 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL, ...
             dbData <- getDbData(db, grouping, ...)
             if(is.null(dbData) ||
                nrow(dbData) == 0) {
-                warning('No detections found in databse ',
+                warning('No detections found in database ',
                         basename(db), '.')
                 setTxtProgressBar(pb, value = which(allDb == db))
                 return(NULL)
@@ -261,18 +366,18 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL, ...
 
             # Should this function store the event ID? Right now its just the name
             # in the list, but is this reliable? Probably not
-            colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID')
+            colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID', 'sr')
             acousticEvents <- lapply(dbData, function(ev) {
                 ev <- ev[sapply(ev, function(x) !is.null(x))]
                 binariesUsed <- sapply(ev, function(x) unique(x$BinaryFile)) %>%
                     unlist(recursive = FALSE) %>% unique()
                 binariesUsed <- sapply(binariesUsed, function(x) grep(x, binList, value=TRUE), USE.NAMES = FALSE)
-                id <- paste0(gsub('\\.sqlite3', '', basename(db)), '.', unique(ev[[1]]$parentUID))
+                evId <- paste0(gsub('\\.sqlite3', '', basename(db)), '.', unique(ev[[1]]$parentUID))
                 ev <- lapply(ev, function(x) {
                     dropCols(x, colsToDrop)
                 })
-                AcousticEvent(id = id, detectors = ev, settings = list(sampleRate = thisSr, source=thisSource),
-                              files = list(binaries=binariesUsed, database=db, calibration=calibrationUsed))
+                AcousticEvent(id = evId, detectors = ev, settings = list(sr = thisSr, source=thisSource),
+                              files = list(binaries=binariesUsed, db=db, calibration=calibrationUsed))
             })
             setTxtProgressBar(pb, value = which(allDb == db))
             acousticEvents
@@ -293,13 +398,13 @@ getPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL, ...
     names(allAcEv) <- gsub('\\.sqlite3', '', basename(allDb))
     allAcEv <- unlist(allAcEv, recursive = FALSE)
     allDbs <- unique(unlist(lapply(allAcEv, function(x) {
-        files(x)$database
+        files(x)$db
     })))
     allBins <- unique(unlist(lapply(allAcEv, function(x) {
         files(x)$binaries
     })))
     AcousticStudy(id=id, events = allAcEv, prs = prs,
-                  files = list(database=allDbs, binaries=allBins))
+                  files = list(db=allDbs, binaries=allBins))
 }
 
 getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
@@ -394,7 +499,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
     if(!('UID' %in% names(allEvents)) ||
        !('parentUID' %in% names(allDetections))) {
         cat('UID and parentUID columns not found in database ', basename(db),
-                ', these are required to process data. Please upgrade to Pamguard 2.0+.')
+            ', these are required to process data. Please upgrade to Pamguard 2.0+.')
         return(NULL)
     }
     allDetections <- inner_join(
@@ -439,13 +544,13 @@ getMatchingBinaryData <- function(dbData, binList, dbName) {
             distinct() %>% arrange(UID)
         if(setequal(matchSr$UID, names(thisBin$data))) {
             for(i in seq_along(matchSr$UID)) {
-                thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
+                thisBin$data[[i]]$sr <- matchSr$sampleRate[i]
             }
         } else {
             warning(paste0('UID(s) ', paste0(setdiff(matchSr$UID, names(thisBin$data)), collapse=', '),
                            ' are in database ', dbName, ' but not in binary file ', binFile))
             for(i in names(thisBin$data)) {
-                thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
+                thisBin$data[[i]]$sr <- matchSr$sampleRate[matchSr$UID==i]
             }
         }
         return(thisBin)
@@ -460,13 +565,13 @@ getMatchingBinaryData <- function(dbData, binList, dbName) {
                     distinct() %>% arrange(UID)
                 if(setequal(matchSr$UID, names(thisBin$data))) {
                     for(i in seq_along(matchSr$UID)) {
-                        thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[i]
+                        thisBin$data[[i]]$sr <- matchSr$sampleRate[i]
                     }
                 } else {
                     warning(paste0('UID(s) ', paste0(setdiff(matchSr$UID, names(thisBin$data)), collapse=', '),
                                    ' are in database ', dbName, ' but not in binary file ', binFile))
                     for(i in names(thisBin$data)) {
-                        thisBin$data[[i]]$sampleRate <- matchSr$sampleRate[matchSr$UID==i]
+                        thisBin$data[[i]]$sr <- matchSr$sampleRate[matchSr$UID==i]
                     }
                 }
                 return(thisBin)
@@ -495,32 +600,43 @@ checkGrouping <- function(grouping, format) {
         if(!all(colsNeeded %in% colnames(grouping))) {
             stop('"grouping" must have columns "start", "end" and "id".')
         }
-        if(inherits(grouping$start, 'factor')) {
-            grouping$start <- as.character(grouping$start)
-        }
-        if(inherits(grouping$start, 'character')) {
-            grouping$start <- as.POSIXct(grouping$start, format=format, tz='UTC')
-        }
-        if(inherits(grouping$end, 'factor')) {
-            grouping$end <- as.character(grouping$end)
-        }
-        if(inherits(grouping$end, 'character')) {
-            grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
-        }
-        if(any(is.na(grouping$start)) ||
-           any(is.na(grouping$end))) {
-            warning('Some event start/end times were not able to be converted, please check format.')
-        }
-        checkDate <- menu(title = paste0('The first event start time is ', grouping$start[1],
-                                         ', does this look okay?'),
-                          choices = c('Yes, continue processing.',
-                                      "No. I'll stop and check grouping data and the time format argument.")
-        )
-        if(checkDate != 1) {
-            stop('Stopped due to invalid event times.')
+        # if times arent posix, convert and check that it worked
+        if(!inherits(grouping$start, 'POSIXct') ||
+           !inherits(grouping$end, 'POSIXct')) {
+            if(inherits(grouping$start, 'factor')) {
+                grouping$start <- as.character(grouping$start)
+            }
+            if(inherits(grouping$start, 'character')) {
+                grouping$start <- as.POSIXct(grouping$start, format=format, tz='UTC')
+            }
+            if(inherits(grouping$end, 'factor')) {
+                grouping$end <- as.character(grouping$end)
+            }
+            if(inherits(grouping$end, 'character')) {
+                grouping$end <- as.POSIXct(grouping$end, format=format, tz='UTC')
+            }
+            if(any(is.na(grouping$start)) ||
+               any(is.na(grouping$end))) {
+                warning('Some event start/end times were not able to be converted, please check format.')
+            }
+            checkDate <- menu(title = paste0('The first event start time is ', grouping$start[1],
+                                             ', does this look okay?'),
+                              choices = c('Yes, continue processing.',
+                                          "No. I'll stop and check grouping data and the time format argument.")
+            )
+            if(checkDate != 1) {
+                stop('Stopped due to invalid event times.')
+            }
         }
         grouping$id <- as.character(grouping$id)
     }
+    evName <- as.character(grouping$id)
+    evTable <- table(evName)
+    for(i in unique(evName)) {
+        if(evTable[i] == 1) next
+        evName[evName == i] <- paste0(i, '_',  1:evTable[i])
+    }
+    grouping$id <- evName
     grouping
 }
 

@@ -14,7 +14,7 @@ Encoding: UTF-8
 LazyData: true
 Depends: 
     R (>= 3.3.0),
-    PamBinaries (>= 1.2.6)
+    PamBinaries (>= 1.3.0)
 Imports:
     dplyr,
     seewave,
@@ -28,5 +28,6 @@ Imports:
     magrittr,
     signal,
     readr,
-    tuneR
+    tuneR,
+    tidyr
 RoxygenNote: 6.1.1

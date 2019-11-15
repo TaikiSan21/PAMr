@@ -19,6 +19,7 @@
 #'
 #' @name calculateICI
 #' @importFrom dplyr bind_rows
+#' @importFrom stats density
 #' @export
 #'
 setGeneric('calculateICI', function(x, time=c('UTC', 'peakTime'), ...) standardGeneric('calculateICI'))

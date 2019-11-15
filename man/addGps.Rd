@@ -10,17 +10,17 @@
 \alias{addGps,ANY-method}
 \title{Add GPS Locations to Data}
 \usage{
-addGps(x, gps, thresh = 3600, ...)
+addGps(x, gps = NULL, thresh = 3600, ...)
 
-\S4method{addGps}{data.frame}(x, gps, thresh = 3600, ...)
+\S4method{addGps}{data.frame}(x, gps = NULL, thresh = 3600, ...)
 
-\S4method{addGps}{AcousticEvent}(x, gps, thresh = 3600, ...)
+\S4method{addGps}{AcousticEvent}(x, gps = NULL, thresh = 3600, ...)
 
-\S4method{addGps}{list}(x, gps, thresh = 3600, ...)
+\S4method{addGps}{list}(x, gps = NULL, thresh = 3600, ...)
 
-\S4method{addGps}{AcousticStudy}(x, gps, thresh = 3600, ...)
+\S4method{addGps}{AcousticStudy}(x, gps = NULL, thresh = 3600, ...)
 
-\S4method{addGps}{ANY}(x, gps, thresh = 3600, ...)
+\S4method{addGps}{ANY}(x, gps = NULL, thresh = 3600, ...)
 }
 \arguments{
 \item{x}{data to add GPS coordinates to. Must have a column \code{UTC}, and

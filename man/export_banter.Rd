@@ -4,11 +4,11 @@
 \alias{export_banter}
 \title{Export a List of AcousticEvent Ojbects for Banter Model}
 \usage{
-export_banter(eventList, dropVars = NULL, dropSpecies = NULL,
-  training = TRUE, reportNA = FALSE)
+export_banter(x, dropVars = NULL, dropSpecies = NULL,
+  training = TRUE)
 }
 \arguments{
-\item{eventList}{a \linkS4class{AcousticStudy} object or
+\item{x}{a \linkS4class{AcousticStudy} object or
 a list of \linkS4class{AcousticEvent} objects}
 
 \item{dropVars}{a vector of the names of any variables to remove}
@@ -17,25 +17,25 @@ a list of \linkS4class{AcousticEvent} objects}
 
 \item{training}{logical flag whether or not this will be used as a
 training data set. Training sets must contain a species ID.}
-
-\item{reportNA}{logical, if \code{TRUE} then only the UID's and
-Binary File names of any \code{NA} rows will be returned}
 }
 \value{
-a list with two items, \code{events} and \code{detectors}.
+a list with three items, \code{events}, \code{detectors}, and
+  \code{na}.
   \code{events} is a dataframe with two columns. \code{event.id} is a
   unique identifier for each event, taken from the names of the event
   list. \code{species} is the species classification, taken from the
   \code{species} slot labelled \code{id}. \code{detectors} is a list
   of data frames containing all the detections and measurements. There is
   one list for each unique detector type found in the \code{detectors} slots
-  of \code{eventList}. The data frames will only have columns with class
+  of \code{x}. The data frames will only have columns with class
   \code{numeric}, \code{integer}, \code{factor}, or \code{logical}, and
   will also have columns named \code{UID}, \code{Id}, \code{parentUID},
   \code{sampleRate}, \code{Channel}, \code{angle}, and \code{angleError},
   removed so that these are not treated as parameters for the banter random
   forest model. The dataframes will also have columns \code{event.id} and
-  \code{call.id} added.
+  \code{call.id} added. \code{na} contains the UIDs and Binary File names
+  for any detections that had NA values. These cannot be used in the
+  random forest model and are removed from the exported dataset.
 }
 \description{
 Formats a list of AcousticEvent objects into the structure

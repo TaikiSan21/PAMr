@@ -24,7 +24,7 @@
 #' @name addGps
 #' @export
 #'
-setGeneric('addGps', function(x, gps, thresh = 3600, ...) standardGeneric('addGps'))
+setGeneric('addGps', function(x, gps=NULL, thresh = 3600, ...) standardGeneric('addGps'))
 
 #' @rdname addGps
 #' @importFrom data.table data.table setkeyv
@@ -78,9 +78,12 @@ setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
 #' @rdname addGps
 #' @export
 #'
-setMethod('addGps',
-          signature(x='AcousticEvent'), function(x, gps, thresh = 3600, ...) {
-    # If
+setMethod('addGps', signature(x='AcousticEvent'), function(x, gps=NULL, thresh = 3600, ...) {
+    if(is.null(gps)) {
+        gps <- do.call(rbind, lapply(files(x)$db, function(db) {
+            gpsFromDb(db, ...)
+        }))
+    }
     x@detectors <- addGps(x@detectors, gps, thresh, ...)
     x
 })
@@ -95,8 +98,13 @@ setMethod('addGps', 'list', function(x, gps, thresh = 3600, ...) {
 #' @rdname addGps
 #' @export
 #'
-setMethod('addGps', 'AcousticStudy', function(x, gps, thresh = 3600, ...) {
+setMethod('addGps', 'AcousticStudy', function(x, gps=NULL, thresh = 3600, ...) {
     events(x) <- lapply(events(x), function(y) addGps(y, gps, thresh, ...))
+    if(is.null(gps)) {
+        gps <- do.call(rbind, lapply(files(x)$db, function(db) {
+            gpsFromDb(db, extraCols=c('Speed', 'Heading', 'MagneticVariation', 'db'), ...)
+        }))
+    }
     gps(x) <- gps
     x
 })
@@ -108,3 +116,16 @@ setMethod('addGps', 'ANY', function(x, gps, thresh = 3600, ...) {
     cat('No addGps method for object type', class(x))
     x
 })
+
+gpsFromDb <- function(db, extraCols=NULL, bounds=NULL) {
+    con <- dbConnect(db, drv=SQLite())
+    on.exit(dbDisconnect(con))
+    thisGps <- dbReadTable(con, 'gpsData')
+    thisGps$db <- db
+    thisGps <- thisGps[, c('UTC', 'Latitude', 'Longitude', extraCols)]
+    thisGps$UTC <- pgDateToPosix(thisGps$UTC)
+    if(!is.null(bounds)) {
+        thisGps <- thisGps[thisGps$UTC <= bounds[2] & thisGps$UTC >= bounds[1], ]
+    }
+    thisGps
+}

@@ -4,12 +4,12 @@
 #'   Most of calculations following approach of Baumann-Pickering / Soldevilla
 #'
 #' @param data a list that must have 'wave' containing the wave form as a
-#'   matrix with a separate column for each channel, and 'sampleRate' the
+#'   matrix with a separate column for each channel, and 'sr' the
 #'   sample rate of the data. Data can also be a \code{Wave} class
 #'   object, like one created by \code{\link[tuneR]{Wave}}.
 #' @param sr_hz either \code{'auto'} (default) or the numeric value of the sample
 #'   rate in hertz. If \code{'auto'}, the sample rate will be read from the
-#'   'sampleRate' of \code{data}
+#'   'sr' of \code{data}
 #' @param calibration a calibration function to apply to the spectrum, must be
 #'   a gam. If NULL no calibration will be applied (not recommended).
 #' @param highpass_khz frequency in khz of highpass filter to apply
@@ -43,14 +43,14 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
     # Do for each channel
     if(inherits(data, 'Wave')) {
         data <- WaveMC(data)
-        data <- list(wave = data@.Data, sampleRate = data@samp.rate)
+        data <- list(wave = data@.Data, sr = data@samp.rate)
     }
     if(!is.matrix(data$wave)) {
         data$wave <- matrix(data$wave, ncol=1)
     }
     for(chan in 1:ncol(data$wave)) {
         # We store results in 'thisDf', note channels start at 1 not 0
-        thisDf <- data.frame(Channel = chan)
+        thisDf <- list(Channel = chan)
         thisWave <- data$wave[,chan]
         if(all(thisWave == 0)) {
             # cant return NULL in this case - if other functions compute something useful
@@ -62,7 +62,7 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
             next
         }
         if(sr_hz == 'auto') {
-            sr <- data$sampleRate
+            sr <- data$sr
         } else {
             sr <- sr_hz
         }
@@ -160,8 +160,8 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         #     cat('peakfast and peaktrough not equal??')
         #     browser()
         # }
-        # peakData <- peakTrough(calibratedClick)
-        thisDf <- cbind(thisDf, peakTrough(calibratedClick))
+        peakData <- peakTrough(calibratedClick)
+        thisDf <- c(thisDf, peakData)
 
         # Finding 10/3 dB bandwidth - modified 'Q' function from seewave package
         dbBW10 <- Qfast(calibratedClick, f=sr, level=-10, plot=FALSE)
@@ -172,7 +172,7 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         names(dbBW3) <- c('Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB')
         dbBW3$centerHz_3dB <- dbBW3$fmax_3dB - (dbBW3$BW_3dB/2)
 
-        thisDf <- cbind(thisDf, dbBW10, dbBW3)
+        thisDf <- c(thisDf, dbBW10, dbBW3)
 
         # If you wanted to add more, just calculate it and add it as another column in this data frame
         # Ex: thisDf$theAnswer <- 42
@@ -232,7 +232,8 @@ Qfast <- function(spec,
         fA <- 1
     } else {
         firstNegA <- max(which(specA <= level2)) # btwn this and next
-        fA <- approx(x=spec[firstNegA:(firstNegA+1)], y=firstNegA:(firstNegA+1), xout=level2)$y
+        # fA <- approx(x=spec[firstNegA:(firstNegA+1)], y=firstNegA:(firstNegA+1), xout=level2)$y
+        fA <- oneInterp(x=spec[firstNegA:(firstNegA+1)], y=firstNegA:(firstNegA+1), xout=level2)
     }
     fAkhz <- ((fA-1)/(n1-1)) * (range[2]-range[1]) + range[1]
     nA <- length(specA)
@@ -241,14 +242,18 @@ Qfast <- function(spec,
         fB <- length(spec)
     } else {
         firstNegB <- min(negB) + (nA - 1) # btwn this and prev
-        fB <- approx(x=spec[(firstNegB-1):firstNegB], y=(firstNegB-1):firstNegB, xout=level2)$y
+        # fB <- approx(x=spec[(firstNegB-1):firstNegB], y=(firstNegB-1):firstNegB, xout=level2)$y
+        fB <- oneInterp(x=spec[(firstNegB-1):firstNegB], y=(firstNegB-1):firstNegB, xout=level2)
     }
     fBkhz <- ((fB-1)/(n1-1)) * (range[2]-range[1]) + range[1]
     Q <- f0khz/(fBkhz-fAkhz)
     results <- list(Q = Q, dfreq = f0khz, fmin = fAkhz, fmax = fBkhz,
                     bdw = fBkhz - fAkhz)
 
-    results <- lapply(results, function(x) ifelse(length(x)==0, 0, x)) # Temp fix on missing
+    # Temp fix on missing, if any are borked then Q is borked so go check
+    if(length(Q) == 0) {
+        results <- lapply(results, function(x) ifelse(length(x)==0, 0, x))
+    }
     # if (plot) {
     #     if (is.null(flab)) {
     #         if (mel)
@@ -266,4 +271,8 @@ Qfast <- function(spec,
     #     invisible(results)
     # }
     return(results)
+}
+
+oneInterp <- function(x, y, xout) {
+    (y[1]*(x[2]-xout) - y[2]*(x[1]-xout)) / (x[2]-x[1])
 }

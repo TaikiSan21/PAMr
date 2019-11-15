@@ -9,13 +9,13 @@ standardClickCalcs(data, sr_hz = "auto", calibration = NULL,
 }
 \arguments{
 \item{data}{a list that must have 'wave' containing the wave form as a
-matrix with a separate column for each channel, and 'sampleRate' the
+matrix with a separate column for each channel, and 'sr' the
 sample rate of the data. Data can also be a \code{Wave} class
 object, like one created by \code{\link[tuneR]{Wave}}.}
 
 \item{sr_hz}{either \code{'auto'} (default) or the numeric value of the sample
 rate in hertz. If \code{'auto'}, the sample rate will be read from the
-'sampleRate' of \code{data}}
+'sr' of \code{data}}
 
 \item{calibration}{a calibration function to apply to the spectrum, must be
 a gam. If NULL no calibration will be applied (not recommended).}

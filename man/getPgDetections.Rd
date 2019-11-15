@@ -5,13 +5,15 @@
 \title{Load and Process Detections from Pamguard}
 \usage{
 getPgDetections(prs, mode = c("db", "all", "time"), id = NULL,
-  sampleRate = NULL, grouping = c("event", "detGroup"),
+  sr = NULL, grouping = c("event", "detGroup"),
   format = "\%Y-\%m-\%d \%H:\%M:\%OS", ...)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object containing the databases,
 binaries, and functions to use for processing data.
-See \code{\link[PAMr]{PAMrSettings}}}
+See \code{\link[PAMr]{PAMrSettings}}. Can also be an
+\linkS4class{AcousticStudy} object, in which case the \code{prs} slot
+will be used.}
 
 \item{mode}{selector for how to organize your data in to events. \code{db}
 will organize by events based on tables in the databases, \code{all} will
@@ -20,7 +22,7 @@ will organize into events based on timestamps provided in \code{grouping}.}
 
 \item{id}{an event name or id for this event, only used for \code{mode='all'}}
 
-\item{sampleRate}{the sample rate of the data. If reading detections from
+\item{sr}{the sample rate of the data. If reading detections from
 a database this will be read in from the SoundAcquisition table, if
 \code{mode} is \code{all} or \code{time} this must be specified.}
 

@@ -61,13 +61,13 @@ getBinaryData <- function(x, UID, quiet=FALSE, ...) {
     }
     bins <- unique(bins)
 
-    if(length(settings(x)$sampleRate) == 1) {
-        bins$sampleRate <- settings(x)$sampleRate
-    } else if(length(settings(x)$sampleRate) > 1) {
-        trySr <- matchSR(bins, files(x)$database, safe=TRUE)
+    if(length(settings(x)$sr) == 1) {
+        bins$sr <- settings(x)$sr
+    } else if(length(settings(x)$sr) > 1) {
+        trySr <- matchSR(bins, files(x)$db, safe=TRUE)
         if(is.null(trySr)) {
             warning('Multiple sample rates present for event ', id(x),', but not able to read',
-                    ' from database ', files(x)$database,'.\nSample rate will not be attached,',
+                    ' from database ', files(x)$db,'.\nSample rate will not be attached,',
                     ' check that file exists to fix.')
         } else {
             bins <- trySr
@@ -108,9 +108,9 @@ getBinaryData <- function(x, UID, quiet=FALSE, ...) {
                                keepUIDs = bins[['UID']][bins$BinaryFile == bin], ...)$data
         # just for useful stuff later in other functions and if theres two you see what we chose
         ##### I DONT KNOW IF THIS IS A GOOD IDEAAAAA
-        if('sampleRate' %in% names(bins)) {
+        if('sr' %in% names(bins)) {
             for(i in names(data)) {
-                data[[i]]$sampleRate <- bins$sampleRate[bins$UID == i][1]
+                data[[i]]$sr <- bins$sr[bins$UID == i][1]
             }
         }
         data
