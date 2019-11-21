@@ -1,5 +1,9 @@
 # PAMr
 
+TESTING WEBSITE UPDATES
+[Link to installation](#installation)
+[And maybe tutorial too](#tutorial)
+
 This is a very beta version of a package for processing passive acoustic data.
 User beware!
 
