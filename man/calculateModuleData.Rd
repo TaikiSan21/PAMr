@@ -4,8 +4,10 @@
 \alias{calculateModuleData}
 \title{Run Custom Calculations on Pamguard Module Data}
 \usage{
-calculateModuleData(binData, binFuns = list(ClickDetector =
-  list(standardClickCalcs)))
+calculateModuleData(
+  binData,
+  binFuns = list(ClickDetector = list(standardClickCalcs))
+)
 }
 \arguments{
 \item{binData}{Pamguard binary data as read in by

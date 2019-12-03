@@ -90,6 +90,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
                })
 
     }
+    # if you add new modules need to add to addBinaries - weve filtered them out there
     result <- switch(
         moduleType,
         'ClickDetector' = {
@@ -102,16 +103,20 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
                                stringsAsFactors = FALSE)
                 })) %>%
                 mutate(detectorName = paste(detName, detectorName, sep='_'))
-            left_join(allClicks, allNames, by='UID')
+            allClicks <- left_join(allClicks, allNames, by='UID')
+            allClicks$callType <- 'click'
+            allClicks
         },
         'WhistlesMoans' = {
             allWhistles <- doWhistleCalcs(binData$data, c(getBasic(moduleType), binFuns[['WhistlesMoans']]))
             allWhistles$detectorName <- detName
+            allWhistles$callType <- 'whistle'
             allWhistles
         },
         'Cepstrum' = {
             allCepstrum <- doCepstrumCalcs(binData$data, c(getBasic(moduleType), binFuns[['Cepstrum']]))
             allCepstrum$detectorName <- detName
+            allCepstrum$callType <- 'cepstrum'
             allCepstrum
         },
         warning("I don't know how to deal with Module Type ", moduleType)

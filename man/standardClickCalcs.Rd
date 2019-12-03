@@ -4,8 +4,13 @@
 \alias{standardClickCalcs}
 \title{Calculate a Set of Measurements for Clicks}
 \usage{
-standardClickCalcs(data, sr_hz = "auto", calibration = NULL,
-  highpass_khz = 10, winLen_sec = 0.0025)
+standardClickCalcs(
+  data,
+  sr_hz = "auto",
+  calibration = NULL,
+  highpass_khz = 10,
+  winLen_sec = 0.0025
+)
 }
 \arguments{
 \item{data}{a list that must have 'wave' containing the wave form as a

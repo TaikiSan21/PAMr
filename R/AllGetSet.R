@@ -217,6 +217,61 @@ setMethod('ancillary<-', 'AcousticEvent', function(x, value) {
     x
 })
 
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[', 'AcousticEvent', function(x, i) {
+    x@detectors[i]
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[<-', 'AcousticEvent', function(x, i, value) {
+    x@detectors[i] <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('$', 'AcousticEvent', function(x, name) {
+    '[['(x@detectors, name)
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('$<-', 'AcousticEvent', function(x, name, value) {
+    x@detectors[[name]] <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[[', 'AcousticEvent', function(x, i) {
+    '[['(x@detectors, i)
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[[<-', 'AcousticEvent', function(x, i, value) {
+    x@detectors[[i]] <- value
+    validObject(x)
+    x
+})
+
+#' @importFrom utils .DollarNames
+#' @export
+#'
+.DollarNames.AcousticEvent <- function(x, pattern='') {
+    grep(pattern, names(detectors(x)), value=TRUE)
+}
+
 #  Get/Set for AcousticStudy class -----------------------------------------------
 # #' @title \code{AcousticStudy} accessors
 # #'
@@ -302,6 +357,14 @@ setMethod('gps<-', 'AcousticStudy', function(x, value) {
     x@gps <- value
     validObject(x)
     x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases detectors
+#'
+setMethod('detectors', 'AcousticStudy', function(x, ...) {
+    getDetectorData(x)
 })
 
 #' @export

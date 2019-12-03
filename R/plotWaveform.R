@@ -1,4 +1,4 @@
-#' @title Show Graphical Representations of Waveforms
+#' @title Plot Graphical Representations of Waveforms
 #'
 #' @description Fetches matching binary data from a single or multiple
 #'   detections in an \linkS4class{AcousticEvent} object, then plot
@@ -12,9 +12,9 @@
 #'   data. If provided as a value will override sample rate in the data.
 #' @param \dots other arguments to pass to the spectrogram or wigner functions
 #'
-#' @details The \code{showSpectrogram} function uses the function
+#' @details The \code{plotSpectrogram} function uses the function
 #'   \code{\link[signal]{specgram}} to plot the spectrogram, see this function
-#'   for plotting options. The \code{showWigner} function uses the function
+#'   for plotting options. The \code{plotWigner} function uses the function
 #'   \code{\link[PAMmisc]{wignerTransform}} to plot the Wigner-Ville transform,
 #'   see this function for options.
 #'
@@ -28,7 +28,7 @@
 #' @importFrom graphics plot title
 #' @export
 #'
-showWaveform <- function(x, UID) {
+plotWaveform <- function(x, UID) {
     data <- getBinaryData(x, UID)
     for(i in seq_along(data)) {
         if(!('wave' %in% names(data[[i]]))) {
@@ -44,9 +44,9 @@ showWaveform <- function(x, UID) {
 }
 
 #' @export
-#' @rdname showWaveform
+#' @rdname plotWaveform
 #'
-showSpectrogram <- function(x, UID, sr=NULL, ...) {
+plotSpectrogram <- function(x, UID, sr=NULL, ...) {
     data <- getBinaryData(x, UID)
     for(i in seq_along(data)) {
         if(!('wave' %in% names(data[[i]]))) {
@@ -71,9 +71,9 @@ showSpectrogram <- function(x, UID, sr=NULL, ...) {
 }
 
 #' @export
-#' @rdname showWaveform
+#' @rdname plotWaveform
 #'
-showWigner <- function(x, UID, sr=NULL, ...) {
+plotWigner <- function(x, UID, sr=NULL, ...) {
     data <- getBinaryData(x, UID)
     for(i in seq_along(data)) {
         if(!('wave' %in% names(data[[i]]))) {

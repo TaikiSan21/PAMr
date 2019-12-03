@@ -4,8 +4,7 @@
 \alias{export_banter}
 \title{Export a List of AcousticEvent Ojbects for Banter Model}
 \usage{
-export_banter(x, dropVars = NULL, dropSpecies = NULL,
-  training = TRUE)
+export_banter(x, dropVars = NULL, dropSpecies = NULL, training = TRUE)
 }
 \arguments{
 \item{x}{a \linkS4class{AcousticStudy} object or

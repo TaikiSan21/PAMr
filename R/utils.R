@@ -11,7 +11,7 @@ dropCols <- function(x, cols) {
     x[, keepCols, drop=FALSE]
 }
 
-# what event is a UID in
+# what event is a UID in returns named index
 whereUID <- function(study, UID, quiet=FALSE) {
     UID <- as.character(UID)
     where <- sapply(UID, function(u) { #for each uid
@@ -35,6 +35,8 @@ whereUID <- function(study, UID, quiet=FALSE) {
 
 # match SR function
 # data needs UTC, thats it
+# db is sound acq data, either DF or db
+# safe to fail with NULL instead of error
 matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
     if(is.character(db)) {
         if(!file.exists(db)) {
@@ -93,25 +95,6 @@ matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
     data
 }
 
-# get sound acquisition start/stop intervals from a pg database
-
-# saIntervals <- function(db) {
-#     con <- dbConnect(db, drv=SQLite())
-#     on.exit(dbDisconnect(con))
-#     sa <- dbReadTable(con, 'Sound_Acquisition')
-#     sa$Status <- str_trim(sa$Status)
-#     sa$UTC <- pgDateToPosix(sa$UTC)
-#     sa <- sa[sa$Status %in% c('Start', 'Stop'), c('UTC', 'Status', 'sampleRate', 'SystemType')]
-#     first <- min(which(sa$Status == 'Start'))
-#     last <- max(which(sa$Status == 'Stop'))
-#     sa <- sa[first:last,]
-#     alt <- sa$Status[1:(nrow(sa)-1)] != sa$Status[2:nrow(sa)]
-#     sa <- sa[c(TRUE, alt), ]
-#     sa$id <- rep(1:(nrow(sa)/2), each=2)
-#     sa <- tidyr::spread(sa, 'Status', 'UTC')
-#     sa
-# }
-
 # check if in start/stop interval
 # bounds is a single start/stop, sa is sound acq table from db
 #' @importFrom tidyr spread
@@ -127,7 +110,8 @@ inInterval <- function(bounds, sa) {
     sa <- tidyr::spread(sa, 'Status', 'UTC')
     startIn <- (any((bounds[1] >= sa[['Start']]) & (bounds[1] <= sa[['Stop']])))
     endIn <- (any((bounds[2] >= sa[['Start']]) & (bounds[2] <= sa[['Stop']])))
-    startIn && endIn
+    contain <- (any((bounds[1] <= sa[['Start']]) & (bounds[2] >= sa[['Stop']])))
+    startIn || endIn || contain
 }
 
 # add list without replacing old one, only replace matching names
@@ -147,3 +131,50 @@ safeListAdd <- function(x, value) {
     }
     x
 }
+
+# get just detector data from a study
+# SHOULD WE MAKE THIS A METHOD OF DETECTORS FOR CLASS LIST AND STUDY
+# getDetectorData <- function(x, species=FALSE) {
+#     if(is.AcousticStudy(x)) {
+#         return(getDetectorData(events(x), species))
+#     }
+#     if(is.list(x)) {
+#         result <- lapply(x[sapply(x, is.AcousticEvent)], function(e) {
+#             getDetectorData(e, species)
+#             })
+#         names(result) <- NULL
+#         result <- unlist(result, recursive=FALSE)
+#         return(squishList(result))
+#     }
+#     # base case one acev
+#     dets <- detectors(x)
+#     callTypes <- getCallType(dets)
+#     for(d in seq_along(dets)) {
+#         dets[[d]]$eventId <- id(x)
+#         dets[[d]]$detectorName <- names(dets)[d]
+#         if(species) {
+#             if(is.null(species(x)$id)) {
+#                 dets[[d]]$species <- NA_character_
+#             } else {
+#                 dets[[d]]$species <- species(x)$id
+#             }
+#         }
+#     }
+#     names(dets) <- callTypes
+#     squishList(dets)
+# }
+#
+# getCallType <- function(x) {
+#     if(is.data.frame(x)) {
+#         return(attr(x, 'calltype'))
+#     }
+#     if(is.list(x) &&
+#        all(sapply(x, is.data.frame))) {
+#         return(
+#             sapply(x, function(d) {
+#                 attr(d, 'calltype')
+#             })
+#         )
+#     }
+#     NULL
+# }

@@ -206,6 +206,9 @@ is.AcousticEvent <- function(x) {
 # Some effort bullshit                               \effort
 # ??????
 
+# setOldClass(c('data.frame', 'data.table'))
+#' @importClassesFrom data.table data.table
+setClassUnion('dataframeORtable', members = c('data.frame', 'data.table'))
 
 #' @title \code{AcousticStudy} Class
 #' @description An S4 class storing acoustic data from an entire AcousticStudy
@@ -228,10 +231,10 @@ setClass('AcousticStudy',
              id = 'character',
              events = 'list',
              files = 'list',
-             gps = 'data.frame',
+             gps = 'dataframeORtable',
              prs = 'PAMrSettings',
              settings = 'list',
-             effort = 'data.frame',
+             effort = 'dataframeORtable',
              models = 'list',
              ancillary = 'list'),
          prototype = prototype(
@@ -264,10 +267,12 @@ AcousticStudy <- function(id=NULL,
                           models = list(),
                           ancillary=list()) {
     if(is.null(id)) {
-        id <- as.character(Sys.Date())
+        id <- Sys.Date()
         cat("No ID supplied for this AcousticStudy object, will use today's",
-            ' date. Please supply a better name with id(study) <- "NAME"', sep='')
+            ' date. Please assign a better name with id(study) <- "NAME"',
+            '\nIn the future it is recommended to set the "id" argument.', sep='')
     }
+    id <- as.character(id)
     fileTemp <- list(db=NA_character_, binaries=NA_character_, visual=NA_character_, enviro=NA_character_)
     for(n in names(files)) {
         fileTemp[[n]] <- files[[n]]

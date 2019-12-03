@@ -35,6 +35,7 @@
 #' @export
 #'
 standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
+    # SLOWEST PART BY FAR is bwfilter
     result <- list()
     paramNames <- c('Channel', 'noiseLevel', 'duration', 'peakTime', 'peak', 'peak2', 'peak3', 'trough',
                     'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'Q_10dB',
@@ -181,6 +182,7 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
     }
     # Combine calcs for all channels
     result <- bind_rows(result)
+    result$Channel <- as.character(result$Channel)
     result
 }
 

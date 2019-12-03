@@ -29,5 +29,7 @@ Imports:
     signal,
     readr,
     tuneR,
-    tidyr
-RoxygenNote: 6.1.1
+    tidyr,
+    ggplot2,
+    manipulate
+RoxygenNote: 7.0.0

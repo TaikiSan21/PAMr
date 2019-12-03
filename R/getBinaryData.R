@@ -22,10 +22,11 @@
 getBinaryData <- function(x, UID, quiet=FALSE, ...) {
     if(is.AcousticStudy(x)) {
         # only look in events that have our UIDs
-        hasUID <- whereUID(x, UID)
-        hasUID <- unique(unlist(hasUID))
-        hasUID <- hasUID[!is.na(hasUID)]
-        x <-events(x)[hasUID]
+        # hasUID <- whereUID(x, UID)
+        # hasUID <- unique(unlist(hasUID))
+        # hasUID <- hasUID[!is.na(hasUID)]
+        # x <-events(x)[hasUID]
+        x <- events(x)
     }
     if(is.list(x)) {
         # only do AcEv in list, run quietly bc we know not all UIDs in all events
@@ -47,13 +48,15 @@ getBinaryData <- function(x, UID, quiet=FALSE, ...) {
         warning('This is not an AcousticEvent object.')
         return(NULL)
     }
+    # from here we know its an AcEv
     allBinaries <- files(x)$binaries
-
+    # find matching UID from dets
     bins <- bind_rows(
         lapply(detectors(x), function(df) {
             df[df[['UID']] %in% UID, c('UTC', 'UID', 'BinaryFile')]
         }))
-    if(is.null(bins)) {
+    if(is.null(bins) ||
+       nrow(bins) == 0) {
         if(!quiet) {
             warning('No matches found for UID(s) ', paste(UID, collapse=', '), '.')
         }

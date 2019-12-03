@@ -18,8 +18,10 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @name calculateICI
+#'
 #' @importFrom dplyr bind_rows
 #' @importFrom stats density
+#'
 #' @export
 #'
 setGeneric('calculateICI', function(x, time=c('UTC', 'peakTime'), ...) standardGeneric('calculateICI'))
