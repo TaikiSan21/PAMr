@@ -48,6 +48,8 @@ function `PAMrSettings()`:
 myPrs <- PAMrSettings()
 ```
 
+*** Note that only Click and WhistlesMoans binaries will be added ***
+
 This will ask the user to select a database file, then select a folder of binaries,
 and then ask for parameters for the included `standardClickCalcs` function. In
 future versions there may be more "standard" functions included. If you do not
@@ -170,6 +172,42 @@ myPrs <- removeFunction(myPrs)
 ```
 
 ### Versions
+
+**0.7.0**
+
+* Detector dataframes in `AcousticEvents` now have a `'calltype'` associated with them,
+currently one of `whistle`, `click`, or `cepstrum`. This allows for future fun stuff
+to happen
+
+* `getPgDetections` has now been re-named to `processPgDetections` to more accurately
+reflect what it is doing. Functions starting with `get___` will be used just for 
+accessing data
+
+* Major update adding in `AcousticStudy` class. This will now be the class of object
+returned by `getPgDetections`, it stores your list of `AcousticEvent` objects with
+other important data. 
+
+* `getBinaryData` will now attempt to get the appropriate sample rate for each
+data point, either from the settings or matching by time using the database file
+if more than one sample rate was in your data.
+
+* Many speed improvements - click calculations should take about half the time, and
+`getPgDetections` with `mode='time'` will now skip over binaries that are outside
+of the time range of specified events
+
+* General naming consistency overhaul - `sr` and `db` should now be used in place of
+`sampleRate` and `database` wherever these were previously used, and this should be
+the naming convention going forward. This means included functions will need to be 
+re-added (they previously relied on it being named `sampleRate`)
+
+* `getPgDetections` no longer has an option `mode='all'`, and it is no longer necessary
+to supply a sample rate for `mode='time'`. It will now attempt to match events to a
+correct database used on time stamps, the match the appropriate sample rate the same
+way that `mode='db'` does. If a manual sample rate needs to be applied it should now be
+entered into the `grouping` table
+
+* `showWaveform` and related functions have been renamed to `plotWaveform`
+
 **0.6.10**
 
 * temporary ICI calculations for banter export in `banterICI`, this will be removed in

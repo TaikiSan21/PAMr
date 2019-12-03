@@ -13,7 +13,10 @@ addBinaries(prs, binFolder = NULL)
 }
 \value{
 the same \linkS4class{PAMrSettings} object as prs, with the binary
-  files contained in \code{binFolder} added to the "binaries" slot
+  files contained in \code{binFolder} added to the "binaries" slot. Only
+  binary files for Click Detector and WhistlesMoans modules will be added,
+  since these are the only types PAMr currently knows how to process
+  (last updated v 0.7.0)
 }
 \description{
 Adds a new function to the "function" slot in a PAMrSettings

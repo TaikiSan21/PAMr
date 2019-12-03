@@ -3,28 +3,30 @@
 #' @description Formats a list of AcousticEvent objects into the structure
 #'   needed to run a banter model.
 #'
-#' @param eventList a list of \linkS4class{AcousticEvent} objects.
+#' @param x a \linkS4class{AcousticStudy} object or
+#'   a list of \linkS4class{AcousticEvent} objects
 #' @param dropVars a vector of the names of any variables to remove
 #' @param dropSpecies a vector of the names of any species to exclude
 #' @param training logical flag whether or not this will be used as a
 #'   training data set. Training sets must contain a species ID.
-#' @param reportNA logical, if \code{TRUE} then only the UID's and
-#'   Binary File names of any \code{NA} rows will be returned
 #'
-#' @return a list with two items, \code{events} and \code{detectors}.
+#' @return a list with three items, \code{events}, \code{detectors}, and
+#'   \code{na}.
 #'   \code{events} is a dataframe with two columns. \code{event.id} is a
 #'   unique identifier for each event, taken from the names of the event
 #'   list. \code{species} is the species classification, taken from the
 #'   \code{species} slot labelled \code{id}. \code{detectors} is a list
 #'   of data frames containing all the detections and measurements. There is
 #'   one list for each unique detector type found in the \code{detectors} slots
-#'   of \code{eventList}. The data frames will only have columns with class
+#'   of \code{x}. The data frames will only have columns with class
 #'   \code{numeric}, \code{integer}, \code{factor}, or \code{logical}, and
 #'   will also have columns named \code{UID}, \code{Id}, \code{parentUID},
 #'   \code{sampleRate}, \code{Channel}, \code{angle}, and \code{angleError},
 #'   removed so that these are not treated as parameters for the banter random
 #'   forest model. The dataframes will also have columns \code{event.id} and
-#'   \code{call.id} added.
+#'   \code{call.id} added. \code{na} contains the UIDs and Binary File names
+#'   for any detections that had NA values. These cannot be used in the
+#'   random forest model and are removed from the exported dataset.
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
@@ -33,26 +35,29 @@
 #' @importFrom purrr map reduce
 #' @export
 #'
-export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=TRUE, reportNA=FALSE) {
-    sp <- sapply(eventList, function(x) species(x)$id)
+export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
+    if(is.AcousticStudy(x)) {
+        x <- events(x)
+    }
+    sp <- sapply(x, function(e) species(e)$id)
     sp[is.null(sp)] <- NA_character_
     spNa <- sapply(sp, is.na)
     if(training && any(spNa)) {
-        warning('Events ', paste(names(eventList)[which(spNa)], collapse=', '),
+        warning('Events ', paste(names(x)[which(spNa)], collapse=', '),
              ' do not have a species ID. Data can only be used for prediction, not model training.')
         training <- FALSE
     }
 
     detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
-    evName <- names(eventList)
+    evName <- names(x)
     if(!(length(unique(evName)) == length(evName))) {
         warning('Duplicate event names found, these must be unique for BANTER. Adding numbers to event names.')
         for(i in unique(evName)) {
             evName[evName == i] <- paste0(i, 1:(sum(evName == i)))
         }
-        names(eventList) <- evName
+        names(x) <- evName
     }
-    events <- data.frame(event.id = names(eventList),
+    events <- data.frame(event.id = names(x),
                          stringsAsFactors = FALSE)
     if(training) {
         events$species <- sp
@@ -61,16 +66,16 @@ export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=T
         toDrop <- sp %in% dropSpecies
         sp <- sp[!toDrop]
         events <- events[!toDrop, , drop=FALSE]
-        eventList <- eventList[!toDrop]
+        x <- x[!toDrop]
     }
-    for(e in seq_along(eventList)) {
-        thisEv <- eventList[[e]]
+    for(e in seq_along(x)) {
+        thisEv <- x[[e]]
         for(d in seq_along(detectors(thisEv))) {
             thisDet <- detectors(thisEv)[[d]]
             if(is.null(thisDet)) next
 
-            thisDet$event.id <- names(eventList)[e]
-            thisDet$call.id <- paste0(names(eventList)[e], thisDet$UID)
+            thisDet$event.id <- names(x)[e]
+            thisDet$call.id <- paste0(names(x)[e], thisDet$UID)
             if('Channel' %in% colnames(thisDet)) {
                 thisDet$call.id <- paste0('C', thisDet$Channel, thisDet$call.id)
             }
@@ -85,13 +90,11 @@ export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=T
             detNA <- rbind(detNA, thisDet[whereNA, c('UID', 'BinaryFile')])
             detectors(thisEv)[[d]] <- thisDet[!whereNA, useCols]
         }
-        eventList[[e]] <- thisEv
+        x[[e]] <- thisEv
     }
-    if(reportNA) {
-        return(detNA)
-    }
-    dets <- lapply(eventList, function(x) {
-        tmpDet <- detectors(x)
+
+    dets <- lapply(x, function(e) {
+        tmpDet <- detectors(e)
         if(length(tmpDet) == 0) return(NULL)
         tmpDet[sapply(tmpDet, function(y) !is.null(y) && ncol(y) > 2)]
     })
@@ -99,8 +102,8 @@ export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=T
     dets <- squishList(unlist(dets, recursive = FALSE))
     dets <- lapply(dets, distinct)
     if(nrow(detNA) > 0) {
-        warning('Removing ', nrow(detNA), ' NA values, re-run export_banter with ',
-                'reportNA = TRUE to see affected UID(s) and BinaryFile(s).')
+        warning('Removing ', nrow(detNA), ' NA values, to see affected UID(s) and ',
+        'BinaryFile(s) check the "na" item in list output.')
     }
     cat('\nCreated data for ', nrow(events), ' events with ',
         sum(sapply(dets, nrow)), ' total detections', sep='')
@@ -110,5 +113,5 @@ export_banter <- function(eventList, dropVars=NULL, dropSpecies=NULL, training=T
             '\nRe-run with dropSpecies argument if any of these are not desired', sep='')
     }
     cat('.', sep='')
-    list(events=events, detectors=dets)
+    list(events=events, detectors=dets, na=detNA)
 }

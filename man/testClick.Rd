@@ -8,7 +8,7 @@
 \describe{
   \item{wave}{a matrix with two columns of 800 samples, each column
   is a separate recording channel}
-  \item{sampleRate}{the sample rate of the recording}
+  \item{sr}{the sample rate of the recording}
 }}
 \source{
 Southwest Fisheries Science Center / NMFS / NOAA
@@ -18,7 +18,7 @@ testClick
 }
 \description{
 An example delphinid click waveform. This is a two-channel recording
-of some kind of delphinid click, recorded at 192kHz. There are 
+of some kind of delphinid click, recorded at 192kHz. There are
 800 samples recorded on each channel.
 }
 \keyword{datasets}

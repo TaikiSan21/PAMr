@@ -8,7 +8,7 @@ standardCepstrumCalcs(data)
 }
 \arguments{
 \item{data}{a list that must have \code{quefrency} the "quefrency" at each
-cepstrum contour, \code{sampleRate} the sample rate of the data,
+cepstrum contour, \code{sr} the sample rate of the data,
 and \code{time} the time in seconds at each bin}
 }
 \value{

@@ -7,7 +7,10 @@
 #' @param binFolder a folder of binaries to add
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the binary
-#'   files contained in \code{binFolder} added to the "binaries" slot
+#'   files contained in \code{binFolder} added to the "binaries" slot. Only
+#'   binary files for Click Detector and WhistlesMoans modules will be added,
+#'   since these are the only types PAMr currently knows how to process
+#'   (last updated v 0.7.0)
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
@@ -25,7 +28,9 @@ addBinaries <- function(prs, binFolder=NULL) {
     }
     prs@binaries$folder <- unique(c(prs@binaries$folder, binFolder))
     cat('Getting list of all binary files in folder. This may take a while...\n')
-    binlist <- list.files(binFolder, recursive = TRUE, full.names = TRUE, pattern = 'pgdf')
+    # only have functions for Clicks & Whistles right now, filter out so we dont get garbage
+    # warning overflow later
+    binlist <- list.files(binFolder, recursive = TRUE, full.names = TRUE, pattern ='(Clicks|WhistlesMoans).*pgdf$')
     prs@binaries$list <- unique(c(prs@binaries$list, binlist))
     prs
 }

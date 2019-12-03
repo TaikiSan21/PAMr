@@ -1,53 +1,58 @@
 # All get/set
 # Get/Set for AcousticEvent class -----------------------------------------
 
-#' @title \code{AcousticEvent} accessors
+#' @title \code{AcousticEvent} and \code{AcousticStudy} accessors
 #'
-#' @description Accessors for slots in \linkS4class{AcousticEvent} objects
+#' @description Accessors for slots in \linkS4class{AcousticEvent}
+#'   and \linkS4class{AcousticStudy} objects
 #'
-#' @param x a \linkS4class{AcousticEvent} object
+#' @param x a \linkS4class{AcousticEvent} or \linkS4class{AcousticStudy} object
 #' @param value value to assign with accessor
+#' @param i index of the object to access
+#' @param name name of the object to access
 #' @param \dots other arguments to pass to methods
 #'
 #' @return
 #' \describe{
-#'   \item{id}{a unique id or name for this event}
-#'   \item{settings}{a \linkS4class{DataSettings} object}
+#'   \item{id}{a unique id or name for this object}
+#'   \item{settings}{a named list of settings for each detector and localization or recorder}
 #'   \item{detectors}{a list of detector data frames}
 #'   \item{localizations}{list of localizations}
-#'   \item{visData}{a \linkS4class{VisObsData} object}
-#'   \item{behavior}{behavior data}
-#'   \item{erdda}{environmental data}
 #'   \item{species}{list of species classifications}
 #'   \item{files}{list of files used to create this object}
+#'   \item{events}{a list of \linkS4class{AcousticEvent} objects}
+#'   \item{gps}{a dataframe containing gps data}
+#'   \item{prs}{the \linkS4class{PAMrSettings} object used to create this}
+#'   \item{effort}{something about effort?}
+#'   \item{ancillary}{miscellaneous extra data}
 #'   }
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
-#' @name AcousticEvent.accessors
+#' @name PAMr.accessors
 #'
 #' @importFrom methods setGeneric setMethod validObject
 #'
 NULL
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('settings', function(x, ...) standardGeneric('settings'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases settings
 #'
 setMethod('settings', 'AcousticEvent', function(x, ...) x@settings)
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('settings<-', function(x, value) standardGeneric('settings<-'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases settings
 #'
 setMethod('settings<-', 'AcousticEvent', function(x, value) {
@@ -57,23 +62,23 @@ setMethod('settings<-', 'AcousticEvent', function(x, value) {
 })
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('localizations', function(x, ...) standardGeneric('localizations'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases localizations
 #'
 setMethod('localizations', 'AcousticEvent', function(x, ...) x@localizations)
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('localizations<-', function(x, value) standardGeneric('localizations<-'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases localizations
 #'
 setMethod('localizations<-', 'AcousticEvent', function(x, value) {
@@ -83,32 +88,23 @@ setMethod('localizations<-', 'AcousticEvent', function(x, value) {
 })
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('id', function(x, ...) standardGeneric('id'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases id
 #'
-setMethod('id', 'AcousticEvent', function(x, ...) {
-    if(inherits(try(x@id, silent=TRUE), 'try-error')) {
-        warning('AcousticEvent object does not have an "id" slot (added v0.6.0 Aug-8-2019)',
-                '\nPlease see ?setIdSlot to fix this.')
-        'SEE ?setIdSlot'
-    } else {
-        x@id
-    }
-}
-)
+setMethod('id', 'AcousticEvent', function(x, ...) x@id)
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('id<-', function(x, value) standardGeneric('id<-'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases id
 #'
 setMethod('id<-', 'AcousticEvent', function(x, value) {
@@ -118,23 +114,23 @@ setMethod('id<-', 'AcousticEvent', function(x, value) {
 })
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('detectors', function(x, ...) standardGeneric('detectors'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases detectors
 #'
 setMethod('detectors', 'AcousticEvent', function(x, ...) x@detectors)
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('detectors<-', function(x, value) standardGeneric('detectors<-'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases detectors
 #'
 setMethod('detectors<-', 'AcousticEvent', function(x, value) {
@@ -144,101 +140,23 @@ setMethod('detectors<-', 'AcousticEvent', function(x, value) {
 })
 
 #' @export
-#' @rdname AcousticEvent.accessors
-#'
-setGeneric('visData', function(x, ...) standardGeneric('visData'))
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#' @aliases visData
-#'
-setMethod('visData', 'AcousticEvent', function(x, ...) x@visData)
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#'
-setGeneric('visData<-', function(x, value) standardGeneric('visData<-'))
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#' @aliases visData
-#'
-setMethod('visData<-', 'AcousticEvent', function(x, value) {
-    x@visData <- value
-    validObject(x)
-    x
-})
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#'
-setGeneric('behavior', function(x, ...) standardGeneric('behavior'))
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#' @aliases behavior
-#'
-setMethod('behavior', 'AcousticEvent', function(x, ...) x@behavior)
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#'
-setGeneric('behavior<-', function(x, value) standardGeneric('behavior<-'))
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#' @aliases behavior
-#'
-setMethod('behavior<-', 'AcousticEvent', function(x, value) {
-    x@behavior <- value
-    validObject(x)
-    x
-})
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#'
-setGeneric('erddap', function(x, ...) standardGeneric('erddap'))
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#' @aliases erddap
-#'
-setMethod('erddap', 'AcousticEvent', function(x, ...) x@erddap)
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#'
-setGeneric('erddap<-', function(x, value) standardGeneric('erddap<-'))
-
-#' @export
-#' @rdname AcousticEvent.accessors
-#' @aliases erddap
-#'
-setMethod('erddap<-', 'AcousticEvent', function(x, value) {
-    x@erddap <- value
-    validObject(x)
-    x
-})
-
-#' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('species', function(x, ...) standardGeneric('species'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases species
 #'
 setMethod('species', 'AcousticEvent', function(x, ...) x@species)
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('species<-', function(x, value) standardGeneric('species<-'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases species
 #'
 setMethod('species<-', 'AcousticEvent', function(x, value) {
@@ -248,23 +166,23 @@ setMethod('species<-', 'AcousticEvent', function(x, value) {
 })
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('files', function(x, ...) standardGeneric('files'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases files
 #'
 setMethod('files', 'AcousticEvent', function(x, ...) x@files)
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('files<-', function(x, value) standardGeneric('files<-'))
 
 #' @export
-#' @rdname AcousticEvent.accessors
+#' @rdname PAMr.accessors
 #' @aliases files
 #'
 setMethod('files<-', 'AcousticEvent', function(x, value) {
@@ -273,261 +191,369 @@ setMethod('files<-', 'AcousticEvent', function(x, value) {
     x
 })
 
-
-#  Get/Set for Cruise class -----------------------------------------------
-#' @title \code{Cruise} accessors
+#' @export
+#' @rdname PAMr.accessors
 #'
-#' @description Accessors for slots in \linkS4class{Cruise} objects
-#'
-#' @param x a \linkS4class{Cruise} object
-#' @param value value to assign with accessor
-#' @param \dots other arguments to pass to methods
-#'
-#' @return
-#' \describe{
-#'   \item{folders}{a list of folders}
-#'   \item{gpsData}{a dataframe containing gps data}
-#'   \item{acousticEvents}{a list of \linkS4class{AcousticEvent} objects}
-#'   \item{detectorSettings}{a named list of settings for each detector used}
-#'   \item{localizationSettings}{a named list of settings for each localization}
-#'   \item{effort}{something about effort?}
-#'   }
-#'
-#' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
-#'
-#' @name Cruise.accessors
-#'
-#' @importFrom methods setGeneric setMethod validObject
-#'
-NULL
+setGeneric('ancillary', function(x, ...) standardGeneric('ancillary'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
+#' @aliases ancillary
 #'
-setGeneric('folders', function(x, ...) standardGeneric('folders'))
+setMethod('ancillary', 'AcousticEvent', function(x, ...) x@ancillary)
 
 #' @export
-#' @rdname Cruise.accessors
-#' @aliases folders
+#' @rdname PAMr.accessors
 #'
-setMethod('folders', 'Cruise', function(x, ...) x@folders)
+setGeneric('ancillary<-', function(x, value) standardGeneric('ancillary<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
+#' @aliases ancillary
 #'
-setGeneric('folders<-', function(x, value) standardGeneric('folders<-'))
-
-#' @export
-#' @rdname Cruise.accessors
-#' @aliases folders
-#'
-setMethod('folders<-', 'Cruise', function(x, value) {
-    x@folders <- value
+setMethod('ancillary<-', 'AcousticEvent', function(x, value) {
+    x@ancillary <- safeListAdd(x@ancillary, value)
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
 #'
-setGeneric('gpsData', function(x, ...) standardGeneric('gpsData'))
+setMethod('[', 'AcousticEvent', function(x, i) {
+    x@detectors[i]
+})
 
 #' @export
-#' @rdname Cruise.accessors
-#' @aliases gpsData
+#' @rdname PAMr.accessors
 #'
-setMethod('gpsData', 'Cruise', function(x, ...) x@gpsData)
-
-#' @export
-#' @rdname Cruise.accessors
-#'
-setGeneric('gpsData<-', function(x, value) standardGeneric('gpsData<-'))
-
-#' @export
-#' @rdname Cruise.accessors
-#' @aliases gpsData
-#'
-setMethod('gpsData<-', 'Cruise', function(x, value) {
-    x@gpsData <- value
+setMethod('[<-', 'AcousticEvent', function(x, i, value) {
+    x@detectors[i] <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
 #'
-setGeneric('acousticEvents', function(x, ...) standardGeneric('acousticEvents'))
+setMethod('$', 'AcousticEvent', function(x, name) {
+    '[['(x@detectors, name)
+})
 
 #' @export
-#' @rdname Cruise.accessors
-#' @aliases acousticEvents
+#' @rdname PAMr.accessors
 #'
-setMethod('acousticEvents', 'Cruise', function(x, ...) x@acousticEvents)
-
-#' @export
-#' @rdname Cruise.accessors
-#'
-setGeneric('acousticEvents<-', function(x, value) standardGeneric('acousticEvents<-'))
-
-#' @export
-#' @rdname Cruise.accessors
-#' @aliases acousticEvents
-#'
-setMethod('acousticEvents<-', 'Cruise', function(x, value) {
-    x@acousticEvents <- value
+setMethod('$<-', 'AcousticEvent', function(x, name, value) {
+    x@detectors[[name]] <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
 #'
-setGeneric('detectorSettings', function(x, ...) standardGeneric('detectorSettings'))
+setMethod('[[', 'AcousticEvent', function(x, i) {
+    '[['(x@detectors, i)
+})
 
 #' @export
-#' @rdname Cruise.accessors
-#' @aliases detectorSettings
+#' @rdname PAMr.accessors
 #'
-setMethod('detectorSettings', 'Cruise', function(x, ...) x@detectorSettings)
+setMethod('[[<-', 'AcousticEvent', function(x, i, value) {
+    x@detectors[[i]] <- value
+    validObject(x)
+    x
+})
+
+#' @importFrom utils .DollarNames
+#' @export
+#'
+.DollarNames.AcousticEvent <- function(x, pattern='') {
+    grep(pattern, names(detectors(x)), value=TRUE)
+}
+
+#  Get/Set for AcousticStudy class -----------------------------------------------
+# #' @title \code{AcousticStudy} accessors
+# #'
+# #' @description Accessors for slots in \linkS4class{AcousticStudy} objects
+#'
+# #' @param x a \linkS4class{AcousticStudy} object
+# #' @param value value to assign with accessor
+# #' @param \dots other arguments to pass to methods
+#'
+# #' @return
+# #' \describe{
+# #'   \item{id}{a name or id for this study}
+# #'   \item{events}{a list of \linkS4class{AcousticEvent} objects}
+# #'   \item{files}{a list of files}
+# #'   \item{gps}{a dataframe containing gps data}
+# #'   \item{prs}{the \linkS4class{PAMrSettings} object used to create this}
+# #'   \item{settings}{a named list of settings for each detector and localization}
+# #'   \item{effort}{something about effort?}
+# #'   \item{ancillary}{miscellaneous extra data}
+# #'   }
+#'
+# #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
+#'
+# #' @name PAMr.accessors
+#'
+# #' @importFrom methods setGeneric setMethod validObject
+#'
+# NULL
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
+#' @aliases id
 #'
-setGeneric('detectorSettings<-', function(x, value) standardGeneric('detectorSettings<-'))
+setMethod('id', 'AcousticStudy', function(x, ...) x@id)
 
 #' @export
-#' @rdname Cruise.accessors
-#' @aliases detectorSettings
+#' @rdname PAMr.accessors
+#' @aliases id
 #'
-setMethod('detectorSettings<-', 'Cruise', function(x, value) {
-    x@detectorSettings <- value
+setMethod('id<-', 'AcousticStudy', function(x, value) {
+    x@id <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
+#' @aliases files
 #'
-setGeneric('localizationSettings', function(x, ...) standardGeneric('localizationSettings'))
+setMethod('files', 'AcousticStudy', function(x, ...) x@files)
 
 #' @export
-#' @rdname Cruise.accessors
-#' @aliases localizationSettings
+#' @rdname PAMr.accessors
+#' @aliases files
 #'
-setMethod('localizationSettings', 'Cruise', function(x, ...) x@localizationSettings)
-
-#' @export
-#' @rdname Cruise.accessors
-#'
-setGeneric('localizationSettings<-', function(x, value) standardGeneric('localizationSettings<-'))
-
-#' @export
-#' @rdname Cruise.accessors
-#' @aliases localizationSettings
-#'
-setMethod('localizationSettings<-', 'Cruise', function(x, value) {
-    x@localizationSettings <- value
+setMethod('files<-', 'AcousticStudy', function(x, value) {
+    x@files <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
+#'
+setGeneric('gps', function(x, ...) standardGeneric('gps'))
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases gps
+#'
+setMethod('gps', 'AcousticStudy', function(x, ...) x@gps)
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setGeneric('gps<-', function(x, value) standardGeneric('gps<-'))
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases gps
+#'
+setMethod('gps<-', 'AcousticStudy', function(x, value) {
+    x@gps <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases detectors
+#'
+setMethod('detectors', 'AcousticStudy', function(x, ...) {
+    getDetectorData(x)
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setGeneric('events', function(x, ...) standardGeneric('events'))
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases events
+#'
+setMethod('events', 'AcousticStudy', function(x, ...) x@events)
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setGeneric('events<-', function(x, value) standardGeneric('events<-'))
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases events
+#'
+setMethod('events<-', 'AcousticStudy', function(x, value) {
+    x@events <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases settings
+#'
+setMethod('settings', 'AcousticStudy', function(x, ...) x@settings)
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases settings
+#'
+setMethod('settings<-', 'AcousticStudy', function(x, value) {
+    x@settings <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
 #'
 setGeneric('effort', function(x, ...) standardGeneric('effort'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
 #' @aliases effort
 #'
-setMethod('effort', 'Cruise', function(x, ...) x@effort)
+setMethod('effort', 'AcousticStudy', function(x, ...) x@effort)
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
 #'
 setGeneric('effort<-', function(x, value) standardGeneric('effort<-'))
 
 #' @export
-#' @rdname Cruise.accessors
+#' @rdname PAMr.accessors
 #' @aliases effort
 #'
-setMethod('effort<-', 'Cruise', function(x, value) {
+setMethod('effort<-', 'AcousticStudy', function(x, value) {
     x@effort <- value
     validObject(x)
     x
 })
 
-#  Get/Set for DataSettings class -----------------------------------------------
-#' @title \code{DataSettings} accessors
+#' @export
+#' @rdname PAMr.accessors
 #'
-#' @description Accessors for slots in \linkS4class{DataSettings} objects
-#'
-#' @param x a \linkS4class{DataSettings} object
-#' @param value value to assign with accessor
-#' @param \dots other arguments to pass to methods
-#'
-#' @return
-#' \describe{
-#'   \item{sampleRate}{sample rate in Hz of the sound}
-#'   \item{soundSource}{source of the sound}
-#'   }
-#'
-#' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
-#'
-#' @name DataSettings.accessors
-#'
-#' @importFrom methods setGeneric setMethod validObject
-#'
-NULL
+setGeneric('prs', function(x, ...) standardGeneric('prs'))
 
 #' @export
-#' @rdname DataSettings.accessors
+#' @rdname PAMr.accessors
+#' @aliases prs
 #'
-setGeneric('sampleRate', function(x, ...) standardGeneric('sampleRate'))
+setMethod('prs', 'AcousticStudy', function(x, ...) x@prs)
 
 #' @export
-#' @rdname DataSettings.accessors
-#' @aliases sampleRate
+#' @rdname PAMr.accessors
 #'
-setMethod('sampleRate', 'DataSettings', function(x, ...) x@sampleRate)
+setGeneric('prs<-', function(x, value) standardGeneric('prs<-'))
 
 #' @export
-#' @rdname DataSettings.accessors
+#' @rdname PAMr.accessors
+#' @aliases prs
 #'
-setGeneric('sampleRate<-', function(x, value) standardGeneric('sampleRate<-'))
-
-#' @export
-#' @rdname DataSettings.accessors
-#' @aliases sampleRate
-#'
-setMethod('sampleRate<-', 'DataSettings', function(x, value) {
-    x@sampleRate <- as.integer(value)
+setMethod('prs<-', 'AcousticStudy', function(x, value) {
+    x@prs <- value
     validObject(x)
     x
 })
 
 #' @export
-#' @rdname DataSettings.accessors
+#' @rdname PAMr.accessors
+#' @aliases ancillary
 #'
-setGeneric('soundSource', function(x, ...) standardGeneric('soundSource'))
+setMethod('ancillary', 'AcousticStudy', function(x, ...) x@ancillary)
 
 #' @export
-#' @rdname DataSettings.accessors
-#' @aliases soundSource
+#' @rdname PAMr.accessors
+#' @aliases ancillary
 #'
-setMethod('soundSource', 'DataSettings', function(x, ...) x@soundSource)
-
-#' @export
-#' @rdname DataSettings.accessors
-#'
-setGeneric('soundSource<-', function(x, value) standardGeneric('soundSource<-'))
-
-#' @export
-#' @rdname DataSettings.accessors
-#' @aliases soundSource
-#'
-setMethod('soundSource<-', 'DataSettings', function(x, value) {
-    x@soundSource <- value
+setMethod('ancillary<-', 'AcousticStudy', function(x, value) {
+    x@ancillary <- safeListAdd(x@ancillary, value)
     validObject(x)
     x
 })
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setGeneric('models', function(x, ...) standardGeneric('models'))
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases models
+#'
+setMethod('models', 'AcousticStudy', function(x, ...) x@models)
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setGeneric('models<-', function(x, value) standardGeneric('models<-'))
+
+#' @export
+#' @rdname PAMr.accessors
+#' @aliases models
+#'
+setMethod('models<-', 'AcousticStudy', function(x, value) {
+    x@models <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[', 'AcousticStudy', function(x, i) {
+    x@events[i]
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[<-', 'AcousticStudy', function(x, i, value) {
+    x@events[i] <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('$', 'AcousticStudy', function(x, name) {
+    '[['(x@events, name)
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('$<-', 'AcousticStudy', function(x, name, value) {
+    x@events[[name]] <- value
+    validObject(x)
+    x
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[[', 'AcousticStudy', function(x, i) {
+    '[['(x@events, i)
+})
+
+#' @export
+#' @rdname PAMr.accessors
+#'
+setMethod('[[<-', 'AcousticStudy', function(x, i, value) {
+    x@events[[i]] <- value
+    validObject(x)
+    x
+})
+
+#' @importFrom utils .DollarNames
+#' @export
+#'
+.DollarNames.AcousticStudy <- function(x, pattern='') {
+    grep(pattern, names(events(x)), value=TRUE)
+}

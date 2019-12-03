@@ -90,6 +90,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
                })
 
     }
+    # if you add new modules need to add to addBinaries - weve filtered them out there
     result <- switch(
         moduleType,
         'ClickDetector' = {
@@ -102,16 +103,20 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
                                stringsAsFactors = FALSE)
                 })) %>%
                 mutate(detectorName = paste(detName, detectorName, sep='_'))
-            left_join(allClicks, allNames, by='UID')
+            allClicks <- left_join(allClicks, allNames, by='UID')
+            allClicks$callType <- 'click'
+            allClicks
         },
         'WhistlesMoans' = {
             allWhistles <- doWhistleCalcs(binData$data, c(getBasic(moduleType), binFuns[['WhistlesMoans']]))
             allWhistles$detectorName <- detName
+            allWhistles$callType <- 'whistle'
             allWhistles
         },
         'Cepstrum' = {
             allCepstrum <- doCepstrumCalcs(binData$data, c(getBasic(moduleType), binFuns[['Cepstrum']]))
             allCepstrum$detectorName <- detName
+            allCepstrum$callType <- 'cepstrum'
             allCepstrum
         },
         warning("I don't know how to deal with Module Type ", moduleType)
@@ -121,7 +126,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
     result
 }
 
-# In general just make sure data has $wave and $sampleRate for clicks?
+# In general just make sure data has $wave and $sr for clicks?
 doClickCalcs <- function(clickData, clickFuns) {
     allClicks <- vector('list', length = length(clickFuns))
     # This just returns a df we will bind to db by UID
@@ -169,11 +174,6 @@ doWhistleCalcs <- function(whistleData, whistleFuns) {
     for(f in seq_along(whistleFuns)) {
         allWhistles[[f]] <- bind_rows(
             lapply(whistleData, function(oneWhistle) {
-                # oneWhistle$sampleRate <- fftLen * oneWhistle$maxFreq /
-                #     max(unlist(lapply(oneWhistle$sliceData, function(x) x$peakData)))
-                # oneWhistle$freq <- oneWhistle$contour * oneWhistle$sampleRate / fftLen
-                # oneWhistle$time <- sapply(oneWhistle$sliceData,
-                #                           function(x) x$sliceNumber) * fftHop / oneWhistle$sampleRate
                 tryCatch({
                     whistleFuns[[f]](oneWhistle)
                 }, error = function(e) {
@@ -208,7 +208,7 @@ doCepstrumCalcs <- function(cepstrumData, cepstrumFuns) {
             lapply(cepstrumData, function(oneCeps) {
                 oneCeps$quefrency <- oneCeps$contour
                 oneCeps$time <- sapply(oneCeps$sliceData,
-                                          function(x) x$sliceNumber) * fftHop / oneCeps$sampleRate
+                                          function(x) x$sliceNumber) * fftHop / oneCeps$sr
                 tryCatch({
                     cepstrumFuns[[f]](oneCeps)
                 }, error = function(e) {
