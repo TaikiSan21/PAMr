@@ -113,6 +113,11 @@ setMethod('addGps', signature(x='AcousticEvent'), function(x, gps=NULL, thresh =
             gpsFromDb(db, ...)
         }))
     }
+    if(is.null(gps) ||
+       nrow(gps) == 0) {
+        warning('No gps data found for event ', id(x))
+        return(x)
+    }
     x@detectors <- addGps(x@detectors, gps, thresh, ...)
     x
 })
@@ -133,6 +138,11 @@ setMethod('addGps', 'AcousticStudy', function(x, gps=NULL, thresh = 3600, ...) {
         gps <- rbindlist(lapply(files(x)$db, function(db) {
             gpsFromDb(db, extraCols=c('Speed', 'Heading', 'MagneticVariation', 'db'), ...)
         }))
+        if(is.null(gps) ||
+           nrow(gps) == 0) {
+            warning('No gps data found in any databases.')
+            return(x)
+        }
         gps <- checkGpsKey(gps)
         # setkeyv(gps, c(key(gps), 'db'))
         events(x) <- lapply(events(x), function(y) {
@@ -159,6 +169,10 @@ setMethod('addGps', 'ANY', function(x, gps, thresh = 3600, ...) {
 gpsFromDb <- function(db, extraCols=NULL, bounds=NULL) {
     con <- dbConnect(db, drv=SQLite())
     on.exit(dbDisconnect(con))
+    if(!('gpsData' %in% dbListTables(con))) {
+        cat('No "gpsData" table found in database', basename(db), '\n')
+        return(NULL)
+    }
     thisGps <- dbReadTable(con, 'gpsData')
     setDT(thisGps)
     thisGps[, db := db]

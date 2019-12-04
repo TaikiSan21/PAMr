@@ -48,7 +48,8 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
         training <- FALSE
     }
 
-    detNA <- data.frame(UID = character(0), BinaryFile = character(0), stringsAsFactors = FALSE)
+    detNA <- data.frame(UID = character(0), BinaryFile = character(0),
+                        event = character(0), detector = character(0), stringsAsFactors = FALSE)
     evName <- names(x)
     if(!(length(unique(evName)) == length(evName))) {
         warning('Duplicate event names found, these must be unique for BANTER. Adding numbers to event names.')
@@ -57,8 +58,10 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
         }
         names(x) <- evName
     }
+
     events <- data.frame(event.id = names(x),
                          stringsAsFactors = FALSE)
+
     if(training) {
         events$species <- sp
     }
@@ -68,6 +71,21 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
         events <- events[!toDrop, , drop=FALSE]
         x <- x[!toDrop]
     }
+    # check if any event level measures are present in all data
+    # or should i get all and fill NA, let banter deal with the NAs and warn you?
+    # if any present in all get them and cbind that ish to your events
+    measureNames <- sapply(x, function(e) names(ancillary(e)$measures))
+    allMeasures <- reduce(measureNames, intersect)
+    if(length(allMeasures) > 0 ) {
+
+        measureData <- bind_rows(lapply(x[events[['event.id']]], function(e) {
+            ancillary(e)$measures[allMeasures]
+        }))
+        events <- cbind(events, measureData)
+        cat('Found ', length(allMeasures), ' event level measures that were present',
+            ' in all events, adding these to your event data.\n')
+    }
+
     for(e in seq_along(x)) {
         thisEv <- x[[e]]
         for(d in seq_along(detectors(thisEv))) {
@@ -87,7 +105,12 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
                 colnames(thisDet) %in% c('event.id', 'call.id')
 
             whereNA <- reduce(map(thisDet[, useCols], is.na), `|`)
-            detNA <- rbind(detNA, thisDet[whereNA, c('UID', 'BinaryFile')])
+            thisNA <- thisDet[whereNA, c('UID', 'BinaryFile')]
+            if(nrow(thisNA) > 0) {
+                thisNA$event <- names(x)[e]
+                thisNA$detector <- names(detectors(thisEv))[d]
+            }
+            detNA <- rbind(detNA, thisNA)
             detectors(thisEv)[[d]] <- thisDet[!whereNA, useCols]
         }
         x[[e]] <- thisEv

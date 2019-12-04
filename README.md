@@ -5,18 +5,39 @@ User beware!
 
 ### Installation
 
-Install the latest version from GitHub:
+To install the latest version from GitHub, first make sure that you have
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/) installed, then 
+run the following code to install PAMr and two supporting packages, PamBinaries
+and PAMmisc. Currently it is important to install PamBinaries and PAMmisc first,
+but this won't matter once the package is on CRAN (Est. Q1 2020).
 
 ```r
 # make sure you have Rtools installed
 if(!require('devtools')) install.packages('devtools')
-# install from GitHub
-devtools::install_github('TaikiSan21/PAMr')
 # you will also need these packages from GitHub
 devtools::install_github('TaikiSan21/PamBinaries')
 devtools::install_github('TaikiSan21/PAMmisc')
-
+# install from GitHub
+devtools::install_github('TaikiSan21/PAMr')
 ```
+
+##### Common Installation Issues
+
+* If you are getting errors related to "Unable to unload package ______", try
+opening a fresh R session, or installing the package from the R console instead
+of RStudio
+
+* If you see an error like `Error in strptime(xx, f, tz = tz) : unable to identify current timezone 'C'`,
+then run the code `Sys.setenv(TZ = 'UTC')` and try again. This is common on field laptops, or laptops
+where the timezone has been set manually to something other than the local timezone. 
+
+* If you see an error like 
+`Error: Failed to install 'PAMr' from GitHub: installationg of package 'PACKAGENAME' had non-zero exit status`,
+try installing the package `PACKAGENAME` separately. PAMr relies on quite a few other packages, if any of them
+fail to install properly then PAMr will not install.
+
+### Getting Started
+
 
 ### Tutorial
 
@@ -173,6 +194,7 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
+<<<<<<< HEAD
 **0.7.0**
 
 * Detector dataframes in `AcousticEvents` now have a `'calltype'` associated with them,
@@ -385,3 +407,6 @@ functions added. These are also added by default to a new PRS.
 
 * changed `AcousticEvent` class slot name from `specClass` to `species`
 
+=======
+For bug fixes and feature additions in each version see the [NEWS](NEWS.md) file
+>>>>>>> study

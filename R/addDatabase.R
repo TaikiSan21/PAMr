@@ -14,6 +14,9 @@
 #' @export
 #'
 addDatabase <- function(prs, db=NULL) {
+    if(is.PAMrSettings(db)) {
+        db <- db@db
+    }
     if(is.null(db)) {
         cat('Please select a database file if you have one.',
             'Multiple selections are ok, or cancel if you do not.\n')
@@ -23,8 +26,11 @@ addDatabase <- function(prs, db=NULL) {
     if(length(db) == 0) return(prs)
 
     exists <- file.exists(db)
-    if(!all(exists)) {
-        stop(paste0('Database ', db[!exists], ' does not exist'))
+    if(any(!exists)) {
+        warning(paste0('Database(s) ',
+                       paste0(db[!exists], collapse=', ')
+                       , ' do(es) not exist.'))
+        db <- db[exists]
     }
     isSqlite <- grepl('\\.sqlite3$', db)
     if(any(!isSqlite)) {
@@ -33,6 +39,7 @@ addDatabase <- function(prs, db=NULL) {
                 paste0(db[!isSqlite], collapse = ', '))
         db <- db[isSqlite]
     }
+    cat('Adding', length(db), 'databases\n')
     prs@db <- unique(c(prs@db, db))
     prs
 }

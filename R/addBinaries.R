@@ -17,6 +17,16 @@
 #' @export
 #'
 addBinaries <- function(prs, binFolder=NULL) {
+    binList <- NULL
+    if(is.PAMrSettings(binFolder)) {
+        binList <- binFolder@binaries$list
+        binFolder <- binFolder@binaries$folder
+        exists <- file.exists(binList)
+        if(any(!exists)) {
+            binList <- binList[exists]
+            cat(sum(!exists), 'binary files did not exist.\n')
+        }
+    }
     if(is.null(binFolder)) {
         cat('Please select the folder where the binaries are stored.\n')
         binFolder <- choose.dir(caption = 'Choose Binary Folder:')
@@ -24,13 +34,18 @@ addBinaries <- function(prs, binFolder=NULL) {
     # Case when cancelled, dont error
     if(is.na(binFolder)) return(prs)
     if(!dir.exists(binFolder)) {
-        stop(paste0('Binary folder ', binFolder, ' does not exist'))
+        cat(paste0('Binary folder ', binFolder, ' does not exist'))
+        return(prs)
     }
     prs@binaries$folder <- unique(c(prs@binaries$folder, binFolder))
-    cat('Getting list of all binary files in folder. This may take a while...\n')
-    # only have functions for Clicks & Whistles right now, filter out so we dont get garbage
-    # warning overflow later
-    binlist <- list.files(binFolder, recursive = TRUE, full.names = TRUE, pattern ='(Clicks|WhistlesMoans).*pgdf$')
-    prs@binaries$list <- unique(c(prs@binaries$list, binlist))
+    if(is.null(binList) ||
+       length(binList) == 0) {
+        cat('Getting list of all binary files in folder. This may take a while...\n')
+        # only have functions for Clicks & Whistles right now, filter out so we dont get garbage
+        # warning overflow later
+        binList <- list.files(binFolder, recursive = TRUE, full.names = TRUE, pattern ='(Clicks|WhistlesMoans).*pgdf$')
+    }
+    cat('Adding', length(binList), 'binary files from', length(binFolder), 'folders\n')
+    prs@binaries$list <- unique(c(prs@binaries$list, binList))
     prs
 }

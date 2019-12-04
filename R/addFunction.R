@@ -18,7 +18,7 @@
 #'
 addFunction <- function(prs, fun, module=NULL) {
     modsAllowed <- c('ClickDetector', 'WhistlesMoans', 'Cepstrum')
-    if(class(fun) == 'PAMrSettings') {
+    if(is.PAMrSettings(fun)) {
         for(m in modsAllowed) {
             newFuns <- fun@functions[[m]]
             cat('Adding', length(newFuns), 'functions to module type', m, '\n')

@@ -2,12 +2,30 @@
 % Please edit documentation in R/calculateICI.R
 \name{calculateICI}
 \alias{calculateICI}
+\alias{calculateICI,AcousticStudy-method}
 \alias{calculateICI,AcousticEvent-method}
 \title{Calculate Inter-Click Interval}
 \usage{
-calculateICI(x, time = c("UTC", "peakTime"), ...)
+calculateICI(
+  x,
+  time = c("UTC", "peakTime"),
+  callType = c("click", "whistle", "cepstrum"),
+  ...
+)
 
-\S4method{calculateICI}{AcousticEvent}(x, time = c("UTC", "peakTime"), ...)
+\S4method{calculateICI}{AcousticStudy}(
+  x,
+  time = c("UTC", "peakTime"),
+  callType = c("click", "whistle", "cepstrum"),
+  ...
+)
+
+\S4method{calculateICI}{AcousticEvent}(
+  x,
+  time = c("UTC", "peakTime"),
+  callType = c("click", "whistle", "cepstrum"),
+  ...
+)
 }
 \arguments{
 \item{x}{a \linkS4class{AcousticStudy} object, a list of \linkS4class{AcousticEvent}
@@ -16,6 +34,10 @@ objects, or a single \linkS4class{AcousticEvent} object}
 \item{time}{the time measurement to use. \code{start} will use the \code{UTC} value,
 \code{peak} will use the \code{peakTime} value if present (currently present in
 \code{standardClickCalcs}, this is the time of the peak of the waveform)}
+
+\item{callType}{the call type to calculate ICI for, usually this is \code{click}
+but also allows users to specify \code{whistle} or \code{cepstrum} to calculate this
+using other detector data}
 
 \item{\dots}{not used}
 }
