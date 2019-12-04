@@ -58,3 +58,18 @@ getDetectorData <- function(x, species=FALSE) {
     names(dets) <- callTypes
     squishList(dets)
 }
+
+getCallType <- function(x) {
+    if(is.data.frame(x)) {
+        return(attr(x, 'calltype'))
+    }
+    if(is.list(x) &&
+       all(sapply(x, is.data.frame))) {
+        return(
+            sapply(x, function(d) {
+                attr(d, 'calltype')
+            })
+        )
+    }
+    NULL
+}

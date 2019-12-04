@@ -7,6 +7,9 @@
 #' @param time the time measurement to use. \code{start} will use the \code{UTC} value,
 #'   \code{peak} will use the \code{peakTime} value if present (currently present in
 #'   \code{standardClickCalcs}, this is the time of the peak of the waveform)
+#' @param callType the call type to calculate ICI for, usually this is \code{click}
+#'   but also allows users to specify \code{whistle} or \code{cepstrum} to calculate this
+#'   using other detector data
 #' @param \dots not used
 #'
 #' @details Calculates the ICI for each individual detector and across all detectors.
@@ -24,23 +27,47 @@
 #'
 #' @export
 #'
-setGeneric('calculateICI', function(x, time=c('UTC', 'peakTime'), ...) standardGeneric('calculateICI'))
+setGeneric('calculateICI', function(x,
+                                    time=c('UTC', 'peakTime'),
+                                    callType = c('click', 'whistle', 'cepstrum'),
+                                    ...) standardGeneric('calculateICI'))
+
 
 #' @rdname calculateICI
 #' @export
 #'
-setMethod('calculateICI', 'AcousticEvent', function(x, time=c('UTC', 'peakTime'), ...) {
-  detNames <- names(detectors(x))
-  detNames <- grep('Click_Detector', detNames, value=TRUE)
+setMethod('calculateICI', 'AcousticStudy', function(x,
+                                                    time=c('UTC', 'peakTime'),
+                                                    callType = c('click', 'whistle', 'cepstrum'),
+                                                    ...) {
+  events(x) <- lapply(events(x), function(e) calculateICI(e, time, callType, ...))
+  x
+})
+
+#' @rdname calculateICI
+#' @export
+#'
+setMethod('calculateICI', 'AcousticEvent', function(x,
+                                                    time=c('UTC', 'peakTime'),
+                                                    callType = c('click', 'whistle', 'cepstrum'),
+                                                    ...) {
+  callType <- match.arg(callType)
+  detData <- getDetectorData(x)[[callType]]
+  if(is.null(detData)) {
+    cat('No detector data found for call type', callType, 'in event', id(x))
+    return(x)
+  }
+  detNames <- unique(detData$detectorName)
   iciList <- vector('list', length = length(detNames) + 1)
   names(iciList) <- c(detNames, 'All')
+  time <- match.arg(time)
   for(d in detNames) {
       iciList[[d]] <- data.frame(name=d,
-                                 ici=dfICI(detectors(x)[[d]], match.arg(time)),
+                                 ici=dfICI(detData[detData$detectorName == d, ], time),
                                  stringsAsFactors = FALSE)
   }
   iciList[['All']] <- data.frame(name='All',
-                                 ici=dfICI(bind_rows(detectors(x)[detNames]), time),
+                                 ici=dfICI(detData, time),
                                  stringsAsFactors = FALSE)
   oldIci <- ancillary(x)$ici
   if(!is.null(oldIci)) {
@@ -54,6 +81,7 @@ setMethod('calculateICI', 'AcousticEvent', function(x, time=c('UTC', 'peakTime')
       if(mode < 0) mode <- 0
       mode
   })
+  names(iciMode) <- paste0(names(iciMode), '_ici')
   ancillary(x)$measures <- safeListAdd(ancillary(x)$measures, iciMode)
   x
 })

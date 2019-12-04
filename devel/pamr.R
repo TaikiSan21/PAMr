@@ -1,32 +1,3 @@
-# PAMR OUTLINE
-# Survey
-  # Cruise (object)
-    # Files / folders (dbs, bins, vis, enviro)   MAYBE this is just a function that aggregates from AcEvs
-    # GPS
-    # Acoustic event (obj) <--- this is really a list of AcEv?
-      # Detector - named list [[detector name]] of lists
-        # Data.table of detections w/ id
-        # possible image
-      # Localization - named list[[loc. type name]]
-        # Data frame of positions
-      # Data Collection / Array Settings (obj)
-        # Hydro sens, sample rate, whatever. Make an object and we figure out what it needs
-      # Visual data (obj)
-        # Detection time, spp IDs, group size est, effort status. Multiple ways to read
-      # Behavioral (lul)
-      # ERDAP https://github.com/rmendels/Talks/blob/master/netCDF_Presentation/netcdf_opendap_erddap.Rmd
-      # Species classification - list of classifier objects
-        # Method, prediction, assignment probabilities
-      # Add a thing for duration?
-    # Detector settings - named list [[detector name]]
-    # Localization settings - named list [[ loc. type]]
-    # Some effort bullshit
-      # ??????
-      # ???????
-
-# from PAMr event -> species ID
-# for each kind of detector: indiv detections have UID -> tied to event ID -> that has species ID NO IT DOESNT YOU FUCK
-# probably survey name or number for each event - make sure that across seasons we can tell diff
 
 
 # Offline event id in rocca csv -> eventid in offline clicks table. CSV might be same as rocca whistle stats table? Duration is 0 for clicks tho
@@ -37,7 +8,7 @@
 # For clicks: Name_of_detector_(Background/Clicks/OfflineClicks/OfflineEvents)
 # For WM: Name_of_detector and Name_of_detector_Localised_Name_of_detector_Contours
 ## BINARY names
-# For clicks: Click_Detector_Name_of_detector_(Clicks/Trigger_Background)_YYYMMDD_HHMMSS.pgdf
+# For clicks: Click_Detector_Name_of_detector_(Clicks/Trigger_Background)_YYYYMMDD_HHMMSS.pgdf
 # WM: WhistlesMoans_Name_of_detector_Contours_YYYMMDD_HHMMSS.pgdf
 ## ROCCA
 # Rocca_Whistle_Stats only has the eventid, no specific UID for calls (has a UID column, but it is wrong. has normal IDs)
@@ -69,19 +40,6 @@
 # ERDAP LATER:
 # https://github.com/rmendels/Talks/blob/master/netCDF_Presentation/netcdf_opendap_erddap.Rmd
 
-## DATA GROUPING:
-# Are we going to be using the detection group localiser to do groups / events? If yes,
-# can use the Detection_Group_Localiser_Children table to get UIDs and modules that shit
-# came from so that we can read data from that motherfucker. It has UID, binaryfile, and module.
-# Detection_Group_Localiser has TM localisation result, not sure what else is useful there.
-## WE MIGHT DO DET GROUP LOC
-# It has annotation field, either Text_Annotation if you chose that, or the DB names will
-# be based on whatever form you designed. These field names are saved in UDF_(psfname?) table
-### I THINK THIS IS JUST ALL IN OFFLINE CLICKS
-# older versions do not have LongDataName field, only binary file. Maybe not a problem,
-# can parse out the type of detector and name of detector from bin file name if necessary
-
-
 # Might need to know what FFT source shit came from? Or FFT settings? No good way to
 # get BP detector info right now other than the name of the shit.
 
@@ -99,15 +57,7 @@
 # later?
 
 # TODO:
-# We want to keep the 'eventType' from events table probably as it has labels
-# that people made. PROBLEM: there is some bug with UIDs, so I dont know best
-# way to match these. Id seems fine, but that probably isnt a great way in general
-# Just do bespoke version for anne until fix, try to recreate from scratch.
-# Add 'try' to the processing things so doesnt crash on a weird binary
 # Add filter method for AcEvs?
-
-# Should grouping default to both events and detection group? Or check other kind if
-# first one has none (currently just stops if theres nothing there, this may be bad)
 
 # TKEO Problems? See Sound Analysis With R book p427
 
@@ -119,10 +69,6 @@
 # FFT Length = Samp Dur - (N slices - 1) * Hop(above)
 # FFT Length = SampleRate * max(peakData) / MaxFreq
 # Cepstrum : BinNum / SR = ICI   (This isn't dependent on FFT size bc we invert at same kine)
-
-# BANTER EXPORT
-# Need standard "species 100% id for training". Somehwere in specClass (this is a shitty name)
-# Should this dump NAs and warn?
 
 # IMPORTANT
 # If you make changes to a function, need to add it again
@@ -144,7 +90,7 @@
 # Enviro
 # Add note to readme for adding functions: use PKG::FUN for th ings
 # Double check/re-think pamguard dependencies for the future
-# Mean spectra for an event
+# ***Mean spectra for an event***
 # SHOW FUNCTIONS - X-Axes all same units in time, Y-axes same units
 
 # What if no matching UIDs are found - AutoPAM test case binaries just arent the right ones.
@@ -155,7 +101,6 @@
 # No filter option (click calcs). This made weirdness. Better to set filter at like 1Hz? or find
 # a good normalizing option? unclear, need research
 
-# Should PRS always be paired with output?
 
 # Calibration - can we just check sign to decide add or subtract? Add options if we need to
 
@@ -167,9 +112,6 @@
 # dont know what is less confusing - more stuff done with less work with weird names I dont
 # know how to interact with?
 
-# CALIBRATION - calibration must be set to NULL, check if not NULL then we search globalenv for PRS
-# objects, then search those for calibration with matching name. Spits out df with 'Frequency' and
-# 'dB' in 20log10(spec) units dB
 
 # CALIBRATION REDO - can I use get/set in a closure to make the calibration shit work?
 
@@ -177,22 +119,13 @@
 
 # NEW POSSIBILITY can we have a PAMr function class that can contain a calibration? maybeeeeee
 
-# on.exit(add=TRUE) is a thing that always runs when function goes regardless of how it ends
-
 # for now have suppressed warnings if event grouping is multiple, may want some kine warning
 
 # ACEV update show method to be more relevant
 
-# Do AcEv need a name / ID slot? probs.
-
 # "CalibrationUsed" in getPgDetections stuff
 
 # picking out shit like EKG false detections needs to happen during analysis
-
-# LIST OF ACOUSTICEVENTS ????
-
-# What if we only want basic info, no functions? At least keep time too. ie. read all binaries
-# option. Thought came from talking to rando-Chris
 
 # NOTES FROM PSAW:
 # MAPPING: leaflet package for interactive maps seems preettttyyyy sweet
@@ -208,13 +141,7 @@
 
 # List only 20DBs at a time in removeDatabase(), add something to deal with that
 
-# Be smarter when doing events by timestamps - right now it reads and calculates all binary
-# files, then filters by event times. Could skip a lot
-
 # Different samplerates for different detectors - might decimate your whistle detector or some shit
-
-# Update tutorial through feeding to banter - setSpecies part is not documented anywhere. AcEv needs
-# id field probably soon. Don't wanna rely on name in list I think
 
 # Tethys kine stuff -
 # make a pop-up form prompt style thing for people to fill in whatever bits we are missing that we
@@ -234,16 +161,11 @@
 
 # access using environment instead of list is fast??
 
-# if decimator, need to set SR manually for click calcs. Others should be fine,
-# calculated based on other shit in the binary.
-
 # PAMGUARD BUG - in kogia JK sent me had min 90k max 20k in binary. wtf
 
 # can menu force look at console? annoying to type things in not usr friendly
 # KeyboardSimulator package could do ctr + 2 or also for mac check OS. maybe doesnt
 # work
-
-# no browser for peaktrough
 
 # TKE threshold on really clean clicks probably isnt doing what we want - like
 # clicks with lots of zero's (JK e-mails circa 6/6 kogia). Insane low numbers for
@@ -251,4 +173,113 @@
 
 # combine / add multiple AcEv
 
-# WAVEMC FOR SHIT WE ARE ONLY READING TWO CHANNELS DOOOOOOD
+# hydrophone depth goes in somewhere
+
+# currently have label in getDbData to choose between either eventType or comment, other is dropped
+# not 100% sure about this, but otherwise inconsistency between two types of events. Can only allow
+# so much wiggle room...
+
+# should i change getBInaryData to work on file list? wont be huge for single event, can drop
+# BinaryFile from each detection row... MAYBE CANT DO THIS YET noticing with multiple WM
+# detector have UIDs starting at same place, so need to know which one to check
+
+# Add test whistle and test cepstrum for people and function testing
+
+# Add block in new peoples functions for loading / checking packages
+
+# Suggest people run on base PAMr before adding new functions
+
+# Figure out what to do when encountering garbo data that crashes shit in general
+
+# For Yvonne - we probably just want to import localizations into PAMr, then have a
+# GO DO DISTANCE part that will get detection functions and shit. And whatevre else.
+# Should be easy? Talk to dave miller about getting detection functions from it
+
+# Yvonne timeline - localization stuff done maybe mid-Nov or dec. By February have
+# modeling set up with envir variables, ready to start trying out models.
+
+# Plotting stuff - check number of points before plotting, obvs cant and dont want
+# to do 100k points. So can ask if you want to plot all, or subset. Can have event
+# species, or coords to subset by as options.
+
+# read your banter predictions and results back in
+
+# summaries could have different outputs based on different kinds of species classifications
+
+# effort in study is probably a named list of DFs with start and stop times
+
+# PAMr version info??? in Study
+
+# PassivePacker / TETHYS stuff - deployment and recovery questions
+
+# Label detectors with actual labels?
+
+# event level measures????
+
+# In future export_banter could take multiple studies?? maybe thats useful
+
+# import_xx should ask for results and the model to store
+
+# possibly rethink addGps for AcousticStudy and in general. Are we just adding to
+# AS and storing? Match when needed?
+
+# maybe show wigner should warn people if trying to plot a lot at once, shit is slow
+# and sad
+
+# ADD IN TUTORIAL add a db to prs even if you arent using getPgDetectionsDb
+
+# Sam does DAS stuff we should give him more work to do
+# - sighting locations and re-sights: we wanna make a map with acoustic
+#       locations and vis locations both
+# - we eventually want some kind of tool to help people decide if an acoustic and
+#       visual thing are a match - time and location of sights, subgroups??
+# - need basic access to all data like weather and effort
+# - on the topic of DAS files - Jennifer has to do some hardcore matching nonsense,
+#       so ask her what her "dream scenario" is for dealing with shit like FKW
+
+# Can we read in just specific columns of tables? Confusing error from
+# Shannons data about beam time column
+`
+
+### BATCH PAMRSETTINGS FILE
+# Where we can specify clumps of files that belong together, but use the same functions
+# for evreything else.
+
+# Check annamaria data from shannon's drive to see what is causing the binary mismatch
+# error. Should be able to find things with just ALL / ALL, why not??
+
+# timezone missing error in pambinaries - FIX OR AT LEAST PUT IN TUTORIAL
+
+# id clash from dplyr / tidyr or something
+
+# on tutorial : using someone else's PRS file how-to
+
+# PG binary not saving exactly raw audio wav of click - what gets done here?
+# is okay to treat as raw for calibration purposes? PUT THIS IN DOCUMENTATION
+# "we are treating this as raw audio wav"
+
+# reach out to me or shannons poster, maybe I can see "i'll be at this poster tomorrow
+# during session wahtever"
+
+# highlight ease of use, flexibility with plugin functions, minimal lines of code,
+# reproducibility examples
+
+# currently available on github, up on CRAN next year, when it goes up we will post to
+# marmam listserv
+# sound_acquisiton table Start/Stop not always present for every wav file
+
+# PAMr warnings sink function??? figure out categories
+
+# ask Ravi about using Manta computer abroad
+
+# could i make loadPamguardBinary a lot faster using .subset2 ???
+
+# maybe can make GPS stuff faster with more extensive datatable fuckjing
+
+# should cepstrumb e bp?
+
+# for mapping function can check lat long exists, if it doesnt if you do
+# addGps on list of AcEv not study it wont store just match
+
+# shiny app not needed to host on a website, can run locally. maybe a good replacement
+# for dataexplorer plot and other future plots
