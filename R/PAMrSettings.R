@@ -29,6 +29,6 @@ PAMrSettings <- function(db=NULL, binaries=NULL, calibration=NULL) {
     prs <- addFunction(prs, standardClickCalcs, 'ClickDetector')
     prs <- addFunction(prs, roccaWhistleCalcs, 'WhistlesMoans')
     prs <- addFunction(prs, standardCepstrumCalcs, 'Cepstrum')
-    prs <- addCalibration(prs, calibration)
+    # prs <- addCalibration(prs, calibration)
     prs
 }

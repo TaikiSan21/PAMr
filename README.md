@@ -1,7 +1,15 @@
 # PAMr
 
-This is a very beta version of a package for processing passive acoustic data.
-User beware!
+This is a package for processing passive acoustic data. Currently only supports
+data collected using [Pamguard](https://www.pamguard.org/), but in the future
+we hope to support other platforms. 
+
+Note that this is currently a beta version, so some bugs and quirks are expected.
+Hopefully this guide will work you through the most common pitfalls, but please
+report any other issues to [taiki.sakai@noaa.gov](mailto:taiki.sakai@noaa.gov).
+
+Our goal is to make your life easier, so if you have any other suggestions or 
+feedback feel free to pass that along as well!
 
 ### Installation
 
@@ -21,7 +29,7 @@ devtools::install_github('TaikiSan21/PAMmisc')
 devtools::install_github('TaikiSan21/PAMr')
 ```
 
-##### Common Installation Issues
+#### Common Installation Issues
 
 * If you are getting errors related to "Unable to unload package ______", try
 opening a fresh R session, or installing the package from the R console instead
@@ -32,12 +40,21 @@ then run the code `Sys.setenv(TZ = 'UTC')` and try again. This is common on fiel
 where the timezone has been set manually to something other than the local timezone. 
 
 * If you see an error like 
-`Error: Failed to install 'PAMr' from GitHub: installationg of package 'PACKAGENAME' had non-zero exit status`,
-try installing the package `PACKAGENAME` separately. PAMr relies on quite a few other packages, if any of them
-fail to install properly then PAMr will not install.
+`Error: Failed to install 'PAMr' from GitHub: installationg of package 'ProblemPackage' had non-zero exit status`,
+try installing the package "ProblemPackage" separately. PAMr relies on quite a few other packages, if any of them
+fail to install properly then PAMr will not install. Sometimes a package will request to be "Installed from
+source", try both options if it fails to install.
 
 ### Getting Started
+A quick start guide - show me your data, accept the basics, look at what we did.
+A plot explorer and plot waveform example or a banter example?
 
+Then more details about your PRS - adding, customizing, what it has
+
+Here s a picture 
+![](docs/images/DBSelect.png)
+andnanother
+![with a caption](docs/images/BinarySelect.png)
 
 ### Tutorial
 
