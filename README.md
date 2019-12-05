@@ -1,4 +1,4 @@
-# PAMr
+# [PAMr](README.md)
 
 This is a package for processing passive acoustic data. Currently only supports
 data collected using [Pamguard](https://www.pamguard.org/), but in the future
@@ -45,17 +45,86 @@ try installing the package "ProblemPackage" separately. PAMr relies on quite a f
 fail to install properly then PAMr will not install. Sometimes a package will request to be "Installed from
 source", try both options if it fails to install.
 
-### Getting Started
+### Quick Start Guide
+
+PAMr is currently only built to work with [Pamguard](https://www.pamguard.org/),
+and is built to organize your acoustic detections into events. Before getting
+started you'll need to have three things:
+1) The database (or multiple) created by Pamguard
+2) The folder containing containing the binary files (xxx.pgdf) created by Pamguard
+3) A way of organizing your data into events, either using Pamguard's event or 
+Detection Group Localizer modules, or by specifying start and end times (see
+[guide](time-grouping) for details on how to do this)
+
+Once you have these ready, the first step to using PAMr is to create a
+PAMrSettings object using the `PAMrSettings()` function. You can call this 
+function with no arguments and pop-up menus will walk you through the rest:
+
+```r
+myPrs <- PAMrSettings()
+```
+First you will be asked to select the database files. You can select more than one
+using CTRL or SHIFT. Don't worry - you can add or remove databases later, nothing
+here is final.
+
+![Selecting database files](docs/images/DBSelectCropped.png)
+
+Next you will be asked to select a folder containing the binary files. You can
+just select the highest level folder and PAMr will search through all the 
+sub-folders for any .pgdf files (ie. it is okay to select "Binaries" instead of
+"20040828" in the image below).
+
+![Selecting the binary folder](docs/images/BinarySelectCropped.png)
+
+NOTE: Sometimes the selection windows don't pop up in front of your R session,
+if you don't immediately see the file selection window for either of these two
+steps then look for it with ALT+TAB.
+
+Next you will be asked to set some parameters for the processing functions that
+come with PAMr. There is one function for each of three types of detections -
+clicks, whistles, and cepstrum detections. See [here](standard-calcs) for more
+information.
+
+The only function you need to set parameters for is the "standardClickCalcs"
+function. You can either enter a new value for the parameter it is asking you
+to set, or just pressing ENTER will use the default value (the default value is
+shown. There are three parameters you will be asked to set 
+(more details found [here](standard-calcs)):
+1) "sr_hz" - the sample rate in hertz for the click data. This should be kept 
+to the default value of "auto" (just press ENTER) unless your click data was
+decimated, in which case enter the decimated sample rate.
+2) "highpass_khz" - the value in kilohertz of the butterworth highpass filter
+to apply to the click data. If 0, then no filter will be applied.
+3) "winLen_sec" - the length of the FFT window to use for analysis, in seconds
+
+![Setting a value for the highpass filter](docs/images/FunctionParamsCropped.png)
+
+NOTE: You will need to enter these values in the R Console, so if you are running
+`PAMrSettings()` from a script you need to either click in the console before typing
+or use the shortcut CTRL+2
+
 A quick start guide - show me your data, accept the basics, look at what we did.
 A plot explorer and plot waveform example or a banter example?
 
 Then more details about your PRS - adding, customizing, what it has
 
+PAMr works by grouping acoustic detections into events. Either in Pamguard or
+by start/end times. 
 Here s a picture 
 ![](docs/images/DBSelect.png)
 andnanother
 ![with a caption](docs/images/BinarySelect.png)
 
+### Next sections
+
+PRS details - adding and removing stuff
+Adding GPS data
+Adding calibration function for clicks
+Creating custom functions
+Accessing your data - $, getDetectorData
+Study/Event details
+Collaboration
+Future plans
 ### Tutorial
 
 The first step in using PAMr is to create a PAMrSettings object. This is an
