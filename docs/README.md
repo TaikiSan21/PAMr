@@ -1,27 +1,130 @@
 # PAMr
 
-TESTING WEBSITE UPDATES
-[Link to installation](#installation)
-[And maybe tutorial too](#tutorial)
+This is a package for processing passive acoustic data. Currently only supports
+data collected using [Pamguard](https://www.pamguard.org/), but in the future
+we hope to support other platforms. 
 
-This is a very beta version of a package for processing passive acoustic data.
-User beware!
+Note that this is currently a beta version, so some bugs and quirks are expected.
+Hopefully this guide will work you through the most common pitfalls, but please
+report any other issues to [taiki.sakai@noaa.gov](mailto:taiki.sakai@noaa.gov).
+
+Our goal is to make your life easier, so if you have any other suggestions or 
+feedback feel free to pass that along as well!
 
 ### Installation
 
-Install the latest version from GitHub:
+To install the latest version from GitHub, first make sure that you have
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/) installed, then 
+run the following code to install PAMr and two supporting packages, PamBinaries
+and PAMmisc. Currently it is important to install PamBinaries and PAMmisc first,
+but this won't matter once the package is on CRAN (Est. Q1 2020).
 
 ```r
 # make sure you have Rtools installed
 if(!require('devtools')) install.packages('devtools')
-# install from GitHub
-devtools::install_github('TaikiSan21/PAMr')
 # you will also need these packages from GitHub
 devtools::install_github('TaikiSan21/PamBinaries')
 devtools::install_github('TaikiSan21/PAMmisc')
-
+# install from GitHub
+devtools::install_github('TaikiSan21/PAMr')
 ```
 
+#### Common Installation Issues
+
+* If you are getting errors related to "Unable to unload package ______", try
+opening a fresh R session, or installing the package from the R console instead
+of RStudio
+
+* If you see an error like `Error in strptime(xx, f, tz = tz) : unable to identify current timezone 'C'`,
+then run the code `Sys.setenv(TZ = 'UTC')` and try again. This is common on field laptops, or laptops
+where the timezone has been set manually to something other than the local timezone. 
+
+* If you see an error like 
+`Error: Failed to install 'PAMr' from GitHub: installationg of package 'ProblemPackage' had non-zero exit status`,
+try installing the package "ProblemPackage" separately. PAMr relies on quite a few other packages, if any of them
+fail to install properly then PAMr will not install. Sometimes a package will request to be "Installed from
+source", try both options if it fails to install.
+
+### Quick Start Guide
+
+PAMr is currently only built to work with [Pamguard](https://www.pamguard.org/),
+and is built to organize your acoustic detections into events. Before getting
+started you'll need to have three things:
+1) The database (or multiple) created by Pamguard
+2) The folder containing containing the binary files (xxx.pgdf) created by Pamguard
+3) A way of organizing your data into events, either using Pamguard's event or 
+Detection Group Localizer modules, or by specifying start and end times (see
+[guide](time-grouping) for details on how to do this)
+
+Once you have these ready, the first step to using PAMr is to create a
+PAMrSettings object using the `PAMrSettings()` function. You can call this 
+function with no arguments and pop-up menus will walk you through the rest:
+
+```r
+myPrs <- PAMrSettings()
+```
+First you will be asked to select the database files. You can select more than one
+using CTRL or SHIFT. Don't worry - you can add or remove databases later, nothing
+here is final.
+
+![Selecting database files](images/DBSelectCropped.png)
+
+Next you will be asked to select a folder containing the binary files. You can
+just select the highest level folder and PAMr will search through all the 
+sub-folders for any .pgdf files (ie. it is okay to select "Binaries" instead of
+"20040828" in the image below).
+
+![Selecting the binary folder](images/BinarySelectCropped.png)
+
+NOTE: Sometimes the selection windows don't pop up in front of your R session,
+if you don't immediately see the file selection window for either of these two
+steps then look for it with ALT+TAB.
+
+Next you will be asked to set some parameters for the processing functions that
+come with PAMr. There is one function for each of three types of detections -
+clicks, whistles, and cepstrum detections. See [here](standard-calcs) for more
+information.
+
+The only function you need to set parameters for is the "standardClickCalcs"
+function. You can either enter a new value for the parameter it is asking you
+to set, or just pressing ENTER will use the default value (the default value is
+shown. There are three parameters you will be asked to set 
+(more details found [here](standard-calcs)):
+1) "sr_hz" - the sample rate in hertz for the click data. This should be kept 
+to the default value of "auto" (just press ENTER) unless your click data was
+decimated, in which case enter the decimated sample rate.
+2) "highpass_khz" - the value in kilohertz of the butterworth highpass filter
+to apply to the click data. If 0, then no filter will be applied.
+3) "winLen_sec" - the length of the FFT window to use for analysis, in seconds
+
+![Setting a value for the highpass filter](images/FunctionParamsCropped.png)
+
+NOTE: You will need to enter these values in the R Console, so if you are running
+`PAMrSettings()` from a script you need to either click in the console before typing
+or use the shortcut CTRL+2
+
+A quick start guide - show me your data, accept the basics, look at what we did.
+A plot explorer and plot waveform example or a banter example?
+
+Then more details about your PRS - adding, customizing, what it has
+
+PAMr works by grouping acoustic detections into events. Either in Pamguard or
+by start/end times. 
+Here s a picture 
+![](images/DBSelect.png)
+andnanother
+![with a caption](images/BinarySelect.png)
+
+### Next sections
+
+PRS details - adding and removing stuff
+Adding GPS data
+Adding calibration function for clicks
+Creating custom functions
+Accessing your data - $, getDetectorData
+Study/Event details
+Collaboration
+Future plans
 ### Tutorial
 
 The first step in using PAMr is to create a PAMrSettings object. This is an
@@ -51,6 +154,8 @@ function `PAMrSettings()`:
 ```r
 myPrs <- PAMrSettings()
 ```
+
+*** Note that only Click and WhistlesMoans binaries will be added ***
 
 This will ask the user to select a database file, then select a folder of binaries,
 and then ask for parameters for the included `standardClickCalcs` function. In
@@ -175,186 +280,4 @@ myPrs <- removeFunction(myPrs)
 
 ### Versions
 
-**0.7.0**
-
-* Major update adding in `AcousticStudy` class. This will now be the class of object
-returned by `getPgDetections`, it stores your list of `AcousticEvent` objects with
-other important data. 
-
-* `getBinaryData` will now attempt to get the appropriate sample rate for each
-data point, either from the settings or matching by time using the database file
-if more than one sample rate was in your data.
-
-* Many speed improvements - click calculations should take about half the time, and
-`getPgDetections` with `method='times'` will now skip over binaries that are outside
-of the time range of specified events
-
-* General naming consistency overhaul - `sr` and `db` should now be used in place of
-`sampleRate` and `database` wherever these were previously used, and this should be
-the naming convention going forward
-
-**0.6.8**
-
-* `getPgDetections` will name events with database appended for `method = 'db'` instead
-of just event ID number to ensure uniqueness across multiple databases
-
-**0.6.7**
-
-* I don't remember what happened here. I bet it was important
-
-**0.6.6**
-
-* `setSpecies` can now use a dataframe for `method = 'manual'`, and has
-a top secret option for SR
-
-**0.6.5**
-
-* Updated `export_banter` with options to exclude certain species and to
-export data without species codes to use for prediction only instead
-of training a banter model
-
-**0.6.4**
-
-* Better error tracking when functions cause `getPgDetections` to crash
-
-* Now reads in angles and angleErrors from click data
-
-* `export_banter` allows you to specify certain columns to not export
-
-* `'time'` mode for `getPgDetections` will now report a sample event time
-so you can see if times are being converted properly from your csv before
-proceeding with calculations
-
-**0.6.3**
-
-* Fixed an issue where `getPgDetections` would not work if both Detection Group Localizer
-and Offline Click events were present in a database.
-
-* Renamed `eventType` and `Text_Annotation` columns from event databases to `eventLabel`
-within detection dataframes so there is consistency between the two
-
-* Removed some unnecessary columns from detection dataframes, including `detectorName`,
-`sampleRate`, `Id`, `parentUID`, and `comment`
-
-* Fixed a bug in how `getBinaryData` was checking for multiple matches on the same UID
-
-**0.6.2**
-
-* Fixed an issue with repeated entries in click detections for modes other than `'db'`
-
-**0.6.1**
-
-* Sometimes whistles would not get proper decimated sample rate, fixed
-
-**0.6.0**
-
-* Added an `id` slot to `AcousticEvent` objects. Note that this will cause existing `AcousticEvent`
-objects to behave poorly until they have their `id` slot created / updated using the new
-`setIdSlot` function.
-
-* Added `setIdSlot` function to update older `AcousticEvent` objects to the new format
-
-**0.5.9**
-
-* Fixed bug in SR / FFT parameter calculation in whistles if there was a gap in
-the whistle contour
-
-**0.5.8**
-
-* Changed event naming for `mode='time'` in `getPgDetections`. Will now only append
-numbers if event is not unique, and will also insert an underscore before the number
-
-* `export_banter` now properly checks for cases when there are no detectors in an event
-instead of crashing confusingly
-
-**0.5.7**
-
-* Rocca whistle calcs minor change - boundary settings for sweeps set to "flat",
-should reduce number of inflection points
-
-**0.5.6**
-
-* minor change to `export_banter` no longer using list names to index and create unique event names
-
-**0.5.5**
-
-* `export_banter` now removes NA rows, and has reportNA option to see which ones are NA
-
-* Detector names have spaces replaced with _ to avoid weird issues later
-
-**0.5.4**
-
-* Dealing with zero detection events better for `export_banter`
-
-* Temporary fix for click calculations with lots of zeroes in wave form - no more NA
-
-**0.5.3**
-
-* `standardClickCalcs` now supports manual input of sample rate. Default argument is `'auto'`,
-which will read from the database. User can supply a numeric value for sample rate in hertz instead.
-
-**0.5.2**
-
-* Added a check in `addDatabase` to see if all files are actually .sqlite3 databases
-
-* Added a `tryCatch` in `getPgDetections` for mode `db` so that it shouldn't 
-stop completely when encountering an error and lose all previously analysed DBs
-
-**0.5.1**
-
-* Minor bug fix when using `seewave::spec`, it can produce NA values for the frequency
-if the input wave is long. Adjusted parts `standardClickCalcs` and `addCalibration` to
-work around this.
-
-**0.5.0**
-
-* `getPgDetections` changed to work by specifying a `mode` as an argument instead of
-calling separate functions. Can now create events using a csv or dataframe with 
-start and end times specified.
-
-* Changed `export_banter` to export a list with named item `detectors` instead of 
-`detections`, no other functional change.
-
-**0.4.0**
-
-* Added `setSpecies` functions for assigning species classifications to 
-AcousticEvents.
-
-* Changed `getDbData` to default to looking for both OfflineEvents tables 
-and DetectionGroupLocaliser tables, will still only load one if a specific
-type is provided for `grouping`.
-
-**0.3.0**
-
-* Added `addCalibration`, `applyCalibration`, and `findCalibration` functions,
-as well as a `plot` method that will show the calibration function used. See
-the  *Calibration* section above for more details.
-
-* Fixed a bug in `removeFunction` that would cause the incorrect number of
-functions to show in certain cases, and that would cause all functions to
-be removed when only one was selected.
-
-* `standardClickCalcs` has been adjusted to work with the new calibration
-methods. See *Calibration* section above for more details.
-
-**0.2.2** 
-
-* Added `addGps` function for adding matching GPS data to your detections. This 
-allows you to supply a dataframe of Lat/Long locations with timestamps to 
-match to your detections.
-
-* Added `showWaveform`, `showSpectrogram`, and `showWigner` functions that
-allow you to easily plot the waveform, spectrogram, or wigner plot of a detection
-in an `AcousticEvent` object by selecting the UID(s) you want to investigate further.
-`getBinaryData` is also added as a helper function for these, lets you easily
-get the binary file data for a single detection.
-
-* `standardClickCalcs` now supports supplying a `Wave` class object as input
-
-**0.2.0** 
-
-* Rocca (`roccaWhistleCalcs`) and cepstrum (`standardCepstrumCalcs`) 
-functions added. These are also added by default to a new PRS.
-
-* changed `AcousticEvent` class slot name from `specClass` to `species`
-
+For bug fixes and feature additions in each version see the [NEWS](NEWS.md) file
