@@ -18,8 +18,8 @@ addDatabase <- function(prs, db=NULL) {
         db <- db@db
     }
     if(is.null(db)) {
-        cat('Please select a database file if you have one.',
-            'Multiple selections are ok, or cancel if you do not.\n')
+        cat('Please select a database file,',
+            ' multiple selections are ok..\n')
         db <- choose.files(caption='Select database(s):')
     }
     # Case when cancelled or some weirdness

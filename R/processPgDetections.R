@@ -60,14 +60,22 @@
 #'
 processPgDetections <- function(prs, mode = c('db', 'time'), id=NULL,
                             grouping=NULL, format='%Y-%m-%d %H:%M:%OS', ...) {
+    mode <- match.arg(mode)
     if(is.AcousticStudy(prs)) {
+        if(mode == 'time' &&
+           is.null(grouping) &&
+           !is.null(ancillary(prs)$grouping)) {
+            cat('Found a grouping file in the provided AcousticStudy object,',
+                'to use a different grouping file specify with the grouping argument.') 
+            grouping <- ancillary(prs)$grouping
+        }
         prs <- prs(prs)
     }
     if(!is.PAMrSettings(prs)) {
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
-    switch(match.arg(mode),
+    switch(mode,
            'db' = processPgDetectionsDb(prs, grouping, ...),
            'time' = processPgDetectionsTime(prs, grouping, format, id)
     )
@@ -145,9 +153,14 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
     dbToAssign <- which(!file.exists(grouping$db))
     # match db to events
     for(i in dbToAssign) {
-        dbPossible <- allDbs[sapply(saList, function(x) {
-            inInterval(c(grouping$start[i], grouping$end[i]), x)
-        })]
+        if(is.na(grouping$db[i]) ||
+           !any(grepl(grouping$db[i], allDbs))) {
+            dbPossible <- allDbs[sapply(saList, function(x) {
+                inInterval(c(grouping$start[i], grouping$end[i]), x)
+            })]
+        } else { # case if you just specified basename of the database it will find it
+            dbPossible <- grep(grouping$db[i], allDbs, value=TRUE)
+        }
 
         if(length(dbPossible) == 0 ||
            is.na(dbPossible)) {
