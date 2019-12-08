@@ -181,14 +181,12 @@ To learn more about what PAMr can do for you, click on the links below
 removing data / functions from your PRS, and more details about what exactly
 is stored here.
 - [More details about the AcousticStudy and AcousticEvent objects][acoustic-study]
-- [Further data processing][next-steps-processing] 
-Adding GPS data
-Assign species ID
-Adding calibration function for clicks
+- [Data processing: Next steps][next-steps-processing] Adding GPS data, assigning
+species ID, adding a hydrophone calibration, and more info on how to access
+and manipulate your data
 - [Creating custom functions][custom-functions] How to create custom functions
 to add to your PRS. We don't claim to have all the answers in our provided
 "standard" functions, we want you to add your own ideas!
-Accessing your data - $, getDetectorData
 - [Collaboration][collaboration] More details on how PAMr makes it easy to collaborate
 - [Common error messages][errors] A (probably incomplete) list of some warning
 and error messages you might encounter, why they are happening, and what to
