@@ -1,4 +1,4 @@
-Details for provided functions
+* This section is still under construction, please check back later!*
 
 ## standardClickCalcs
 

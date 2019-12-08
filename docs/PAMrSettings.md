@@ -1,4 +1,6 @@
-# PRS STUFF
+## The PAMrSettings object
+
+*This section is still being organized, please check back later!*
 
 
 The first step in using PAMr is to create a PAMrSettings object. This is an

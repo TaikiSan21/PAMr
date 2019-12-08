@@ -1,3 +1,5 @@
+*This is a slightly out of date and needs updating, please check back later!*
+
 # Creating custom functions
 
 Adding a function is slightly more involved. First make sure the function (or
@@ -22,7 +24,7 @@ myPrs <- addFunction(myPrs, testFunction, module='ClickDetector')
 For the ClickDetector, there are a couple of requirements for this function. 
 The function should have an input called "data", and it should expect that 
 this "data" input is a list with two parts: `data$wave` containing the click 
-waveform, and `data$sampleRate` containing the sample rate of this click. The
+waveform, and `data$sr` containing the sample rate of this click. The
 waveform will have one column for each channel. The output of this function
 should be a dataframe that has one row for each channel, there can be as many 
 columns as you like. `addFunction` will do a quick check of the function you

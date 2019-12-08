@@ -138,31 +138,71 @@ myStudy <- processPgDetections(myPrs, mode='time', id='MyStudyName', grouping='m
 databases and events, or have issues converting dates from a csv file. See [here][time-grouping]
 for more details about what's going on.
 
-Describe what your data output is - Study/Event
-Then more details about your PRS - adding, customizing, what it has
+And you're done! Let's take a look at what you got with one of PAMr's built in plotting functions,
+`plotDataExplorer`. After calling `plotDataExplorer(myStudy)`, you might be asked to select a
+call type to explore, then you should see something like this:
 
-PAMr works by grouping acoustic detections into events. Either in Pamguard or
-by start/end times. 
+![*Data explorer plot - click the gear to see dropdown menus*][plot-explorer-image]
+
+Click the gear in the top left of the plot, then you'll see drop down menus that you can use to
+choose which data you'd like to graph, and options for coloring and facetting (splitting into
+multiple plots). For more details see `?plotDataExplorer`.
+
+Plots are pretty and all, but what did PAMr actually do and what exactly is in your `myStudy`
+output object? For each detection in each of your events, PAMr checks what type of detection
+it is and then applies all of the functions you have added for that type. For the default options
+we have just one function each for clicks, whistles, and cepstrum detections, but you could add more.
+These outputs are grouped by the detector that detected them, and by the event that you are a part of.
+
+You might have noticed that `myStudy` is not a normal R list or data frame, it is a custom R object
+called an `AcousticStudy` (an S4 class, if you're into that sort of thing). This means that actually 
+getting at your data is slightly trickier than you might be used to, but it lets PAMr do lots of 
+useful things. For example, this `AcousticStudy` object keeps track of all the files you used for 
+this analysis, as well as a copy of the PRS object you used to construct it. This means that when
+you come back to an analysis a year later, you don't need to try and remember exactly what data
+you analysed or what parameters your processing functions had, PAMr does that for you. It also means
+that if you send this object to a colleague, they can see *exactly* what you did to get your results
+**AND** they can even use the exact same functions you used to process their own data! For more on
+how PAMr makes collaboration easy, see [this page][collaboration], and for more details on working
+with `AcousticStudy` objects [see here][acoustic-study].
+
+And that's it for the basics of using PAMr! Check out the next section for links to help with 
+specific topics, like how to use PAMr to format your data for machine learning models or for
+more nitty gritty details about the S4 objects that power it. And reach out if there's anything you 
+can't find, or if there's anything else you want PAMr to do!
+
+---
 
 ### Next Steps
 
 To learn more about what PAMr can do for you, click on the links below
 
-PRS details - adding and removing stuff
+- [More about the PAMrSettings object][pamrsettings] - Topics include adding and
+removing data / functions from your PRS, and more details about what exactly
+is stored here.
+- [More details about the AcousticStudy and AcousticEvent objects][acoustic-study]
+- [Further data processing][next-steps-processing] 
 Adding GPS data
 Assign species ID
 Adding calibration function for clicks
-Creating custom functions
+- [Creating custom functions][custom-functions] How to create custom functions
+to add to your PRS. We don't claim to have all the answers in our provided
+"standard" functions, we want you to add your own ideas!
 Accessing your data - $, getDetectorData
-Study/Event details
-Collaboration
-Common error messages ?
-Currently in development
-Future plans
+- [Collaboration][collaboration] More details on how PAMr makes it easy to collaborate
+- [Common error messages][errors] A (probably incomplete) list of some warning
+and error messages you might encounter, why they are happening, and what to
+do about them
+- [Currently in development][in-development] See what is currently in development, as well as
+some possible future ideas that we hope to get to
+
+### Contact
+
+Feel free to reach out with any questions, comments, suggestions: [taiki.sakai@noaa.gov](mailto:taiki.sakai@noaa.gov)
 
 ### Versions
 
-For bug fixes and feature additions in each version see the [NEWS](../NEWS.md) file
+For bug fixes and feature additions in each version see the [NEWS][news] file
 
 [standard-calcs]: StandardCalcs.md
 [time-grouping]: TimeGrouping.md
@@ -171,4 +211,12 @@ For bug fixes and feature additions in each version see the [NEWS](../NEWS.md) f
 [function-param-image]: images/FunctionParamsCropped.png
 [pamguard]: https://www.pamguard.org/
 [pamrsettings]: PAMrSettings.md
+[plot-explorer-image]: images/PlotExplorer.png
+[acoustic-study]: AcousticStudy.md
+[custom-functions]: CustomFunctions.md
+[collaboration]: Collaboration.md
+[in-development]: InDevelopment.md
+[next-steps-processing]: NextStepsProcessing.md
+[errors]: Errors.md
+[news]: ../NEWS.md
 
