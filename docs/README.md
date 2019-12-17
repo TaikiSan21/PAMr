@@ -11,6 +11,16 @@ report any other issues to [taiki.sakai@noaa.gov](mailto:taiki.sakai@noaa.gov).
 Our goal is to make your life easier, so if you have any other suggestions or 
 feedback feel free to pass that along as well!
 
+### Using This Guide
+
+This document is meant to be a resource to help you get started with PAMr 
+for the first time, and then then the [Next Steps](#next-steps) section has
+links with more in depth information and the more advanced capabilites of
+PAMr. This is also meant to be a complimentary
+resource to the help files within R, so if you have questions about a specific
+function you should first try `?function` and then look here if that
+doesn't answer your question.
+
 ### Installation
 
 To install the latest version from GitHub, first make sure that you have

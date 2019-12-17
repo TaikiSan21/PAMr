@@ -270,8 +270,6 @@
 
 # PAMr warnings sink function??? figure out categories
 
-# ask Ravi about using Manta computer abroad
-
 # could i make loadPamguardBinary a lot faster using .subset2 ???
 
 # maybe can make GPS stuff faster with more extensive datatable fuckjing
@@ -283,3 +281,12 @@
 
 # shiny app not needed to host on a website, can run locally. maybe a good replacement
 # for dataexplorer plot and other future plots
+
+# could have a grouping df creator function? is that necessary?
+
+# save function call in Study@ancillary?
+
+# passing around a Study - way to update file locs so that shit like getBInary and
+# plotWaveform still work
+
+# Should add bit in tutorial about Pamguard data needs to be event focused
