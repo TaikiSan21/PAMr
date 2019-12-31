@@ -82,9 +82,9 @@ First you will be asked to select the database files. You can select more than o
 using CTRL or SHIFT. Don't worry - you can add or remove databases later, nothing
 here is final.
 
-![*Selecting database files*][db-select-image]
 
-<a href="images/DBSelectCropped.png" data-lightbox="image-1" data-title="My caption">Image #1</a>
+
+<a href="images/DBSelectCropped.png" data-lightbox="image-1" data-title="My caption">![*Selecting database files*][db-select-image]</a>
 
 Next you will be asked to select a folder containing the binary files. You can
 just select the highest level folder and PAMr will search through all the 
