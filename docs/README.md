@@ -84,14 +84,14 @@ here is final.
 
 
 
-<a href="images/DBSelectCropped.png" data-lightbox="image-1" data-title="My caption">![*Selecting database files*][db-select-image]</a>
+<a href="images/DBSelectCropped.png" data-lightbox="file-select" data-title="Selecting database files">![](images/DBSelectCropped.png)</a>
 
 Next you will be asked to select a folder containing the binary files. You can
 just select the highest level folder and PAMr will search through all the 
 sub-folders for any .pgdf files (ie. it is okay to select "Binaries" instead of
 "20040828" in the image below).
 
-![*Selecting the binary folder*][binary-select-image]
+<a href="images/BinarySelectCropped.png" data-lightbox="file-select" data-title="Selecting the binary folder">![](images/BinarySelectCropped.png)</a>
 
 **NOTE:** Sometimes the selection windows don't pop up in front of your R session,
 if you don't immediately see the file selection window for either of these two
@@ -115,7 +115,7 @@ decimated, in which case enter the decimated sample rate.
 to apply to the click data. If 0, then no filter will be applied.
 3. "winLen_sec" - the length of the FFT window to use for analysis, in seconds
 
-![*Setting a value of 5 for the highpass filter*][function-param-image]
+<a href="images/FunctionParamsCropped.png" data-lightbox="function-value" data-title="Setting a value of 5 for the highpass filter">![](images/FunctionParamsCropped.png)</a>
 
 **NOTE:** You will need to enter these values in the R Console, so if you are running
 `PAMrSettings()` from a script you need to either click in the console before typing
@@ -154,7 +154,7 @@ And you're done! Let's take a look at what you got with one of PAMr's built in p
 `plotDataExplorer`. After calling `plotDataExplorer(myStudy)`, you might be asked to select a
 call type to explore, then you should see something like this:
 
-![*Data explorer plot - click the gear to see dropdown menus*][plot-explorer-image]
+<a href="images/PlotExplorer.png" data-lightbox="function-value" data-title="Data explorer plot - click the gear to see dropdown menus">![](images/PlotExplorer.png)</a>
 
 Click the gear in the top left of the plot, then you'll see drop down menus that you can use to
 choose which data you'd like to graph, and options for coloring and facetting (splitting into
