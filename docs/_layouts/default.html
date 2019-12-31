@@ -6,6 +6,7 @@
 
 {% seo %}
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link href="css/lightbox.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.3.0.min.js" integrity="sha256-RTQy8VOmNlT6b2PIRur37p6JEBZUE7o8wPgMvu18MC4=" crossorigin="anonymous"></script>
     <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
     <!--[if lt IE 9]>
@@ -15,7 +16,7 @@
 
   </head>
   <body>
-
+      <script src="js/lightbox.js"></script>
       <header>
         <h1><a href="https://taikisan21.github.io/PAMr/">PAMr</a></h1>
         <p>{{ page.description | default: site.description | default: site.github.project_tagline }}</p>

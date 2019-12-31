@@ -84,6 +84,8 @@ here is final.
 
 ![*Selecting database files*][db-select-image]
 
+<a href="images/DBSelectCropped.png" data-lightbox="image-1" data-title="My caption">Image #1</a>
+
 Next you will be asked to select a folder containing the binary files. You can
 just select the highest level folder and PAMr will search through all the 
 sub-folders for any .pgdf files (ie. it is okay to select "Binaries" instead of
