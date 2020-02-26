@@ -8,10 +8,17 @@
 #' @param dropVars a vector of the names of any variables to remove
 #' @param dropSpecies a vector of the names of any species to exclude
 #' @param training logical flag whether or not this will be used as a
-#'   training data set. Training sets must contain a species ID.
+#'   training data set, or a value between 0 and 1 specifying what percent
+#'   of the data should be used for training (with the rest set aside
+#'   for testing). If TRUE or greater than 0, must contain species ID.
+#'   NOTE: if value is not 0, 1, \code{TRUE}, or \code{FALSE}, output
+#'   will be further split into \code{training} and \code{test} items
+#'   within the list output
 #'
 #' @return a list with three items, \code{events}, \code{detectors}, and
-#'   \code{na}.
+#'   \code{na}. If value of \code{training} is not 0, 1, \code{TRUE}, or
+#'   \code{FALSE}, output will be split into \code{training} and
+#'   \code{test} lists that contain \code{events} and \code{detectors}.
 #'   \code{events} is a dataframe with two columns. \code{event.id} is a
 #'   unique identifier for each event, taken from the names of the event
 #'   list. \code{species} is the species classification, taken from the
@@ -28,11 +35,14 @@
 #'   for any detections that had NA values. These cannot be used in the
 #'   random forest model and are removed from the exported dataset.
 #'
+#' @details
+#'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom PAMmisc squishList
-#' @importFrom dplyr distinct
-#' @importFrom purrr map reduce
+#' @importFrom dplyr distinct n group_by n_distinct summarise rename left_join bind_rows filter
+#' @importFrom knitr kable
+#' @importFrom purrr map reduce transpose
 #' @export
 #'
 export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
@@ -44,7 +54,7 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
     spNa <- sapply(sp, is.na)
     if(training && any(spNa)) {
         warning('Events ', paste(names(x)[which(spNa)], collapse=', '),
-             ' do not have a species ID. Data can only be used for prediction, not model training.')
+             ' do not have a species ID. Data can only be used for prediction, not model training.', call. = FALSE)
         training <- FALSE
     }
 
@@ -52,7 +62,7 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
                         event = character(0), detector = character(0), stringsAsFactors = FALSE)
     evName <- names(x)
     if(!(length(unique(evName)) == length(evName))) {
-        warning('Duplicate event names found, these must be unique for BANTER. Adding numbers to event names.')
+        warning('Duplicate event names found, these must be unique for BANTER. Adding numbers to event names.', call. = FALSE)
         for(i in unique(evName)) {
             evName[evName == i] <- paste0(i, 1:(sum(evName == i)))
         }
@@ -62,13 +72,36 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
     events <- data.frame(event.id = names(x),
                          stringsAsFactors = FALSE)
 
+    # check if enough events to make train data, remove any we dont have for
     if(training) {
         events$species <- sp
+        nSpecies <- table(events$species)
+        # need min 2 to train banter, 3 if also making test
+        if(training == 1) {
+            noTrainSpecies <- names(nSpecies)[nSpecies < 2]
+            noTrainSpecies <- noTrainSpecies[!(noTrainSpecies %in% dropSpecies)]
+            if(length(noTrainSpecies) > 0) {
+                warning('Species ', paste0(noTrainSpecies, collapse=', '),
+                        ' do not have enough events to train a banter model (min 2),',
+                        ' these will be removed.', call. = FALSE)
+                dropSpecies <- c(dropSpecies, noTrainSpecies)
+            }
+        } else {
+            noTrainSpecies <- names(nSpecies)[nSpecies < 3]
+            noTrainSpecies <- noTrainSpecies[!(noTrainSpecies %in% dropSpecies)]
+            if(length(noTrainSpecies) > 0) {
+                warning('Species ', paste0(noTrainSpecies, collapse=', '),
+                        ' do not have enough events to train a banter model (min 2',
+                        ' to train plus 1 for testing), these will be removed.', call. = FALSE)
+                dropSpecies <- c(dropSpecies, noTrainSpecies)
+            }
+        }
     }
+
     if(!is.null(dropSpecies)) {
         toDrop <- sp %in% dropSpecies
         sp <- sp[!toDrop]
-        events <- events[!toDrop, , drop=FALSE]
+        events <- events[!toDrop, , drop=FALSE] # dont coerce to vector ever
         x <- x[!toDrop]
     }
     # check if any event level measures are present in all data
@@ -83,7 +116,7 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
         }))
         events <- cbind(events, measureData)
         cat('Found ', length(allMeasures), ' event level measures that were present',
-            ' in all events, adding these to your event data.\n')
+            ' in all events, adding these to your event data.\n', sep='')
     }
 
     for(e in seq_along(x)) {
@@ -126,15 +159,87 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
     dets <- lapply(dets, distinct)
     if(nrow(detNA) > 0) {
         warning('Removing ', nrow(detNA), ' NA values, to see affected UID(s) and ',
-        'BinaryFile(s) check the "na" item in list output.')
+        'BinaryFile(s) check the "na" item in list output.', call. = FALSE)
     }
-    cat('\nCreated data for ', nrow(events), ' events with ',
-        sum(sapply(dets, nrow)), ' total detections', sep='')
-    if(training) {
+    # From here train/test split and report
+    # result <- list(events=events, detectors=dets, na=detNA)
+    result <- bntSplit(list(events=events, detectors=dets), training)
+    # first two cases return $events and $detectors
+    if(training == 0) {
+        cat('\nCreated data for ', nrow(result$events), ' events with ',
+        sum(sapply(result$detectors, nrow)), ' total detections.', sep='')
+    } else if(training==1) {
+        cat('\nCreated data for ', nrow(result$events), ' events with ',
+            sum(sapply(result$detectors, nrow)), ' total detections', sep='')
         cat(' and ', length(unique(sp)),
             ' unique species: ', paste0(unique(sp), collapse =', '), '.',
-            '\nRe-run with dropSpecies argument if any of these are not desired', sep='')
+            '\nRe-run with dropSpecies argument if any of these are not desired.', sep='')
+        print(kable(bntSummaryTable(result)))
+    } else if(training > 0) { # train-test split case has $train$events and $test$events
+        cat('\nCreated training data for ', nrow(result$train$events), ' events with ',
+            sum(sapply(result$train$detectors, nrow)), ' total detections', sep='')
+        cat(' and ', length(unique(sp)),
+            ' unique species: ', paste0(unique(sp), collapse =', '), '.', sep='')
+
+        print(kable(bntSummaryTable(result$train)))
+        cat('\nCreated test data for ', nrow(result$test$events), ' events with ',
+            sum(sapply(result$test$detectors, nrow)), ' total detections', sep='')
+        print(kable(bntSummaryTable(result$test)))
+        cat('\nRe-run with dropSpecies argument if any of these are not desired.', sep='')
     }
-    cat('.', sep='')
-    list(events=events, detectors=dets, na=detNA)
+    cat('\n')
+    # list(events=events, detectors=dets, na=detNA)
+    result$na <- detNA
+    result
+}
+
+# make a summary table from export_banter output
+bntSummaryTable <- function(x) {
+    bind_rows(lapply(x$detectors, function(y) {
+        tmp <- left_join(y, x$events, by='event.id')
+        select(tmp, event.id, species)
+    }), .id = 'detector') %>% group_by(species) %>%
+        summarise(Events = n_distinct(event.id),
+                  Detections = n()) %>%
+        rename(Species = species)
+}
+
+# x is result from initial export_banter with $events and $detectors for all
+bntSplit <- function(x, trainFrac) {
+    testFrac <- 1-trainFrac
+    if(testFrac == 0 ||
+       trainFrac == 0) {
+        return(x)
+    }
+    split <- split(x$events, x$events$species)
+    ev <- transpose(lapply(split, function(s) {
+        if(nrow(s) < 3) {
+            warning('Species ', s$species[1],
+                    ' does not have enough events to train a model (min 3).', call. = FALSE)
+            return(NULL)
+        }
+        if(nrow(s) * testFrac < 1) {
+            warning('Species ', s$species[1],
+                    ' does not have enough events for the chosen test proportion,',
+                    ' will round up to 1 event for test set.', call. = FALSE)
+        }
+        testNum <- ceiling(nrow(s) * testFrac)
+        testIx <- sample(1:nrow(s), testNum, replace=FALSE)
+        trainIx <- (1:nrow(s))[-testIx]
+        list(train=s[trainIx, ], test=s[testIx, ])
+    }))
+    result <- list(train = list(events = bind_rows(ev$train)),
+                   test = list(events = bind_rows(ev$test)))
+    # result$train$detectors <- x$detectors$event.id %in% train$event.id #psuedodfacode
+    result$train$detectors <- lapply(x$detectors, function(d) {
+        tmp <- filter(d, event.id %in% result$train$events$event.id)
+        # if(nrow(tmp) == 0) return(NULL)
+        tmp
+    })
+    result$test$detectors <- lapply(x$detectors, function(d) {
+        tmp <- filter(d, event.id %in% result$test$events$event.id)
+        # if(nrow(tmp) == 0) return(NULL)
+        tmp
+    })
+    result
 }

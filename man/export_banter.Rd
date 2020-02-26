@@ -15,11 +15,18 @@ a list of \linkS4class{AcousticEvent} objects}
 \item{dropSpecies}{a vector of the names of any species to exclude}
 
 \item{training}{logical flag whether or not this will be used as a
-training data set. Training sets must contain a species ID.}
+training data set, or a value between 0 and 1 specifying what percent
+of the data should be used for training (with the rest set aside
+for testing). If TRUE or greater than 0, must contain species ID.
+NOTE: if value is not 0, 1, \code{TRUE}, or \code{FALSE}, output
+will be further split into \code{training} and \code{test} items
+within the list output}
 }
 \value{
 a list with three items, \code{events}, \code{detectors}, and
-  \code{na}.
+  \code{na}. If value of \code{training} is not 0, 1, \code{TRUE}, or
+  \code{FALSE}, output will be split into \code{training} and
+  \code{test} lists that contain \code{events} and \code{detectors}.
   \code{events} is a dataframe with two columns. \code{event.id} is a
   unique identifier for each event, taken from the names of the event
   list. \code{species} is the species classification, taken from the
@@ -39,6 +46,9 @@ a list with three items, \code{events}, \code{detectors}, and
 \description{
 Formats a list of AcousticEvent objects into the structure
   needed to run a banter model.
+}
+\details{
+
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

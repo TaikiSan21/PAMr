@@ -1,3 +1,14 @@
+## PAMr 0.7.2
+
+* `export_banter` now has an option to split your data into training and test sets by 
+specifying a proportion for the `training` argument, and now puts out a pretty table
+showing a summary of your events and species
+
+## PAMr 0.7.1
+
+* `processPgDetections` has some minor updates to improve clarity when binary files or 
+databases aren't found using `mode='time'`
+
 ## PAMr 0.7.0
 
 ### Functions Renamed

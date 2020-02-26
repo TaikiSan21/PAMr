@@ -3,14 +3,11 @@
 \name{addCalibration}
 \alias{addCalibration}
 \alias{applyCalibration}
-\alias{findCalibration}
 \title{Add a Calibration File to a PAMrSettings Object}
 \usage{
-addCalibration(prs, calFile = NULL, module = "ClickDetector")
+addCalibration(prs, calFile = NULL, module = "ClickDetector", calName = NULL)
 
 applyCalibration(prs, module = "ClickDetector")
-
-findCalibration(calName, module = "ClickDetector")
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
@@ -18,13 +15,16 @@ findCalibration(calName, module = "ClickDetector")
 \item{calFile}{a calibration file name. Must be csv format with two columns.
 The first column must be the frequency, and the second column must be the
 sensitivity (in dB), and the columns should be labeled \code{Frequency}
-and \code{Sensitivity}.}
+and \code{Sensitivity}. Can also be supplied as a dataframe in which
+case the \code{calName} argument should also be set}
 
 \item{module}{the Pamguard module type this calibration should be applied to,
 for now this is only for ClickDetector modules. This is left as an option
 for future-proofing purposes but should not be needed.}
 
-\item{calName}{the name of the calibration function to lookup}
+\item{calName}{the name to assign to the calibration function, defaults to
+the file name and only needs to be set if supplying a dataframe instead of
+a csv file}
 }
 \value{
 the same \linkS4class{PAMrSettings} object as prs, with the calibration

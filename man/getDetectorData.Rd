@@ -4,14 +4,11 @@
 \alias{getDetectorData}
 \title{Extract and Combine Detector Data}
 \usage{
-getDetectorData(x, species = FALSE)
+getDetectorData(x)
 }
 \arguments{
 \item{x}{data to extract detector data from, either an \code{AcousticStudy},
 \code{AcousticEvent} or list of \code{AcousticEvent} object}
-
-\item{species}{logical flag whether or not to include the species id from
-the \code{id} item in the \code{species} slot}
 }
 \value{
 A list of data frames containing all detection data from \code{x},
@@ -28,9 +25,9 @@ The purpose of this function is to extract your data out of
   The output will be a list of up to three data frames, one for each call type
   found in your data. Each different call type will have had different processing
   applied to it by \code{processPgDetections}. Additionally, each detector will
-  have its associated event id, the name of the detector, and (optionally) the
-  species id attached to it. All detections from each call type will be combined
-  into a single large data frame
+  have its associated event id, the name of the detector, and the species id
+  attached to it (species will be \code{NA} if not set). All detections from each
+  call type will be combined into a single large data frame
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

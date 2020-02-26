@@ -34,7 +34,7 @@
 \alias{[<-,AcousticEvent,ANY,ANY,ANY-method}
 \alias{$,AcousticEvent-method}
 \alias{$<-,AcousticEvent-method}
-\alias{[[,AcousticEvent-method}
+\alias{[[,AcousticEvent,ANY,ANY-method}
 \alias{[[<-,AcousticEvent,ANY,ANY,ANY-method}
 \alias{id,AcousticStudy-method}
 \alias{id<-,AcousticStudy-method}
@@ -69,7 +69,7 @@
 \alias{[<-,AcousticStudy,ANY,ANY,ANY-method}
 \alias{$,AcousticStudy-method}
 \alias{$<-,AcousticStudy-method}
-\alias{[[,AcousticStudy-method}
+\alias{[[,AcousticStudy,ANY,ANY-method}
 \alias{[[<-,AcousticStudy,ANY,ANY,ANY-method}
 \title{\code{AcousticEvent} and \code{AcousticStudy} accessors}
 \usage{
@@ -137,7 +137,7 @@ ancillary(x) <- value
 
 \S4method{$}{AcousticEvent}(x, name) <- value
 
-\S4method{[[}{AcousticEvent}(x, i)
+\S4method{[[}{AcousticEvent,ANY,ANY}(x, i)
 
 \S4method{[[}{AcousticEvent,ANY,ANY,ANY}(x, i) <- value
 
@@ -207,7 +207,7 @@ models(x) <- value
 
 \S4method{$}{AcousticStudy}(x, name) <- value
 
-\S4method{[[}{AcousticStudy}(x, i)
+\S4method{[[}{AcousticStudy,ANY,ANY}(x, i)
 
 \S4method{[[}{AcousticStudy,ANY,ANY,ANY}(x, i) <- value
 }
