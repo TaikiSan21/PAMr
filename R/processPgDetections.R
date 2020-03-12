@@ -54,6 +54,7 @@
 #' @importFrom RSQLite dbConnect dbListTables dbReadTable dbDisconnect SQLite
 #' @importFrom stringr str_trim
 #' @importFrom data.table data.table setkey
+#' @importFrom utils choose.files
 #' @importFrom purrr transpose
 #' @import dplyr
 #' @export
@@ -66,7 +67,7 @@ processPgDetections <- function(prs, mode = c('db', 'time'), id=NULL,
            is.null(grouping) &&
            !is.null(ancillary(prs)$grouping)) {
             cat('Found a grouping file in the provided AcousticStudy object,',
-                'to use a different grouping file specify with the grouping argument.') 
+                'to use a different grouping file specify with the grouping argument.')
             grouping <- ancillary(prs)$grouping
         }
         prs <- prs(prs)
@@ -168,7 +169,10 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
             myTitle <- paste0('No matching database found for event ', grouping$id[i],
                               ' based on times, please choose one or select "0" to',
                               ' leave as NA.')
-            myChoice <- menu(title = myTitle, choices = allDbs)
+            myChoice <- menu(title = myTitle, choices = c(allDbs, 'Exit function call (no processing will occur)'))
+            if(myChoice == length(allDbs) + 1) {
+                stop('Exiting function call')
+            }
             if(myChoice == 0) {
                 dbPossible <- NA_character_
             } else {
@@ -193,7 +197,8 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
             time <- gsub(' ', '_', as.character(Sys.time()))
             time <-gsub(':', '-', time)
             fileName <- paste0(time, '_GroupingData.Rdata')
-            cat('\nOops! It looks like something went wrong. Your "grouping"',
+            cat('\nOops! It looks like something went wrong and the function ',
+                'stopped before finishing. Your "grouping"',
                 ' data has been saved in the current working directory as:\n',
                 '   ', fileName, '\nYou can supply this to "grouping" next time you ',
                 'run getPgDetections to avoid re-selecting options with:\n',
@@ -229,7 +234,25 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
     calibrationUsed <- names(prs@calibration[[1]])
     if(length(calibrationUsed)==0) calibrationUsed <- 'None'
 
+    binExists <- file.exists(binList)
+    if(sum(binExists) == 0) {
+        stop('No valid binary files found. Either none have been added, or the ',
+             'path has changed or is incorrect. Please add again with function ',
+             '"addBinaries".')
+    }
+    if(any(!binExists)) {
+        contChoice <- menu(title=paste0(sum(!binExists), ' out of ', length(binExists),
+                                        ' binary files could not be found, would you',
+                                        ' like to continue processing or stop to investigate?'),
+                           choices=c('Continue', 'Stop'))
+        if(contChoice == 2) {
+            stop('Stopping, no processing has been done')
+        }
+        cat(paste0('\nContinuing with ', sum(binExists), ' files\n'))
+    }
+    binList <- binList[binExists]
     cat('Processing binary files... \n')
+
     pb <- txtProgressBar(min=0, max=length(binList), style=3)
 
     binData <- lapply(binList, function(bin) {
@@ -625,13 +648,13 @@ checkGrouping <- function(grouping, format) {
     if(is.null(grouping)) {
         cat('Please provide a csv file with columns "start", "end", "id", and',
             'optionally "species" to group detections into events.')
-        grouping <- file.choose()
+        grouping <- choose.files(caption = 'Select event time csv file:', multi = FALSE)
     }
     if(inherits(grouping, 'character')) {
         if(!file.exists(grouping)) {
             cat('Provided grouping file does not exist, please provide a csv file with',
                 'columns "start", "end", and "id" to group detections into events.')
-            grouping <- file.choose()
+            grouping <- choose.files(caption = 'Select event time csv file:', multi = FALSE)
         }
         grouping <- read_csv(grouping, col_types = cols(.default=col_character()))
     }

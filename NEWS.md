@@ -1,3 +1,8 @@
+## PAMr 0.7.3
+
+* `addCalibration` now asks for units of your calibration, and should properly add
+or subtract this value from calculated spectrum depending on units selected
+
 ## PAMr 0.7.2
 
 * `export_banter` now has an option to split your data into training and test sets by 

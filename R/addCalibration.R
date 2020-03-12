@@ -14,11 +14,14 @@
 #' @param calFile a calibration file name. Must be csv format with two columns.
 #'   The first column must be the frequency, and the second column must be the
 #'   sensitivity (in dB), and the columns should be labeled \code{Frequency}
-#'   and \code{Sensitivity}.
+#'   and \code{Sensitivity}. Can also be supplied as a dataframe in which
+#'   case the \code{calName} argument should also be set
 #' @param module the Pamguard module type this calibration should be applied to,
 #'   for now this is only for ClickDetector modules. This is left as an option
 #'   for future-proofing purposes but should not be needed.
-#' @param calName the name of the calibration function to lookup
+#' @param calName the name to assign to the calibration function, defaults to
+#'   the file name and only needs to be set if supplying a dataframe instead of
+#'   a csv file
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the calibration
 #'   function added to the \code{calibration} slot.
@@ -30,7 +33,17 @@
 #' @importFrom seewave spec
 #' @export
 #'
-addCalibration <- function(prs, calFile=NULL, module='ClickDetector') {
+addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NULL) {
+    if(is.PAMrSettings(calFile)) {
+        funsToAdd <- calFile@calibration[[module]]
+        for(i in seq_along(funsToAdd)) {
+            prs <- addCalibration(prs,
+                                  get('CAL', envir = environment(calFile@calibration[[module]][[i]])),
+                                  module=module,
+                                  calName=names(calFile@calibration[[module]])[i])
+        }
+        return(prs)
+    }
     modsAllowed <- c('ClickDetector')
     if(!(module %in% modsAllowed)) {
         warning("I don't know how to add calibration for module type", module)
@@ -46,44 +59,87 @@ addCalibration <- function(prs, calFile=NULL, module='ClickDetector') {
     if(is.null(calFun)) return(prs)
 
     oldNames <- names(prs@calibration[[module]])
+    if(is.null(calName)) {
+        calName <- ifelse(is.character(calFile), calFile, 'Calibration')
+    }
+
     prs@calibration[module] <- list(c(prs@calibration[[module]], calFun))
-    names(prs@calibration[[module]]) <- c(oldNames, calFile)
+
+    names(prs@calibration[[module]]) <- c(oldNames, calName)
     prs <- applyCalibration(prs)
     prs
 }
 
 # Do checks, return calibration as a function
-makeCalibration <- function(calFile) {
-    if(!grepl('csv', calFile)) {
-        warning('Calibration file must be provided in csv format with columns',
-                '"Frequency" and "Sensitivity", calibration has not been added.')
-        return(NULL)
+makeCalibration <- function(calFile, units=NULL) {
+
+    # POSSIBLY add at top single value calibration
+
+    if(is.character(calFile)) {
+        if(!grepl('csv', calFile)) {
+            warning('Calibration file must be provided in csv format with columns',
+                    '"Frequency" and "Sensitivity", calibration has not been added.')
+            return(NULL)
+        }
+        CAL <- read.csv(calFile, header = FALSE, stringsAsFactors = FALSE)
+        hasHeader <- grepl('[A-z]', CAL[1, 1]) && grepl('[A-z]', CAL[1, 2])
+        if(hasHeader) {
+            CAL <- CAL[-1, ]
+        }
+        if(any(grepl('[^0-9\\.]', CAL[, 1])) ||
+           any(grepl('[^0-9\\.]', CAL[, 2]))) {
+            warning('Non-numeric values found in calibration file, please check.',
+                    'Calibration has not been applied.')
+            return(NULL)
+        }
     }
-    CAL <- read.csv(calFile, header = FALSE, stringsAsFactors = FALSE)
-    hasHeader <- grepl('[A-z]', CAL[1, 1]) && grepl('[A-z]', CAL[1, 2])
-    if(hasHeader) {
-        # if(CAL[1, 1] != 'Frequency' ||
-        #    CAL[1, 2] != 'Sensitivity') {
-        #     cat('Changing column names of calibration file to "Frequency"',
-        #         'and "Sensitivity".')
-        # }
-        CAL <- CAL[-1, ]
+    if(is.data.frame(calFile)) {
+        CAL <- calFile
+
     }
     colnames(CAL) <- c('Frequency', 'Sensitivity')
-    if(any(grepl('[^0-9\\.]', CAL[, 1])) ||
-       any(grepl('[^0-9\\.]', CAL[, 2]))) {
-        warning('Non-numeric values found in calibration file, please check.',
-                'Calibration has not been applied.')
-        return(NULL)
-    }
     CAL$Frequency <- as.numeric(CAL$Frequency)
     CAL$Sensitivity <- as.numeric(CAL$Sensitivity)
-    CALMODEL <- gam(Sensitivity ~ s(Frequency, 50), data = CAL)
+    # Convert to always dB in numerator, this should always work
+    if(median(CAL$Sensitivity, na.rm = TRUE) < 0) {
+        CAL$Sensitivity <- CAL$Sensitivity * -1
+    }
+    unitOpts <- paste0('dB re ', c('V/uPa', 'uPa/Counts', 'uPa/FullScale'))
+    unitChoice <- menu(title = paste0('What are the units of your calibration?\n',
+                                     "(If you only need relative dB values choose the FullScale option)"),
+                       choices = unitOpts)
+    if(unitChoice == 0) {
+        stop('No unit selection made, stopping calibration.')
+    }
+    if(unitChoice == 1) {
+        scaleRead <- readline(prompt='What is your voltage range?')
+        SCALE <- suppressWarnings(as.numeric(scaleRead))
+    }
+    if(unitChoice == 2) {
+        scaleRead <- readline(prompt='What is the bit rate of your data?')
+        SCALE <- suppressWarnings(2 ^ (as.numeric(scaleRead) - 1))
+    }
+    if(unitChoice == 3) {
+        SCALE <- 1
+    }
+    if(is.na(SCALE)) {
+        stop('Unable to convert input to a numeric value, stopping calibration.')
+    }
+
+    # need to convert all to assumed dB / FullScale, which is what corresponds to converting
+    # -1 to 1 range to actual dB
+
+    # say that fullscale or end-end option is if you dont care about absolute only relative
+    # other require input numbers
+
+    # If Volts multiple spec by V, if counts multiple spec by 2^Bit
+    CALMODEL <- suppressWarnings(gam(Sensitivity ~ s(Frequency, 50), data = CAL))
 
     # Applies to power spectrum 20* log10(spec).
     # Usually subtracted? Added?
+    # ORIGINAL EXAMPLE FROM JAY HAS NEGATIVE VALUES IN CAL FILE ~-170
     calFun <- function(wave, sr, ...) {
-        specData <- spec(wave = wave, f = sr, norm = FALSE,
+        specData <- spec(wave = wave * SCALE, f = sr, norm = FALSE,
                                   correction = 'amplitude', plot = FALSE, ...)
         # This is for integer overflow spec jankiness fixing
         freq <- seq(from = 0, by = specData[2, 1] - specData[1,1], length.out = nrow(specData))
@@ -93,10 +149,13 @@ makeCalibration <- function(calFile) {
         specData$Sensitivity[!is.finite(specData$Sensitivity)] <- NA
 
         predicted <- predict.Gam(CALMODEL, newdata = specData)
-        predicted <- predicted - predicted[1]
+        if(median(predicted) < 0) {
+            predicted <- predicted * -1
+        }
+        # predicted <- predicted - predicted[1]
         # this is + or - WHO KNOWS WTF
-        specData$Sensitivity <- specData$Sensitivity - predicted
-        specData$Sensitivity <- specData$Sensitivity - max(specData$Sensitivity)
+        specData$Sensitivity <- specData$Sensitivity + predicted
+        # specData$Sensitivity <- specData$Sensitivity - max(specData$Sensitivity)
         colnames(specData) <- c('Frequency', 'dB')
         # possibly i should save function and values?
         specData
@@ -153,10 +212,7 @@ applyCalibration <- function(prs, module = 'ClickDetector') {
     prs
 }
 
-# do janky environment search to actually get function
-#' @rdname addCalibration
-#' @export
-#'
+# do janky environment search to actually get functiont
 findCalibration <- function(calName, module = 'ClickDetector') {
     allGlobal <- ls(envir = .GlobalEnv)
     allPrs <- sapply(allGlobal, function(x) {
