@@ -13,7 +13,7 @@ applyCalibration(prs, module = "ClickDetector")
 \item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
 
 \item{calFile}{a calibration file name. Must be csv format with two columns.
-The first column must be the frequency, and the second column must be the
+The first column must be the frequency (in Hz), and the second column must be the
 sensitivity (in dB), and the columns should be labeled \code{Frequency}
 and \code{Sensitivity}. Can also be supplied as a dataframe in which
 case the \code{calName} argument should also be set}
@@ -33,6 +33,22 @@ the same \linkS4class{PAMrSettings} object as prs, with the calibration
 \description{
 Adds a new calibration function to the "calibration" slot
   of a PAMrSettings object.
+}
+\details{
+When adding a calibration, you will be asked what units your calibration
+  value is in. The wave clips stored by Pamguard are values from -1 to 1, so if
+  your calibration is expecting different units then this needs to be accounted
+  for in order to get an accurate SPL value. For V / uPa you must know the voltage
+  range of your recording equipment, and for calibrations expecting Count data you
+  must know the bit rate of your recordings. If your calibration is already relative
+  to full-scale, then nothing needs to be adjusted. If you don't know the units of
+  your calibration and you are only interested in relative dB levels, then you can
+  select the Full-Scale options.
+
+  The calibration function created takes frequency (in Hz) as input and
+  outputs the associated dB value that needs to be added to correct the
+  power spectrum of a signal. If the input is a matrix or dataframe, the first
+  column is assumed to be frequency.
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

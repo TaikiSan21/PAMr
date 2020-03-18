@@ -12,7 +12,7 @@
 #'
 #' @param prs a \linkS4class{PAMrSettings} object to add a database to
 #' @param calFile a calibration file name. Must be csv format with two columns.
-#'   The first column must be the frequency, and the second column must be the
+#'   The first column must be the frequency (in Hz), and the second column must be the
 #'   sensitivity (in dB), and the columns should be labeled \code{Frequency}
 #'   and \code{Sensitivity}. Can also be supplied as a dataframe in which
 #'   case the \code{calName} argument should also be set
@@ -25,6 +25,21 @@
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the calibration
 #'   function added to the \code{calibration} slot.
+#'
+#' @details When adding a calibration, you will be asked what units your calibration
+#'   value is in. The wave clips stored by Pamguard are values from -1 to 1, so if
+#'   your calibration is expecting different units then this needs to be accounted
+#'   for in order to get an accurate SPL value. For V / uPa you must know the voltage
+#'   range of your recording equipment, and for calibrations expecting Count data you
+#'   must know the bit rate of your recordings. If your calibration is already relative
+#'   to full-scale, then nothing needs to be adjusted. If you don't know the units of
+#'   your calibration and you are only interested in relative dB levels, then you can
+#'   select the Full-Scale options.
+#'
+#'   The calibration function created takes frequency (in Hz) as input and
+#'   outputs the associated dB value that needs to be added to correct the
+#'   power spectrum of a signal. If the input is a matrix or dataframe, the first
+#'   column is assumed to be frequency.
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
@@ -99,11 +114,16 @@ makeCalibration <- function(calFile, units=NULL) {
     }
     colnames(CAL) <- c('Frequency', 'Sensitivity')
     CAL$Frequency <- as.numeric(CAL$Frequency)
-    CAL$Sensitivity <- as.numeric(CAL$Sensitivity)
-    # Convert to always dB in numerator, this should always work
-    if(median(CAL$Sensitivity, na.rm = TRUE) < 0) {
-        CAL$Sensitivity <- CAL$Sensitivity * -1
+    if(max(CAL$Frequency) < 1e3) {
+        warning('It appears that frequency was supplied in kHz, converting to Hz')
+        CAL$Frequency <- CAL$Frequency * 1e3
     }
+    CAL$Sensitivity <- as.numeric(CAL$Sensitivity)
+    # Convert to always dB in numerator, this should always work !!NVM doing this after predict
+    # should be better so plotting shows negative like they supplied so no confusing?
+    # if(median(CAL$Sensitivity, na.rm = TRUE) < 0) {
+    #     CAL$Sensitivity <- CAL$Sensitivity * -1
+    # }
     unitOpts <- paste0('dB re ', c('V/uPa', 'uPa/Counts', 'uPa/FullScale'))
     unitChoice <- menu(title = paste0('What are the units of your calibration?\n',
                                      "(If you only need relative dB values choose the FullScale option)"),
@@ -138,27 +158,36 @@ makeCalibration <- function(calFile, units=NULL) {
     # Applies to power spectrum 20* log10(spec).
     # Usually subtracted? Added?
     # ORIGINAL EXAMPLE FROM JAY HAS NEGATIVE VALUES IN CAL FILE ~-170
-    calFun <- function(wave, sr, ...) {
-        specData <- spec(wave = wave * SCALE, f = sr, norm = FALSE,
-                                  correction = 'amplitude', plot = FALSE, ...)
-        # This is for integer overflow spec jankiness fixing
-        freq <- seq(from = 0, by = specData[2, 1] - specData[1,1], length.out = nrow(specData))
-        specData <- data.frame(Frequency = freq * 1e3,
-                               Sensitivity = specData[, 2])
-        specData$Sensitivity <- 20 * log10(specData$Sensitivity)
-        specData$Sensitivity[!is.finite(specData$Sensitivity)] <- NA
 
-        predicted <- predict.Gam(CALMODEL, newdata = specData)
+    # spec has column 1 frequency kHz b/c thats what seewave::spec outputs, column 2 dB in 20*log10
+    calFun <- function(freq, ...) {
+        # if take in spec we add 20*log10(SCALE)
+        # specData <- spec(wave = wave * SCALE, f = sr, norm = FALSE,
+        #                           correction = 'amplitude', plot = FALSE, ...)
+        # # This is for integer overflow spec jankiness fixing
+        # freq <- seq(from = 0, by = specData[2, 1] - specData[1,1], length.out = nrow(specData))
+        # specData <- data.frame(Frequency = freq * 1e3,
+        #                        Sensitivity = specData[, 2])
+        # specData$Sensitivity <- 20 * log10(specData$Sensitivity)
+        # specData$Sensitivity[!is.finite(specData$Sensitivity)] <- NA
+        # specData <- data.frame(Frequency = spec[, 1] * 1e3,
+        #                        Sensitivity = spec[, 2])
+        # specData$Sensitivity  <- specData$Sensitivity + 20*log10(SCALE)
+        if(is.matrix(freq) ||
+           is.data.frame(freq)) {
+            freq <- freq[, 1]
+        }
+        predicted <- predict.Gam(CALMODEL, newdata = data.frame(Frequency = freq))
         if(median(predicted) < 0) {
             predicted <- predicted * -1
         }
         # predicted <- predicted - predicted[1]
         # this is + or - WHO KNOWS WTF
-        specData$Sensitivity <- specData$Sensitivity + predicted
+        # specData$Sensitivity <- specData$Sensitivity + predicted
         # specData$Sensitivity <- specData$Sensitivity - max(specData$Sensitivity)
-        colnames(specData) <- c('Frequency', 'dB')
+        # colnames(specData) <- c('Frequency', 'dB')
         # possibly i should save function and values?
-        specData
+        predicted + 20*log10(SCALE)
     }
     class(calFun) <- c('calibration', 'function')
     calFun

@@ -1,3 +1,17 @@
+## PAMr 0.7.4
+
+* `addCalibration` reworked slightly again, created calibration function now takes
+frequency in Hz as input and outputs dB correction to add instead of taking in
+result of seewave::spec and outputting corrected spec. This makes it more flexible
+and means we aren't calculating spectrum twice for no reason
+
+* `standardClickCalcs` adjusted to use new calibration, and temporarily has a new
+parameter calculated - `dBPP` - which is the peak to peak value as traditionally 
+defined in acoustics. This is mostly for testing comparability to other Matlab
+based code of new calibration stuff. Also the spectrum is never rescaled to a
+max of 0 like it was previously, hopefully should represent accurate SPL levels
+with new calibration code
+
 ## PAMr 0.7.3
 
 * `addCalibration` now asks for units of your calibration, and should properly add

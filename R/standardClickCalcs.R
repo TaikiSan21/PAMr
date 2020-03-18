@@ -38,7 +38,7 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
     # SLOWEST PART BY FAR is bwfilter
     result <- list()
     paramNames <- c('Channel', 'noiseLevel', 'duration', 'peakTime', 'peak', 'peak2', 'peak3', 'trough',
-                    'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'Q_10dB',
+                    'trough2', 'peakToPeak2', 'peakToPeak3', 'peak2ToPeak3', 'dBPP', 'Q_10dB',
                     'PeakHz_10dB', 'fmin_10dB', 'fmax_10dB', 'BW_10dB', 'centerHz_10dB',
                     'Q_3dB', 'PeakHz_3dB', 'fmin_3dB', 'fmax_3dB', 'BW_3dB', 'centerHz_3dB')
     # Do for each channel
@@ -140,30 +140,33 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         freq <- seq(from=0, by = thisSpec[2,1] - thisSpec[1,1], length.out = nrow(thisSpec))
         # Calibration - I don't have a standardized way of doing this yet
         # newClick <- data.frame(Freq=thisSpec[,1]*1e3, Sens = relDb)
+
+
         if(!is.null(calibration)) {
-            #DO CAL
-            # predValue <- predict.Gam(calibration[[chan]], newdata=newClick)
-            # predValue <- predValue - predValue[1]
-            # clickSens <- relDb-predValue
-            # clickSens <- clickSens - max(clickSens)
-            calFun <- findCalibration(calibration)
-            clickSens <- calFun(wave = thisWave, sr = sr)$dB
-        } else {
-            # if no cal, just use original relDb
-            clickSens <- relDb - max(relDb, na.rm=TRUE)
+            #DO CA
+            if(is.function(calibration)) {
+                calFun <- calibration
+            } else if(is.character(calibration)) {
+                calFun <- findCalibration(calibration)
+            }
+            relDb <- relDb + calFun(freq * 1e3)
         }
-        calibratedClick <- cbind(freq, clickSens)
-        # if(any(is.na(clickSens))) browser()
-        # Simple peak / trough calculations
-        # pt <- peakTrough(calibratedClick)
-        # pf <- peakFast(calibratedClick)
-        # if(!identical(as.numeric(pt), as.numeric(pf))) {
-        #     cat('peakfast and peaktrough not equal??')
-        #     browser()
+        # } else {
+        #     # if no cal, just use original relDb
+        #     clickSens <- relDb - max(relDb, na.rm=TRUE)
         # }
+        calibratedClick <- cbind(freq, relDb)
+
         peakData <- peakTrough(calibratedClick)
         thisDf <- c(thisDf, peakData)
 
+        # peak-to-peak calcuation from anne s
+        dBPP <- 20*log10(max(thisWave) - min(thisWave))
+        if(!is.null(calibration)) {
+            dBPP <- dBPP + calFun(peakData$peak * 1e3)
+        }
+
+        thisDf$dBPP <- dBPP
         # Finding 10/3 dB bandwidth - modified 'Q' function from seewave package
         dbBW10 <- Qfast(calibratedClick, f=sr, level=-10, plot=FALSE)
         names(dbBW10) <- c('Q_10dB', 'PeakHz_10dB', 'fmin_10dB', 'fmax_10dB', 'BW_10dB')
@@ -174,9 +177,6 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
         dbBW3$centerHz_3dB <- dbBW3$fmax_3dB - (dbBW3$BW_3dB/2)
 
         thisDf <- c(thisDf, dbBW10, dbBW3)
-
-        # If you wanted to add more, just calculate it and add it as another column in this data frame
-        # Ex: thisDf$theAnswer <- 42
 
         result[[chan]] <- thisDf
     }
