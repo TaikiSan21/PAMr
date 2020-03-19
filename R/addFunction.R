@@ -56,6 +56,8 @@ functionParser <- function(fun) {
             cat('Set a value for parameter "', a, '", please put quotes around strings', sep='')
             if(class(argList[[a]]) == 'name') {
                 cat(' (no default value found):')
+            } else if(class(argList[[a]]) == 'NULL') {
+                cat(' (default value is NULL):')
             } else {
                 cat(' (default value is ', argList[[a]], '):', sep = '')
             }

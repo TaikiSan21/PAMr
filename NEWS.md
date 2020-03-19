@@ -1,3 +1,9 @@
+## PAMr 0.7.5
+
+* `standardClickCalcs` changed to have a `filterfrom_khz` and `filterto_khz` option
+so that a bandpass filter can be applied. If only a highpass filter is desired simply
+leave `filterto_khz` as the default `NULL`
+
 ## PAMr 0.7.4
 
 * `addCalibration` reworked slightly again, created calibration function now takes

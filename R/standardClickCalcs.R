@@ -12,7 +12,10 @@
 #'   'sr' of \code{data}
 #' @param calibration a calibration function to apply to the spectrum, must be
 #'   a gam. If NULL no calibration will be applied (not recommended).
-#' @param highpass_khz frequency in khz of highpass filter to apply
+#' @param filterfrom_khz frequency in khz of highpass filter to apply, or the lower
+#'   bound of a bandpass filter if \code{filterto_khz} is not \code{NULL}
+#' @param filterto_khz if a bandpass filter is desired, set this as the upper bound.
+#'   If only a highpass filter is desired, leave as the default \code{NULL} value
 #' @param winLen_sec length in seconds of fft window. The click wave is first
 #'   shortened to this number of samples around the peak of the wave,
 #'   removing a lot of the noise around the click. Following approach of
@@ -34,7 +37,7 @@
 #' @importFrom tuneR WaveMC
 #' @export
 #'
-standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_khz=10, winLen_sec=.0025) {
+standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, filterfrom_khz=10, filterto_khz=NULL, winLen_sec=.0025) {
     # SLOWEST PART BY FAR is bwfilter
     result <- list()
     paramNames <- c('Channel', 'noiseLevel', 'duration', 'peakTime', 'peak', 'peak2', 'peak3', 'trough',
@@ -68,8 +71,14 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, highpass_kh
             sr <- sr_hz
         }
 
-        if(highpass_khz > 0) {
-            thisWave <- bwfilter(thisWave, f=sr, n=4, from=highpass_khz*1e3, output='sample')
+        if(filterfrom_khz > 0) {
+            # kinda janky because NULL * 1e3 is not NULL anymore, its numeric(0)
+            if(!is.null(filterto_khz)) {
+                to_hz <- filterto_khz * 1e3
+            } else {
+                to_hz <- NULL
+            }
+            thisWave <- bwfilter(thisWave, f=sr, n=4, from=filterfrom_khz*1e3, to = to_hz, output='sample')
         }
         # -1 here because time after start time
         peakTime <- (which.max(abs(thisWave)) - 1) / sr

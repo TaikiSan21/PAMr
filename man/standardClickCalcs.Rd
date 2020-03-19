@@ -8,7 +8,8 @@ standardClickCalcs(
   data,
   sr_hz = "auto",
   calibration = NULL,
-  highpass_khz = 10,
+  filterfrom_khz = 10,
+  filterto_khz = NULL,
   winLen_sec = 0.0025
 )
 }
@@ -25,7 +26,11 @@ rate in hertz. If \code{'auto'}, the sample rate will be read from the
 \item{calibration}{a calibration function to apply to the spectrum, must be
 a gam. If NULL no calibration will be applied (not recommended).}
 
-\item{highpass_khz}{frequency in khz of highpass filter to apply}
+\item{filterfrom_khz}{frequency in khz of highpass filter to apply, or the lower
+bound of a bandpass filter if \code{filterto_khz} is not \code{NULL}}
+
+\item{filterto_khz}{if a bandpass filter is desired, set this as the upper bound.
+If only a highpass filter is desired, leave as the default \code{NULL} value}
 
 \item{winLen_sec}{length in seconds of fft window. The click wave is first
 shortened to this number of samples around the peak of the wave,
