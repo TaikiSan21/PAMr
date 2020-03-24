@@ -191,6 +191,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
         }
         grouping$db[i] <- dbPossible
     }
+    failBin <- 'Havent started'
     on.exit({
         # only do the saving if anything had to be done by the user
         if(editGroup) {
@@ -205,6 +206,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
                 '   newGrouping <- readRDS("', fileName, '")', sep = '')
             saveRDS(grouping, file = fileName)
         }
+        cat('\nI failed on file ', failBin, ' please send to Taiki =D')
     })
 
     if(!('sr' %in% colnames(grouping))) {
@@ -260,6 +262,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
         # times against grouplist, if none can skip, if one we know
         # what db to match sr with. if more than one... hope they have the
         # same SR? or go fys?
+        failBin <- bin
         thisHFOnly <- loadPamguardBinaryFile(bin, skipData=TRUE)$fileInfo
         binBounds <- convertPgDate(c(thisHFOnly$fileHeader$dataDate, thisHFOnly$fileFooter$dataDate))
         evPossible <- (binBounds[1] >= grouping$start & binBounds[1] <= grouping$end) |

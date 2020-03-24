@@ -1,3 +1,7 @@
+## PAMr 0.7.6
+
+* Just adde a debugger for JKs problem
+
 ## PAMr 0.7.5
 
 * `standardClickCalcs` changed to have a `filterfrom_khz` and `filterto_khz` option
