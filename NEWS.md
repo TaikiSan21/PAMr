@@ -1,3 +1,8 @@
+## PAMr 0.7.8
+
+* `processPgDetections` handles binary files that never finished writing without
+a mysterious crash now. Should only affect `mode='time'`.
+
 ## PAMr 0.7.6 and 0.7.7 because oops
 
 * Just adde a debugger for JKs problem

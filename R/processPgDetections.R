@@ -206,7 +206,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
                 '   newGrouping <- readRDS("', fileName, '")', sep = '')
             saveRDS(grouping, file = fileName)
         }
-        cat('\nI failed on file ', failBin, ' please send to Taiki =D')
+        cat('\nLast file I tried to read: ', failBin)
     })
 
     if(!('sr' %in% colnames(grouping))) {
@@ -262,18 +262,31 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
         # times against grouplist, if none can skip, if one we know
         # what db to match sr with. if more than one... hope they have the
         # same SR? or go fys?
+
+        # debugger
         failBin <<- bin
+        # flag if weve loaded data, need because incomplete binaries dont have footer for check
+        loaded <- FALSE
         thisHFOnly <- loadPamguardBinaryFile(bin, skipData=TRUE)$fileInfo
         binBounds <- convertPgDate(c(thisHFOnly$fileHeader$dataDate, thisHFOnly$fileFooter$dataDate))
+        if(length(binBounds) < 2) {
+            thisBin <- loadPamguardBinaryFile(bin)
+            loaded <- TRUE
+            dataLen <- length(thisBin$data)
+            binBounds <- convertPgDate(c(thisBin$data[[1]]$date, thisBin$data[[dataLen]]$date))
+        }
+
         evPossible <- (binBounds[1] >= grouping$start & binBounds[1] <= grouping$end) |
             (binBounds[2] >= grouping$start & binBounds[2] <= grouping$end) |
             (binBounds[1] <= grouping$start & binBounds[2] >= grouping$end)
+
         # if not overlapping any events, skip doing data part mobetta
         if(!any(evPossible)) {
             return(NULL)
         }
-        thisBin <- loadPamguardBinaryFile(bin)
-
+        if(!loaded) {
+            thisBin <- loadPamguardBinaryFile(bin)
+        }
         srPossible <- unique(unlist(grouping$sr[evPossible]))
         if(length(srPossible) == 1) {
             for(i in seq_along(thisBin$data)) {
@@ -298,6 +311,10 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
 
     cat('\n') # space after progress bar finished
     binData <- binData[sapply(binData, function(x) !is.null(x))]
+    if(length(binData) == 0) {
+        stop(paste0('None of the binary files contained data for any of the events.',
+                    ' Please check that times are in UTC and the correct binary folder was supplied.'))
+    }
     # for clicks we have split the broad detector into separate ones by classification
     binData <- lapply(binData, function(x) split(x, x$detectorName))
     binData <- unlist(binData, recursive = FALSE)
