@@ -262,7 +262,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
         # times against grouplist, if none can skip, if one we know
         # what db to match sr with. if more than one... hope they have the
         # same SR? or go fys?
-        failBin <- bin
+        failBin <<- bin
         thisHFOnly <- loadPamguardBinaryFile(bin, skipData=TRUE)$fileInfo
         binBounds <- convertPgDate(c(thisHFOnly$fileHeader$dataDate, thisHFOnly$fileFooter$dataDate))
         evPossible <- (binBounds[1] >= grouping$start & binBounds[1] <= grouping$end) |

@@ -1,4 +1,4 @@
-## PAMr 0.7.6
+## PAMr 0.7.6 and 0.7.7 because oops
 
 * Just adde a debugger for JKs problem
 
