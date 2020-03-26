@@ -1,3 +1,8 @@
+## PAMr 0.7.9
+
+* `processPgDetections` shouldnt crash on empty binary file that also didnt finish
+writing the header and footer for `mode='time'`
+
 ## PAMr 0.7.8
 
 * `processPgDetections` handles binary files that never finished writing without

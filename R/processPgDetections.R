@@ -273,6 +273,9 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
             thisBin <- loadPamguardBinaryFile(bin)
             loaded <- TRUE
             dataLen <- length(thisBin$data)
+            if(dataLen == 0) {
+                return(NULL)
+            }
             binBounds <- convertPgDate(c(thisBin$data[[1]]$date, thisBin$data[[dataLen]]$date))
         }
 
