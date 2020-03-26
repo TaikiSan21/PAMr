@@ -268,8 +268,11 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
         # flag if weve loaded data, need because incomplete binaries dont have footer for check
         loaded <- FALSE
         thisHFOnly <- loadPamguardBinaryFile(bin, skipData=TRUE)$fileInfo
-        binBounds <- convertPgDate(c(thisHFOnly$fileHeader$dataDate, thisHFOnly$fileFooter$dataDate))
-        if(length(binBounds) < 2) {
+        # if either of these isnt present we need to load binary file completely so check first
+        dateBounds <- c(thisHFOnly$fileHeader$dataDate, thisHFOnly$fileFooter$dataDate)
+        if(length(dateBounds) == 2) {
+            binBounds <- convertPgDate(dateBounds)
+        } else {
             thisBin <- loadPamguardBinaryFile(bin)
             loaded <- TRUE
             dataLen <- length(thisBin$data)
