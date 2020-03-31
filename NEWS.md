@@ -1,3 +1,7 @@
+## PAMr 0.7.10
+
+* `processPgDetctions` bug fixed when encountering a binary with 0 detections
+
 ## PAMr 0.7.9
 
 * `processPgDetections` shouldnt crash on empty binary file that also didnt finish

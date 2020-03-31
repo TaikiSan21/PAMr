@@ -293,6 +293,9 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
         if(!loaded) {
             thisBin <- loadPamguardBinaryFile(bin)
         }
+        if(length(thisBin$data) == 0) {
+            return(NULL)
+        }
         srPossible <- unique(unlist(grouping$sr[evPossible]))
         if(length(srPossible) == 1) {
             for(i in seq_along(thisBin$data)) {
