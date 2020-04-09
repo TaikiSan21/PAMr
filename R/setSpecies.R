@@ -9,15 +9,20 @@
 #'   the \code{species} slot
 #' @param method the method for assigning species to an event. Currently supports
 #'   \code{pamguard}, which will use the 'eventType' or 'Text_Annotation' column
-#'   to assign species, or \code{manual} which will use \code{value} to assign
-#'   species manually.
-#' @param value optional argument required if \code{method} is set to manual.
-#'   Can either be a single value to assign to all events, or if assigning to
+#'   to assign species, \code{manual} which will use \code{value} to assign
+#'   species manually, or \code{reassign} which will use \code{value} to
+#'   reassign an old species label to a new one
+#' @param value optional argument required if \code{method} is set to manual or reassign.
+#'   For \code{'manual'}, can either be a single value to assign to all events, or if assigning to
 #'   a list a vector with length equal to the list. Can also be a dataframe
 #'   with columns \code{event} and \code{species}, in which case species will
 #'   be matched to corresponding event names instead of just relying on the
 #'   order. If using this, please note the prefix OE or DGL present on most
 #'   event numbers (see the \code{id} slot of your events).
+#'   For \code{'reassign'}, \code{value} must be a data frame with columns
+#'   \code{old} and \code{new}. Any events with species id in the \code{old} column
+#'   of the dataframe will get reassigned to the corresponding id in the
+#'   \code{new} column.
 #' @return the same object as \code{acev}, with species identifications assigned
 #'   as an item named \code{type} in the \code{species} slot
 #'
@@ -28,11 +33,11 @@
 #' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
 #' @export
 #'
-setSpecies <- function(x, type='id', method=c('pamguard', 'manual'), value) {
+setSpecies <- function(x, type='id', method=c('pamguard', 'manual', 'reassign'), value) {
     if(length(method) > 1) {
         stop('Please select a single assignment method.')
     }
-    method <- match.arg(method[1], choices = c('pamguard', 'manual', 'am'))
+    method <- match.arg(method[1], choices = c('pamguard', 'manual', 'am', 'reassign'))
     # wrote code for just events before study existed, just work on those
     if(is.AcousticStudy(x)) {
         acev <- events(x)
@@ -134,6 +139,31 @@ setSpecies <- function(x, type='id', method=c('pamguard', 'manual'), value) {
                    cat('Assigning unique species: ', paste0(specToAssign, collapse = ', '), '.\n', sep = '')
                }
                acev <- setSpecies(acev, method = 'manual', type=type, value = specDf)
+           },
+           'reassign' = {
+               if(missing(value)) {
+                   warning('"reassign" mode requires a "value" dataframe.')
+                   return(x)
+               }
+               colnames(value) <- tolower(colnames(value))
+               if(!all(c('old', 'new') %in% colnames(value))) {
+                   warning('Data frame must have columns "old" and "new" to reassign.')
+                   return(x)
+               }
+               unchanged <- vector('character', length=0)
+               for(i in seq_along(acev)) {
+                   oldSpec <- species(acev[[i]])[[type]]
+                   newSpec <- value[value$old == oldSpec, c('new')]
+                   if(length(newSpec) == 0) {
+                       unchanged <- ifelse(oldSpec %in% unchanged, unchanged, c(unchanged, oldSpec))
+                       newSpec <- oldSpec
+                   }
+                   species(acev[[i]])[[type]] <- as.character(newSpec)
+               }
+               if(length(unchanged) > 0) {
+                   cat(length(unchanged), ' species (', paste0(unchanged, collapse=', '), ') ',
+                       'were not in reassignment dataframe, they have not been changed.', sep='')
+               }
            },
            warning('Method ', method, ' not supported.')
     )

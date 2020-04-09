@@ -1,7 +1,7 @@
 Package: PAMr
 Type: Package
 Title: Load and Process Passive Acoustic Data
-Version: 0.7.10
+Version: 0.7.11
 Authors@R: c(
   TS = person("Taiki", "Sakai", email = "taiki.sakai@noaa.gov", role = c("aut", "cre")))
 Maintainer: Taiki Sakai <taiki.sakai@noaa.gov>
@@ -33,4 +33,4 @@ Imports:
     ggplot2,
     manipulate,
     knitr
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0

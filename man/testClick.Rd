@@ -4,12 +4,14 @@
 \name{testClick}
 \alias{testClick}
 \title{A two-channel recording of a delphinid click}
-\format{A list with two items:
+\format{
+A list with two items:
 \describe{
   \item{wave}{a matrix with two columns of 800 samples, each column
   is a separate recording channel}
   \item{sr}{the sample rate of the recording}
-}}
+}
+}
 \source{
 Southwest Fisheries Science Center / NMFS / NOAA
 }

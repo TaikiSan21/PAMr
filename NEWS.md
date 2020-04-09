@@ -1,3 +1,8 @@
+## PAMr 0.7.11
+
+* `setSpecies` now has `method = 'reassign'` that can reassign species id
+to new ones provided in a dataframe
+
 ## PAMr 0.7.10
 
 * `processPgDetctions` bug fixed when encountering a binary with 0 detections
