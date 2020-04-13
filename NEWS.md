@@ -1,3 +1,7 @@
+## PAMr 0.7.12
+
+* Fixed calibration loading file if first column is just row names
+
 ## PAMr 0.7.11
 
 * `setSpecies` now has `method = 'reassign'` that can reassign species id

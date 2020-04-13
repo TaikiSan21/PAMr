@@ -97,12 +97,19 @@ makeCalibration <- function(calFile, units=NULL) {
             return(NULL)
         }
         CAL <- read.csv(calFile, header = FALSE, stringsAsFactors = FALSE)
+        isRowname <- is.na(CAL[1, ])
+        if(any(isRowname)) {
+            warning('First column appears to be row names or ids, these are being removed.')
+            CAL <- CAL[, !isRowname]
+        }
         hasHeader <- grepl('[A-z]', CAL[1, 1]) && grepl('[A-z]', CAL[1, 2])
         if(hasHeader) {
             CAL <- CAL[-1, ]
         }
-        if(any(grepl('[^0-9\\.]', CAL[, 1])) ||
-           any(grepl('[^0-9\\.]', CAL[, 2]))) {
+        CAL[, 1] <- suppressWarnings(as.numeric(CAL[, 1]))
+        CAL[, 2] <- suppressWarnings(as.numeric(CAL[, 2]))
+        if(any(is.na(CAL[, 1])) ||
+           any(is.na(CAL[, 2]))) {
             warning('Non-numeric values found in calibration file, please check.',
                     'Calibration has not been applied.')
             return(NULL)

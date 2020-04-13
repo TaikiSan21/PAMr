@@ -30,7 +30,6 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom seewave bwfilter TKEO spec
-#' @importFrom gam predict.Gam
 #' @importFrom dplyr bind_rows
 #' @importFrom PAMmisc peakTrough
 #' @importFrom stats median quantile
