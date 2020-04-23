@@ -416,9 +416,10 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
             dbData <- select(dbData, -SystemType)
             calibrationUsed <- names(prs@calibration[[1]])
             if(length(calibrationUsed)==0) calibrationUsed <- 'None'
-
+            failBin <- 'No file processed'
             dbData <- lapply(
                 split(dbData, dbData$BinaryFile), function(x) {
+                    failBin <<- x$BinaryFile[1]
                     thisBin <- getMatchingBinaryData(x, binList, basename(db))
                     if(length(thisBin)==0) {
                         warning('Could not find the matching binary file for ', x$BinaryFile[1],
@@ -470,13 +471,9 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
             setTxtProgressBar(pb, value = which(allDb == db))
             acousticEvents
         },
-        # warning = function(w) {
-        #     warning(w)
-        #     setTxtProgressBar(pb, value = which(allDb == db))
-        #     return(NULL)
-        # },
         error = function(e) {
-            warning('Error in processing db ', basename(db))
+            cat('\nError in processing db ', basename(db), ' during binary file ', failBin, sep='')
+            cat('\nError message:\n')
             print(e)
             setTxtProgressBar(pb, value = which(allDb == db))
             return(NULL)
@@ -491,6 +488,7 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
     allBins <- unique(unlist(lapply(allAcEv, function(x) {
         files(x)$binaries
     })))
+    on.exit()
     AcousticStudy(id=id, events = allAcEv, prs = prs,
                   files = list(db=allDbs, binaries=allBins))
 }

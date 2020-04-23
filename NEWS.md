@@ -1,3 +1,8 @@
+## PAMr 0.7.13
+
+* Error message in `processPgDetections` for `mode='db'` now reports db and binary file
+failed on better
+
 ## PAMr 0.7.12
 
 * Fixed calibration loading file if first column is just row names
