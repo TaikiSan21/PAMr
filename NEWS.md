@@ -1,3 +1,7 @@
+## PAMr 0.7.14
+
+* First pass fixing `egClicks`
+
 ## PAMr 0.7.13
 
 * Error message in `processPgDetections` for `mode='db'` now reports db and binary file

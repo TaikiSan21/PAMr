@@ -153,11 +153,16 @@ egClicks <- function(data, sr_hz='auto', calibration=NULL, filterfrom_khz=90, fi
         clicksens=reldB + calFun(seq(from=0, by = thisSpec[2,1] - thisSpec[1,1], length.out = nrow(thisSpec)) * 1e3)
         noisesens=nreldB + calFun(seq(from=0, by = nar[2,1] - nar[1,1], length.out = nrow(nar)) * 1e3)
         #Smooth the jagged noise sensitivity for each known frequnecy measure.
-        x=loess(noisesens~newNoise[,1], family="gaussian")
-        #Calculate the difference between the click sensitivity and the smoothed noise sample.
-        sensdiff=(clicksens-x$fitted)
-        #Remove extremes in the lower frequencies
-        sensdiff[1:50]=0
+        if(any(is.na(noisesens))) {
+            sensdiff <- clicksens
+        } else {
+            x=loess(noisesens~newNoise[,1], family="gaussian")
+            #Calculate the difference between the click sensitivity and the smoothed noise sample.
+            sensdiff=(clicksens-x$fitted)
+            #Remove extremes in the lower frequencies
+            sensdiff[1:50]=0
+        }
+
         Adj4zero=sensdiff-max(sensdiff)
 
         #Calibrated spectrum for futher feature measures.
