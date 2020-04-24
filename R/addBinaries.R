@@ -14,6 +14,7 @@
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
+#' @importFrom rstudioapi isAvailable selectDirectory
 #' @export
 #'
 addBinaries <- function(prs, binFolder=NULL) {
@@ -29,10 +30,17 @@ addBinaries <- function(prs, binFolder=NULL) {
     }
     if(is.null(binFolder)) {
         cat('Please select the folder where the binaries are stored.\n')
-        binFolder <- choose.dir(caption = 'Choose Binary Folder:')
+        if(!rstudioapi::isAvailable('1.1.287')) {
+            binFolder <- choose.dir(caption = 'Choose Binary Folder:')
+        } else {
+            binFolder <- rstudioapi::selectDirectory(caption = 'Choose Binary Folder:', path = getwd())
+        }
     }
     # Case when cancelled, dont error
-    if(is.na(binFolder)) return(prs)
+    if(is.null(binFolder) || is.na(binFolder)) {
+        cat('No folder chosen')
+        return(prs)
+    }
     if(!dir.exists(binFolder)) {
         cat(paste0('Binary folder ', binFolder, ' does not exist'))
         return(prs)

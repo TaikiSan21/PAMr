@@ -39,7 +39,13 @@ addDatabase <- function(prs, db=NULL) {
                 paste0(db[!isSqlite], collapse = ', '))
         db <- db[isSqlite]
     }
-    cat('Adding', length(db), 'databases\n')
+    cat('Adding', length(db), 'databases:\n  ')
+    if(length(db) > 6) {
+        dbMsg <- paste0(c(basename(db[1:6]),paste0('... (', length(db)-6, ' more not shown)')), collapse = '\n  ')
+    } else {
+        dbMsg <- paste0(basename(db), collapse=', ')
+    }
+    cat(dbMsg, '\n')
     prs@db <- unique(c(prs@db, db))
     prs
 }

@@ -3,6 +3,11 @@
 * Error message in `processPgDetections` for `mode='db'` now reports db and binary file
 failed on better
 
+* Changed folder choosing funciton for `addBinaries`, previous version was windows-only
+and would not properly start in current working directory
+
+* `addDatabase` now prints added databases for reference
+
 ## PAMr 0.7.12
 
 * Fixed calibration loading file if first column is just row names

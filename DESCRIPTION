@@ -32,5 +32,6 @@ Imports:
     tidyr,
     ggplot2,
     manipulate,
-    knitr
+    knitr,
+    rstudioapi
 RoxygenNote: 7.1.0

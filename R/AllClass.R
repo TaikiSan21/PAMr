@@ -60,7 +60,7 @@ setMethod('show', 'PAMrSettings', function(object) {
     if(nDb > 0) {
         showDb <- basename(object@db)
         if(nDb > 6) {
-            showDb <- c(showDb[1:6], paste0(nDb-6, ' more not shown ...'))
+            showDb <- c(showDb[1:6], paste0('... (', nDb-6, ' more not shown)'))
         }
         cat(':\n ', paste(showDb, collapse='\n  '))
     }
