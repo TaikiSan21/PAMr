@@ -24,7 +24,8 @@
 #' @export
 #'
 calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(standardClickCalcs))) {
-    if(length(binData$data) == 0) {
+    if(length(binData$data) == 0 ||
+       is.null(binData$data[[1]]$UID)) {
         return(NULL)
     }
     moduleType <- binData$fileInfo$fileHeader$moduleType
