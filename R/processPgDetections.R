@@ -77,56 +77,11 @@ processPgDetections <- function(prs, mode = c('db', 'time'), id=NULL,
                     ' function "PAMrSettings()"'))
     }
     switch(mode,
-           'db' = processPgDetectionsDb(prs, grouping, ...),
-           'time' = processPgDetectionsTime(prs, grouping, format, id)
+           'db' = processPgDetectionsDb(prs=prs, grouping=grouping, id=id, ...),
+           'time' = processPgDetectionsTime(prs=prs, grouping=grouping, format=format, id=id)
     )
 }
-# ---- old method for all ----
-# getPgDetectionsAll <- function(prs, id=NULL, sr=NULL) {
-#     binList <- prs@binaries$list
-#     binFuns <- prs@functions
-#     if(is.null(sr)) {
-#         sr <- readline(prompt =
-#                            paste0('What is the sample rate for this data? ',
-#                                   '(When processing all binaries, sample rate must be the same) '))
-#         sr <- as.numeric(sr)
-#     }
-#     if(is.null(id)) {
-#         warning("No Id specified, using today's date.")
-#         id <- as.character(Sys.Date())
-#     }
-#     calibrationUsed <- names(prs@calibration[[1]])
-#     if(length(calibrationUsed)==0) calibrationUsed <- 'None'
-#
-#     cat('Processing binary files... \n')
-#     pb <- txtProgressBar(min=0, max=length(binList), style=3)
-#
-#     binData <- lapply(binList, function(bin) {
-#         thisBin <- loadPamguardBinaryFile(bin)
-#         for(i in seq_along(thisBin$data)) {
-#             thisBin$data[[i]]$sr <- sr
-#         }
-#         thisBinData <- calculateModuleData(thisBin, binFuns)
-#         setTxtProgressBar(pb, value=which(binList==bin))
-#         thisBinData
-#     })
-#     cat('\n')
-#     binData <- binData[sapply(binData, function(x) !is.null(x))]
-#     # for clicks we have split the broad detector into separate ones by classification
-#     binData <- lapply(binData, function(x) split(x, x$detectorName))
-#     binData <- unlist(binData, recursive = FALSE)
-#     binData <- squishList(binData)
-#     colsToDrop <- c('Id', 'comment', 'sampleRate', 'detectorName', 'parentUID', 'sr')
-#     binData <- lapply(binData, function(x) {
-#         dropCols(x, colsToDrop)
-#     })
-#     # Should this function store the event ID? Right now its just the name
-#     # in the list, but is this reliable? Probably not
-#
-#     acousticEvents <- AcousticEvent(id = id, detectors = binData, settings = list(sr = sr, source = 'Not Found'),
-#                                     files = list(binaries=binList, db='None', calibration=calibrationUsed))
-#     acousticEvents
-# }
+
 # ---- separate methods ----
 
 #' @importFrom utils setTxtProgressBar txtProgressBar

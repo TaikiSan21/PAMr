@@ -137,11 +137,13 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
                 !(colnames(thisDet) %in% colsToDrop) |
                 colnames(thisDet) %in% c('event.id', 'call.id')
 
-            whereNA <- reduce(map(thisDet[, useCols], is.na), `|`)
-            thisNA <- thisDet[whereNA, c('UID', 'BinaryFile')]
+            whereNA <- sapply(thisDet[, useCols], is.na)
+            naRow <- apply(whereNA, 1, any)
+            thisNA <- thisDet[naRow, c('UID', 'BinaryFile')]
             if(nrow(thisNA) > 0) {
                 thisNA$event <- names(x)[e]
                 thisNA$detector <- names(detectors(thisEv))[d]
+                thisNA$measureNames <- apply(whereNA, 1, function(x) paste0(colnames(thisDet[, useCols])[x], collapse=', '))[naRow]
             }
             detNA <- rbind(detNA, thisNA)
             detectors(thisEv)[[d]] <- thisDet[!whereNA, useCols]

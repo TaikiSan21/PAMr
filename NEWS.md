@@ -1,3 +1,11 @@
+## PAMr 0.7.15
+
+* Skip over binaries with no UIDs in `mode='db'`
+
+* `mode='db'` was not properly passing along an ID if you supply it
+
+* `export_banter` now lists which measures were `NA` in the `$na` dataframe output
+
 ## PAMr 0.7.14
 
 * First pass fixing `egClicks`
