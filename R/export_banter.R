@@ -46,8 +46,39 @@
 #' @export
 #'
 export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
+    if(is.list(x)) {
+        whichStudy <- sapply(x, is.AcousticStudy) # two cases if its a list
+        whichEvent <- sapply(x, is.AcousticEvent)
+        # NEED TO UNLIST IF ITS A STUDY BUT THEN PROB SHOULDNT DO ALL IN ONE THING WHATEVER BRO
+        x <- c(x[whichEvent],
+               unlist(sapply(x[whichStudy], events)))
+        # x <- sapply(x, function(e) {
+        #     if(is.AcousticStudy(e)) {
+        #         return(events(e))
+        #     } else if(is.AcousticEvent(e)) {
+        #         return(e)
+        #     } else {
+        #         warning('Some inputs were not an AcousticEvent or AcousticStudy.')
+        #         return(NULL)
+        #     }
+        # })
+    }
     if(is.AcousticStudy(x)) {
         x <- events(x)
+    }
+    if(is.AcousticEvent(x)) {
+        x <- list(x)
+        names(x) <- x[[1]]@id
+    }
+    # From here we need x to be list of AcEv
+    numDets <- sapply(x, function(e) length(detectors(e)))
+    noDets <- (numDets == 0)
+    if(all(noDets)) {
+        stop('No events had any detections.')
+    }
+    if(any(noDets)) {
+        warning(sum(noDets), ' events have 0 detections, they will be removed.\n', call. = FALSE)
+        x <- x[!noDets]
     }
     sp <- sapply(x, function(e) species(e)$id)
     sp[is.null(sp)] <- NA_character_
@@ -104,11 +135,18 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
         events <- events[!toDrop, , drop=FALSE] # dont coerce to vector ever
         x <- x[!toDrop]
     }
+    if(nrow(events) == 0) {
+        stop('No events left with any detections after removing species.')
+    }
     # check if any event level measures are present in all data
     # or should i get all and fill NA, let banter deal with the NAs and warn you?
     # if any present in all get them and cbind that ish to your events
     measureNames <- sapply(x, function(e) names(ancillary(e)$measures))
-    allMeasures <- reduce(measureNames, intersect)
+    if(length(measureNames) == 0) {
+        allMeasures <- NULL
+    } else {
+        allMeasures <- reduce(measureNames, intersect)
+    }
     if(length(allMeasures) > 0 ) {
 
         measureData <- bind_rows(lapply(x[events[['event.id']]], function(e) {
@@ -139,6 +177,7 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
 
             whereNA <- sapply(thisDet[, useCols], is.na)
             naRow <- apply(whereNA, 1, any)
+            if(length(naRow) != nrow(thisDet)) browser()
             thisNA <- thisDet[naRow, c('UID', 'BinaryFile')]
             if(nrow(thisNA) > 0) {
                 thisNA$event <- names(x)[e]
@@ -146,7 +185,7 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
                 thisNA$measureNames <- apply(whereNA, 1, function(x) paste0(colnames(thisDet[, useCols])[x], collapse=', '))[naRow]
             }
             detNA <- rbind(detNA, thisNA)
-            detectors(thisEv)[[d]] <- thisDet[!whereNA, useCols]
+            detectors(thisEv)[[d]] <- thisDet[!naRow, useCols]
         }
         x[[e]] <- thisEv
     }

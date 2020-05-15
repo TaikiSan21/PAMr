@@ -1,3 +1,8 @@
+## PAMr 0.7.16
+
+* `export_banter` can take list of `AcousticStudy` objects now, and fixed a bug where 
+NA values were being introduced
+
 ## PAMr 0.7.15
 
 * Skip over binaries with no UIDs in `mode='db'`
