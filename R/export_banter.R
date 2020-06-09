@@ -91,15 +91,15 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
 
     detNA <- data.frame(UID = character(0), BinaryFile = character(0),
                         event = character(0), detector = character(0), stringsAsFactors = FALSE)
-    evName <- names(x)
+    evName <- sapply(x, id)
     if(!(length(unique(evName)) == length(evName))) {
         warning('Duplicate event names found, these must be unique for BANTER. Adding numbers to event names.', call. = FALSE)
         for(i in unique(evName)) {
             evName[evName == i] <- paste0(i, 1:(sum(evName == i)))
         }
-        names(x) <- evName
-    }
 
+    }
+    names(x) <- evName
     events <- data.frame(event.id = names(x),
                          stringsAsFactors = FALSE)
 

@@ -1,3 +1,8 @@
+## PAMr 0.7.17
+
+* Fixed bug in `export_banter` for list of `AcousticStudy` objects not propagated event 
+names properly
+
 ## PAMr 0.7.16
 
 * `export_banter` can take list of `AcousticStudy` objects now, and fixed a bug where 
