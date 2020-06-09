@@ -176,6 +176,9 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
                 colnames(thisDet) %in% c('event.id', 'call.id')
 
             whereNA <- sapply(thisDet[, useCols], is.na)
+            if(nrow(thisDet) == 1) {
+                whereNA <- matrix(whereNA, nrow=1)
+            }
             naRow <- apply(whereNA, 1, any)
             if(length(naRow) != nrow(thisDet)) browser()
             thisNA <- thisDet[naRow, c('UID', 'BinaryFile')]

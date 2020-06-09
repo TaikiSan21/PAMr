@@ -1,3 +1,7 @@
+## PAMr 0.7.18
+
+* Bug in `export_banter` if an event had exactly 1 detection fixed
+
 ## PAMr 0.7.17
 
 * Fixed bug in `export_banter` for list of `AcousticStudy` objects not propagated event 
