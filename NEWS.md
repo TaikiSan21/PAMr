@@ -1,3 +1,9 @@
+## PAMr 0.8.0
+
+* Finally not just a bug fix! New function `matchEnvData` extends a function of the
+same name in the "PAMmisc" package (as of PAMmisc v1.4.1). This lets you download
+environmental data and match it to your `AcousticStudy` and `AcousticEvent` objects
+
 ## PAMr 0.7.18
 
 * Bug in `export_banter` if an event had exactly 1 detection fixed
