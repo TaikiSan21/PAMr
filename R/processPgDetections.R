@@ -349,7 +349,9 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
         grouping <- c('event', 'detGroup')
     }
     cat('Processing databases... \n')
-    pb <- txtProgressBar(min=0, max=length(allDb), style=3)
+    nBin<- sum(sapply(allDb, nBins))
+    pb <- txtProgressBar(min=0, max=nBin, style=3)
+    binNo <- 1
     allAcEv <- lapply(allDb, function(db) {
         tryCatch({
             binList <- prs@binaries$list
@@ -359,7 +361,8 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
                nrow(dbData) == 0) {
                 warning('No detections found in database ',
                         basename(db), '.')
-                setTxtProgressBar(pb, value = which(allDb == db))
+                # setTxtProgressBar(pb, value = evNo)
+                # evNo <- evNo + 1
                 return(NULL)
             }
             thisSr <- unique(dbData$sampleRate)
@@ -374,6 +377,8 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
             failBin <- 'No file processed'
             dbData <- lapply(
                 split(dbData, dbData$BinaryFile), function(x) {
+                    setTxtProgressBar(pb, value = binNo)
+                    binNo <<- binNo + 1
                     failBin <<- x$BinaryFile[1]
                     thisBin <- getMatchingBinaryData(x, binList, basename(db))
                     if(length(thisBin)==0) {
@@ -423,14 +428,16 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
                 AcousticEvent(id = evId, detectors = ev, settings = list(sr = thisSr, source=thisSource),
                               files = list(binaries=binariesUsed, db=db, calibration=calibrationUsed))
             })
-            setTxtProgressBar(pb, value = which(allDb == db))
+            # setTxtProgressBar(pb, value = evNo)
+            # evNo <- evNo + 1
             acousticEvents
         },
         error = function(e) {
             cat('\nError in processing db ', basename(db), ' during binary file ', failBin, sep='')
             cat('\nError message:\n')
             print(e)
-            setTxtProgressBar(pb, value = which(allDb == db))
+            # setTxtProgressBar(pb, value = evNo)
+            # evNo <- evNo + 1
             return(NULL)
         })
     })
@@ -544,6 +551,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
             ', these are required to process data. Please upgrade to Pamguard 2.0+.')
         return(NULL)
     }
+
     allDetections <- inner_join(
         allDetections, allEvents, by=c('parentUID'='UID')
     )
@@ -695,4 +703,9 @@ readSa <- function(db) {
     sa$SystemType <- str_trim(sa$SystemType)
     sa$UTC <- pgDateToPosix(sa$UTC)
     sa
+}
+
+nBins <- function(db) {
+    evData <- getDbData(db)
+    length(unique(evData$BinaryFile))
 }

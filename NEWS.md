@@ -1,3 +1,14 @@
+## PAMr 0.8.1
+
+* Added better progress bar for `mode='db'` that is based on binary files not databases
+
+* Added `writeEventClips` function for creating wav clips of events. Currently needs
+some adjustments but should work for Pamguard data if your selection of wav files
+definitely covers all of your events
+
+* Fixed bug where click detectors were being improperly named if a matched classifier was
+present in the binary file
+
 ## PAMr 0.8.0
 
 * Finally not just a bug fix! New function `matchEnvData` extends a function of the
