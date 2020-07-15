@@ -21,13 +21,13 @@
 #'
 #' @export
 #'
-writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format='pamguard') {
+writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamguard', 'soundtrap')) {
     if(is.null(wavFolder)) {
         wavFolder <- choose.dir(caption='Select a folder containing your wav files.')
     }
     wavs <- list.files(wavFolder, full.names=TRUE)
     wavMap <- bind_rows(lapply(wavs, function(x) {
-        rng <- getWavDate(x, format)
+        rng <- getWavDate(x, match.arg(format))
         list(start=rng[1], end=rng[2], file=x)
     }))
     wavMap <- arrange(wavMap, start)
@@ -76,6 +76,12 @@ writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format='pamguar
             }
             evRange[2] <- wavMap$end[endIx]
         }
+        if(wavMap$wavGroup[startIx] != wavMap$wavGroup[endIx]) {
+            warning('Event', event[[i]]@id, 'spanned two non-consecutive wav files, could not create clip.')
+            allFiles[[i]] <- NA_character_
+            setTxtProgressBar(pb, value=i)
+            next
+        }
         startTime <- as.numeric(difftime(evRange[1], wavMap$start[startIx], units='secs'))
         endTime <- as.numeric(difftime(evRange[2], wavMap$start[endIx], units='secs'))
         wavResult <- vector('list', length = endIx)
@@ -100,7 +106,8 @@ writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format='pamguar
         allFiles[[i]] <- fileName
         setTxtProgressBar(pb, value=i)
     }
-    cat('\n', paste0('Wrote ', sum(!is.na(allFiles)), ' wav file(s).\n'))
+    isNa <- is.na(allFiles)
+    cat('\n', paste0('Wrote ', sum(!isNa), ' wav file(s).'))
     names(allFiles) <- sapply(event, function(x) x@id)
     allFiles
 }

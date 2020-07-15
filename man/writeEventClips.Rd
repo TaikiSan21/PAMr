@@ -4,7 +4,12 @@
 \alias{writeEventClips}
 \title{Create Wav Clips of Events}
 \usage{
-writeEventClips(event, wavFolder = NULL, buffer = 1, format = NULL)
+writeEventClips(
+  event,
+  wavFolder = NULL,
+  buffer = 0.1,
+  format = c("pamguard", "soundtrap")
+)
 }
 \arguments{
 \item{event}{\linkS4class{AcousticEvent} or \linkS4class{AcousticStudy}

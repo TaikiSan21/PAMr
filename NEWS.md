@@ -1,3 +1,11 @@
+## PAMr 0.8.2
+
+* Fixed bug in `addGps` that could create duplicate rows after adding gps to your data.
+Would occur if two GPS entries occurred within the same second, now adds milliseconds 
+before matching so that this is avoided.
+
+* Added support for SoundTrap files for `writeEventClips` with `format='soundtrap'`
+
 ## PAMr 0.8.1
 
 * Added better progress bar for `mode='db'` that is based on binary files not databases

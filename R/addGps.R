@@ -177,8 +177,8 @@ gpsFromDb <- function(db, extraCols=NULL, bounds=NULL) {
     setDT(thisGps)
     thisGps[, db := db]
     # thisGps$db <- db
-    thisGps <- thisGps[, c('UTC', 'Latitude', 'Longitude', extraCols), with=FALSE]
-    thisGps[, UTC := pgDateToPosix(UTC)]
+    thisGps <- thisGps[, c('UTC', 'UTCMilliseconds', 'Latitude', 'Longitude', extraCols), with=FALSE]
+    thisGps[, UTC := pgDateToPosix(UTC) + UTCMilliseconds / 1e3]
     if(!is.null(bounds)) {
         thisGps <- thisGps[UTC <= bounds[2] & UTC >= bounds[1], ]
     }
