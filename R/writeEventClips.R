@@ -17,7 +17,7 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom dplyr bind_rows
-#' @importFrom tuneR readWave writeWave MCnames
+#' @importFrom tuneR readWave writeWave MCnames bind
 #'
 #' @export
 #'
@@ -25,17 +25,26 @@ writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamgu
     if(is.null(wavFolder)) {
         wavFolder <- choose.dir(caption='Select a folder containing your wav files.')
     }
+    if(!dir.exists(wavFolder)) {
+        stop('Cannot locate wavFolder.')
+    }
+    format <- match.arg(format)
     wavs <- list.files(wavFolder, full.names=TRUE)
     wavMap <- bind_rows(lapply(wavs, function(x) {
-        rng <- getWavDate(x, match.arg(format))
-        list(start=rng[1], end=rng[2], file=x)
+        rng <- getWavDate(x, format)
+        list(start=rng[1], end=rng[2], file=x, length=as.numeric(difftime(rng[2], rng[1], units='secs')))
     }))
     wavMap <- arrange(wavMap, start)
     wavMap$wavGroup <- 1
+    wavMap$timeDiff <- 0
     if(nrow(wavMap) > 1) {
         wg <- 1
         for(i in 2:nrow(wavMap)) {
-            if(wavMap$start[i] != wavMap$end[i-1]) {
+            wavMap$timeDiff[i] <- as.numeric(difftime(wavMap$start[i], wavMap$end[i-1], units='secs'))
+            if(wavMap$timeDiff[i] < 0) {
+                wavMap$end[i-1] <- wavMap$start[i]
+            }
+            if(wavMap$end[i-1] != wavMap$start[i]) {
                 wg <- wg + 1
             }
             wavMap$wavGroup[i] <- wg

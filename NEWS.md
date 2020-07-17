@@ -1,3 +1,7 @@
+## PAMr 0.8.3
+
+* Minor bug fix for `writeEventClips`
+
 ## PAMr 0.8.2
 
 * Fixed bug in `addGps` that could create duplicate rows after adding gps to your data.
