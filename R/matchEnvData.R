@@ -10,6 +10,8 @@
 #' @param buffer vector of Longitude, Latitude, and Time (seconds) to buffer around
 #'   each datapoint. All values within the buffer will be used to report the mean,
 #'   median, and standard deviation
+#' @param FUN a vector or list of functions to apply to the data. Default is to apply
+#'   mean, median, and standard deviation calculations
 #' @param fileName (optional) file name to save downloaded nc file to. If not provided,
 #'   then no nc files will be stored, instead small temporary files will be downloaded
 #'   and then deleted. This can be much faster, but means that the data will need to be
@@ -30,7 +32,7 @@
 #'
 setMethod('matchEnvData',
           'AcousticEvent',
-          function(data, nc=NULL, var=NULL, buffer=c(0,0,0), fileName = NULL, ...) {
+          function(data, nc=NULL, var=NULL, buffer=c(0,0,0), FUN = c(mean, median, sd), fileName = NULL, ...) {
               eventStart <- getEventStart(data)
               if(is.null(eventStart)) {
                   return(data)
@@ -45,7 +47,7 @@ setMethod('matchEnvData',
 #'
 setMethod('matchEnvData',
           'AcousticStudy',
-          function(data, nc=NULL, var=NULL, buffer=c(0,0,0), fileName = NULL, ...) {
+          function(data, nc=NULL, var=NULL, buffer=c(0,0,0), FUN = c(mean, median, sd), fileName = NULL, ...) {
               eventStart <- do.call(rbind, lapply(events(data), function(x) {
                   getEventStart(x)
               }))

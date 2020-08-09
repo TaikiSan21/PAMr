@@ -507,7 +507,8 @@ setMethod('models<-', 'AcousticStudy', function(x, value) {
 #' @rdname PAMr.accessors
 #'
 setMethod('[', 'AcousticStudy', function(x, i) {
-    x@events[i]
+    x@events <- x@events[i]
+    x
 })
 
 #' @export

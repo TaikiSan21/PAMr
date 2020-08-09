@@ -8,7 +8,8 @@ writeEventClips(
   event,
   wavFolder = NULL,
   buffer = 0.1,
-  format = c("pamguard", "soundtrap")
+  format = c("pamguard", "soundtrap"),
+  log = NULL
 )
 }
 \arguments{
@@ -23,6 +24,9 @@ object containing events to make wav clips for}
 how the original audio files were created. The names of these files must
 not have been changed, the original formatting is used to parse out the
 start times of the audio files}
+
+\item{log}{optional location of SoundTrap XML log files, only relevant for
+\code{format='soundtrap'}}
 }
 \value{
 A vector of file names for the wav clips that were successfully

@@ -1,3 +1,14 @@
+## PAMr 0.9.0
+
+* Added `filter` method that works like dplyr's filter for detections in an object. Has
+a special case when specifying `species` or `Species` that will filter an
+`AcousticStudy` object by the species listed in the `$id` spot of each species slot
+
+* Also added first version of `addAnnotation` function, it asks a lot of questions for now
+
+* `AcousticStudy` `[` accessor changed to return another `AcousticStudy` after subsetting
+the events in that study
+
 ## PAMr 0.8.3
 
 * Minor bug fix for `writeEventClips`

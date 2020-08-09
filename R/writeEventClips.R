@@ -10,6 +10,8 @@
 #'   how the original audio files were created. The names of these files must
 #'   not have been changed, the original formatting is used to parse out the
 #'   start times of the audio files
+#' @param log optional location of SoundTrap XML log files, only relevant for
+#'   \code{format='soundtrap'}
 #'
 #' @return A vector of file names for the wav clips that were successfully
 #'   created, any that were not able to be written will be \code{NA}
@@ -18,10 +20,11 @@
 #'
 #' @importFrom dplyr bind_rows
 #' @importFrom tuneR readWave writeWave MCnames bind
+#' @importFrom xml2 read_xml xml_find_all
 #'
 #' @export
 #'
-writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamguard', 'soundtrap')) {
+writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamguard', 'soundtrap'), log=NULL) {
     if(is.null(wavFolder)) {
         wavFolder <- choose.dir(caption='Select a folder containing your wav files.')
     }
@@ -30,6 +33,16 @@ writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamgu
     }
     format <- match.arg(format)
     wavs <- list.files(wavFolder, full.names=TRUE)
+    if(format == 'soundtrap') {
+        if(is.null(log)) {
+            log <- choose.dir(caption='Select a folder of Soundtrap log files (optional)')
+        }
+        if(dir.exists(log)) {
+            stLog <- getSoundtrapLog(log)
+        } else {
+            stLog <- data.frame(micros=0, sample=1, file=basename(wavs))
+        }
+    }
     wavMap <- bind_rows(lapply(wavs, function(x) {
         rng <- getWavDate(x, format)
         list(start=rng[1], end=rng[2], file=x, length=as.numeric(difftime(rng[2], rng[1], units='secs')))
@@ -129,16 +142,6 @@ checkIn <- function(time, map) {
     which(possible)
 }
 
-getEventTime <- function(x) {
-    if(is.AcousticStudy(x)) {
-        return(lapply(events(x), getEventTime))
-    }
-    allDets <- bind_rows(lapply(detectors(x), function(d) {
-        d[, 'UTC', drop = FALSE]
-    }))
-    c(start=min(allDets$UTC), end=max(allDets$UTC))
-}
-
 # wav file name to c(start, end) in posix time
 getWavDate <- function(wav, format=c('pamguard', 'soundtrap')) {
     header <- readWave(wav, header = TRUE)
@@ -162,4 +165,21 @@ getWavDate <- function(wav, format=c('pamguard', 'soundtrap')) {
         stop('Could not convert the name of the wav file to time properly.')
     }
     c(0, len) + posix + millis
+}
+
+getSoundtrapLog <- function(x) {
+    xFold <- list.files(x, full.names = TRUE, pattern = 'xml')
+    missing <- lapply(xFold, function(x) {
+        xml <- read_xml(x)
+        info <- as.character(xml_find_all(xml, '//@Info'))
+        hasSG <- grepl('Sampling Gap', info)
+        if(any(hasSG)) {
+            return(bind_rows(lapply(info[hasSG], function(i) {
+                sg <- as.numeric(strsplit(gsub('.*Sampling Gap ([0-9]*) us at sample ([0-9]*) .*', '\\1_\\2', i), '_')[[1]])
+                list(micros=sg[1], sample=sg[2], file = gsub('\\.log\\.xml$', '', basename(x)))
+            })))
+        }
+        data.frame(micros=0, sample=1, file = gsub('\\.log\\.xml$', '', basename(x)), stringsAsFactors = FALSE)
+    })
+    bind_rows(missing)
 }

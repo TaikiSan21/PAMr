@@ -1,7 +1,7 @@
 Package: PAMr
 Type: Package
 Title: Load and Process Passive Acoustic Data
-Version: 0.8.3
+Version: 0.9.0
 Authors@R: c(
   TS = person("Taiki", "Sakai", email = "taiki.sakai@noaa.gov", role = c("aut", "cre")))
 Maintainer: Taiki Sakai <taiki.sakai@noaa.gov>
@@ -13,10 +13,10 @@ License: GNU General Public License
 Encoding: UTF-8
 LazyData: true
 Depends: 
-    R (>= 3.3.0),
-    PamBinaries (>= 1.3.0)
+    R (>= 3.5.0),
+    PamBinaries (>= 1.3.0),
+    dplyr
 Imports:
-    dplyr,
     seewave,
     gam,
     PAMmisc,
@@ -33,5 +33,8 @@ Imports:
     ggplot2,
     manipulate,
     knitr,
-    rstudioapi
-RoxygenNote: 7.1.0
+    rstudioapi,
+    xml2,
+    rjson,
+    rlang
+RoxygenNote: 7.1.1

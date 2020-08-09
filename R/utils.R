@@ -178,3 +178,16 @@ safeListAdd <- function(x, value) {
 #     }
 #     NULL
 # }
+
+# named vector for AcEv, or named list of named vectors for AcSt
+getEventTime <- function(x) {
+    if(is.AcousticStudy(x)) {
+        return(lapply(events(x), getEventTime))
+    }
+    allDets <- bind_rows(lapply(detectors(x), function(d) {
+        d[, 'UTC', drop = FALSE]
+    }))
+    c(start=min(allDets$UTC), end=max(allDets$UTC))
+}
+
+# getEventCoords <- function(x)
