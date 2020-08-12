@@ -1,12 +1,11 @@
 ## The PAMrSettings object
 
-*This section is still being organized, please check back later!*
-
-
 The first step in using PAMr is to create a PAMrSettings object. This is an
 S4 class created for this package, and will store all settings related to a
 particular anaylsis. The goal of this object is to make it easy to share and
-replicate results between users. 
+replicate results between users. All you need to do is send someone your
+PAMrSettings object and they can see exactly how you analysed your data, or 
+even point the PRS at their own data and process it in the exact same way.
 
 A PAMrSettings object has four slots:
 
@@ -15,16 +14,18 @@ A PAMrSettings object has four slots:
 path to all individual Pamguard binary (.pgdf) files within those folders
 * functions - This stores a set of functions that will be applied to the data 
 when read in from the database/binary files. Stores functions for the 
-'ClickDetector' and 'WhistlesMoans' modules separately. When adding a new 
+'ClickDetector', 'WhistlesMoans', and 'Cepstrum' modules separately. When adding a new 
 function, users are asked to supply values for any arguments of the function.
 These values are saved with the function and cannot be changed without removing
 the function entirely. 
-* calibration - Currently does nothing, in later versions will store calibration
-functions to apply to data before making any calculations.
+* calibration - Stores a calibration function to correct for different hydrophone
+characteristics. Optional, currently only affects certain 'ClickDetector' functions
 
+Note that none of these slots should ever be manually edited, use the functions described
+below if you want to add or remove anything.
 
-
-A PAMrSettings object can also be created by directly supplying the database and binary
+A PAMrSettings object can be created without supplying any arguments (as described in the
+[quick start guide](README.md)), or it can be created by directly supplying the database and binary
 file paths, although the user will still be asked to input parameters for the 
 `standardClickCalcs` function.
 
@@ -36,8 +37,8 @@ myPrs <- PAMrSettings(db = myDb, binaries = myBinaryFolder)
 #### Adding to Your PRS
 
 After the initial set-up of your PRS, you may want to add to it. There are 
-three functions that accomplish this: `addDatabase`, `addBinaries`, and
-`addFunction`. The first two are simple, and can be called interactively
+four functions that accomplish this: `addDatabase`, `addBinaries`,
+`addFunction`, and `addCalibration`. The first two are simple, and can be called interactively
 just like the initial PRS setup or by providing the paths.
 
 ```r

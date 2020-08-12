@@ -111,9 +111,12 @@ shown. There are three parameters you will be asked to set
 1. "sr_hz" - the sample rate in hertz for the click data. This should be kept 
 to the default value of "auto" (just press ENTER) unless your click data was
 decimated, in which case enter the decimated sample rate.
-2. "highpass_khz" - the value in kilohertz of the butterworth highpass filter
-to apply to the click data. If 0, then no filter will be applied.
-3. "winLen_sec" - the length of the FFT window to use for analysis, in seconds
+2. "filterfrom_khz" - the value in kilohertz of the butterworth highpass filter, or
+if a bandpass filter is desired (see next item) the lower end of the filter. If this value
+is 0 then no filter will be applied.
+3. "filterto_khz" - if a bandpass filter is desired, this is the upper bound of the
+filter. If a highpass or no filter is desired, leave as the default NULL (just press enter)
+4. "winLen_sec" - the length of the FFT window to use for analysis, in seconds
 
 <a href="images/FunctionParamsCropped.png" data-lightbox="function-value" data-title="Setting a value of 5 for the highpass filter">![](images/FunctionParamsCropped.png)</a>
 
@@ -154,7 +157,7 @@ And you're done! Let's take a look at what you got with one of PAMr's built in p
 `plotDataExplorer`. After calling `plotDataExplorer(myStudy)`, you might be asked to select a
 call type to explore, then you should see something like this:
 
-<a href="images/PlotExplorer.png" data-lightbox="function-value" data-title="Data explorer plot - click the gear to see dropdown menus">![](images/PlotExplorer.png)</a>
+<a href="images/PlotExplorer.png" data-lightbox="data-explorer" data-title="Data explorer plot - click the gear to see dropdown menus">![](images/PlotExplorer.png)</a>
 
 Click the gear in the top left of the plot, then you'll see drop down menus that you can use to
 choose which data you'd like to graph, and options for coloring and facetting (splitting into
