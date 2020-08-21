@@ -141,12 +141,14 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
     # check if any event level measures are present in all data
     # or should i get all and fill NA, let banter deal with the NAs and warn you?
     # if any present in all get them and cbind that ish to your events
-    measureNames <- sapply(x, function(e) names(ancillary(e)$measures))
-    if(length(measureNames) == 0) {
-        allMeasures <- NULL
-    } else {
-        allMeasures <- reduce(measureNames, intersect)
-    }
+    allMeasures <- reduce(
+        lapply(x, function(e) names(ancillary(e)$measures)),
+        intersect)
+    # if(length(measureNames) == 0) {
+    #     allMeasures <- NULL
+    # } else {
+    #     allMeasures <- reduce(measureNames, intersect)
+    # }
     if(length(allMeasures) > 0 ) {
 
         measureData <- bind_rows(lapply(x[events[['event.id']]], function(e) {

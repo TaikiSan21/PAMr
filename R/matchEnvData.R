@@ -33,11 +33,19 @@
 setMethod('matchEnvData',
           'AcousticEvent',
           function(data, nc=NULL, var=NULL, buffer=c(0,0,0), FUN = c(mean, median, sd), fileName = NULL, ...) {
+              if(is.list(FUN) &&
+                 is.null(names(FUN))) {
+                  names(FUN) <- as.character(substitute(FUN))[-1]
+              } else if(is.function(FUN)) {
+                  tmpName <- as.character(substitute(FUN))
+                  FUN <- list(FUN)
+                  names(FUN) <- tmpName
+              }
               eventStart <- getEventStart(data)
               if(is.null(eventStart)) {
                   return(data)
               }
-              envData <- matchEnvData(eventStart, nc=nc, var=var, buffer=buffer, fileName=fileName, ...)
+              envData <- matchEnvData(eventStart, nc=nc, var=var, buffer=buffer, FUN=FUN, fileName=fileName, ...)
               addEnvToEvent(data, envData)
           }
 )
@@ -54,7 +62,15 @@ setMethod('matchEnvData',
               if(is.null(eventStart)) {
                   return(data)
               }
-              envData <- matchEnvData(eventStart, nc=nc, var=var, buffer=buffer, fileName=fileName, ...)
+              if(is.list(FUN) &&
+                 is.null(names(FUN))) {
+                  names(FUN) <- as.character(substitute(FUN))[-1]
+              } else if(is.function(FUN)) {
+                  tmpName <- as.character(substitute(FUN))
+                  FUN <- list(FUN)
+                  names(FUN) <- tmpName
+              }
+              envData <- matchEnvData(eventStart, nc=nc, var=var, buffer=buffer, FUN=FUN, fileName=fileName, ...)
               for(e in seq_along(events(data))) {
                   events(data)[[e]] <- addEnvToEvent(events(data)[[e]], envData)
               }
@@ -70,7 +86,7 @@ addEnvToEvent <- function(event, env) {
         envList <- safeListAdd(oldEnv, envList)
     }
     ancillary(event)$environmental <- envList
-    measureOnly <- !grepl('median|stdev|Longitude|match|Latitude|UTC|event', names(env))
+    measureOnly <- !grepl('_median$|_sd$|Longitude|match|Latitude|UTC|event', names(env))
     measList <- env[measureOnly]
     oldMeas <- ancillary(event)$measures
     if(!is.null(oldMeas)) {

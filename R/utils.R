@@ -132,53 +132,6 @@ safeListAdd <- function(x, value) {
     x
 }
 
-# get just detector data from a study
-# SHOULD WE MAKE THIS A METHOD OF DETECTORS FOR CLASS LIST AND STUDY
-# getDetectorData <- function(x, species=FALSE) {
-#     if(is.AcousticStudy(x)) {
-#         return(getDetectorData(events(x), species))
-#     }
-#     if(is.list(x)) {
-#         result <- lapply(x[sapply(x, is.AcousticEvent)], function(e) {
-#             getDetectorData(e, species)
-#             })
-#         names(result) <- NULL
-#         result <- unlist(result, recursive=FALSE)
-#         return(squishList(result))
-#     }
-#     # base case one acev
-#     dets <- detectors(x)
-#     callTypes <- getCallType(dets)
-#     for(d in seq_along(dets)) {
-#         dets[[d]]$eventId <- id(x)
-#         dets[[d]]$detectorName <- names(dets)[d]
-#         if(species) {
-#             if(is.null(species(x)$id)) {
-#                 dets[[d]]$species <- NA_character_
-#             } else {
-#                 dets[[d]]$species <- species(x)$id
-#             }
-#         }
-#     }
-#     names(dets) <- callTypes
-#     squishList(dets)
-# }
-#
-# getCallType <- function(x) {
-#     if(is.data.frame(x)) {
-#         return(attr(x, 'calltype'))
-#     }
-#     if(is.list(x) &&
-#        all(sapply(x, is.data.frame))) {
-#         return(
-#             sapply(x, function(d) {
-#                 attr(d, 'calltype')
-#             })
-#         )
-#     }
-#     NULL
-# }
-
 # named vector for AcEv, or named list of named vectors for AcSt
 getEventTime <- function(x) {
     if(is.AcousticStudy(x)) {
@@ -189,5 +142,3 @@ getEventTime <- function(x) {
     }))
     c(start=min(allDets$UTC), end=max(allDets$UTC))
 }
-
-# getEventCoords <- function(x)

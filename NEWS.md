@@ -1,3 +1,17 @@
+## PAMr 0.9.1
+
+* NEW FUN FUNCTION `calculateAverageSpectra`! Calcultes and plots average spectra from
+an event! Woohoo!
+
+* Fixed issue with `export_banter` not finding ancillary measures properly
+
+* `matchEnvData` compatible with update in `PAMmisc` package, works with custom
+functions now
+
+* `setSpecies` handles things more gracefully without provided method argument
+
+* Changed `setSpecies` to choose insted of stop when multiple methods provided (default)
+
 ## PAMr 0.9.0
 
 * Added `filter` method that works like dplyr's filter for detections in an object. Has

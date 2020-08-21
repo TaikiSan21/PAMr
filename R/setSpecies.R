@@ -35,7 +35,13 @@
 #'
 setSpecies <- function(x, type='id', method=c('pamguard', 'manual', 'reassign'), value) {
     if(length(method) > 1) {
-        stop('Please select a single assignment method.')
+        cat('Please select a single assignment method.')
+        methodPick <- menu(choices = method)
+        if(methodPick == 0) {
+            cat('No assignment method chosen, species cannot be assigned.')
+            return(x)
+        }
+        method <- method[methodPick]
     }
     method <- match.arg(method[1], choices = c('pamguard', 'manual', 'am', 'reassign'))
     # wrote code for just events before study existed, just work on those

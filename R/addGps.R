@@ -110,7 +110,7 @@ setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
 setMethod('addGps', signature(x='AcousticEvent'), function(x, gps=NULL, thresh = 3600, ...) {
     if(is.null(gps)) {
         gps <- rbindlist(lapply(files(x)$db, function(db) {
-            gpsFromDb(db, ...)
+            gpsFromDb(db, extraCols=c('Speed', 'Heading', 'MagneticVariation', 'db'), ...)
         }))
     }
     if(is.null(gps) ||
@@ -177,6 +177,9 @@ gpsFromDb <- function(db, extraCols=NULL, bounds=NULL) {
     setDT(thisGps)
     thisGps[, db := db]
     # thisGps$db <- db
+    if(!is.null(extraCols)) {
+        extraCols <- extraCols[extraCols %in% colnames(thisGps)]
+    }
     thisGps <- thisGps[, c('UTC', 'UTCMilliseconds', 'Latitude', 'Longitude', extraCols), with=FALSE]
     thisGps[, UTC := pgDateToPosix(UTC) + UTCMilliseconds / 1e3]
     if(!is.null(bounds)) {
