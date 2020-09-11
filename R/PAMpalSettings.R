@@ -1,6 +1,6 @@
-#' @title Constructor for PAMrSettings Object
+#' @title Constructor for PAMpalSettings Object
 #'
-#' @description Create a PAMrSettings object. Any values that are not supplied
+#' @description Create a PAMpalSettings object. Any values that are not supplied
 #'   will be asked for interactively.
 #'
 #' @param db the full path to a PamGuard database file
@@ -11,23 +11,23 @@
 #'   applying functions from the "functions" slot. Should named by the
 #'   PamGuard module, same as the "functions"
 #'
-#' @return A PAMrSettings object
+#' @return A PAMpalSettings object
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom methods new
 #' @export
 #'
-PAMrSettings <- function(db=NULL, binaries=NULL, calibration=NULL) {
-    prs <- new('PAMrSettings')
-    prs <- addDatabase(prs, db)
-    prs <- addBinaries(prs, binaries)
+PAMpalSettings <- function(db=NULL, binaries=NULL, calibration=NULL) {
+    pps <- new('PAMpalSettings')
+    pps <- addDatabase(pps, db)
+    pps <- addBinaries(pps, binaries)
     cat('Default included function(s) are "standardClickCalcs" for the "ClickDetector" module,',
         '"roccaWhistleCalcs" for the "WhistlesMoans" module,',
         'and "standardCepstrumCalcs" for the "Cepstrum" module.\n')
-    prs <- addFunction(prs, standardClickCalcs, 'ClickDetector')
-    prs <- addFunction(prs, roccaWhistleCalcs, 'WhistlesMoans')
-    prs <- addFunction(prs, standardCepstrumCalcs, 'Cepstrum')
-    # prs <- addCalibration(prs, calibration)
-    prs
+    pps <- addFunction(pps, standardClickCalcs, 'ClickDetector')
+    pps <- addFunction(pps, roccaWhistleCalcs, 'WhistlesMoans')
+    pps <- addFunction(pps, standardCepstrumCalcs, 'Cepstrum')
+    # pps <- addCalibration(pps, calibration)
+    pps
 }

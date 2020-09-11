@@ -1,16 +1,16 @@
-context('Test processing data with a PRS')
+context('Test processing data with a PPS')
 
 test_that('Test process database', {
-    exPrs <- new('PAMrSettings')
-    exPrs <- addDatabase(exPrs, system.file('extdata', 'Example.sqlite3', package='PAMr'))
-    exPrs <- addBinaries(exPrs, system.file('extdata', 'Binaries', package='PAMr'))
+    exPps <- new('PAMpalSettings')
+    exPps <- addDatabase(exPps, system.file('extdata', 'Example.sqlite3', package='PAMr'))
+    exPps <- addBinaries(exPps, system.file('extdata', 'Binaries', package='PAMr'))
     exClick <- function(data) {
         standardClickCalcs(data, calibration=NULL, filterfrom_khz = 0)
     }
-    exPrs <- addFunction(exPrs, exClick, module = 'ClickDetector')
-    exPrs <- addFunction(exPrs, roccaWhistleCalcs, module='WhistlesMoans')
-    exPrs <- addFunction(exPrs, standardCepstrumCalcs, module = 'Cepstrum')
-    exData <- processPgDetections(exPrs, mode='db')
+    exPps <- addFunction(exPps, exClick, module = 'ClickDetector')
+    exPps <- addFunction(exPps, roccaWhistleCalcs, module='WhistlesMoans')
+    exPps <- addFunction(exPps, standardCepstrumCalcs, module = 'Cepstrum')
+    exData <- processPgDetections(exPps, mode='db')
 
     expect_is(exData, 'AcousticStudy')
     expect_is(exData[1], 'AcousticStudy')

@@ -2,30 +2,30 @@
 % Please edit documentation in R/addDatabase.R
 \name{addDatabase}
 \alias{addDatabase}
-\title{Add a Database to a PAMrSettings Object}
+\title{Add a Database to a PAMpalSettings Object}
 \usage{
-addDatabase(prs, db = NULL)
+addDatabase(pps, db = NULL)
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
+\item{pps}{a \linkS4class{PAMpalSettings} object to add a database to}
 
 \item{db}{a database to add}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the database
+the same \linkS4class{PAMpalSettings} object as pps, with the database
   \code{db} added to the "db" slot
 }
 \description{
-Adds a new function to the "function" slot in a PAMrSettings
+Adds a new function to the "function" slot in a PAMpalSettings
   object.
 }
 \examples{
 
-# not recommended to create a prs like this, for example only
-prs <- new('PAMrSettings')
+# not recommended to create a pps like this, for example only
+pps <- new('PAMpalSettings')
 db <- system.file('extdata', 'Example.sqlite3', package='PAMr')
-prs <- addDatabase(prs, db)
-prs
+pps <- addDatabase(pps, db)
+pps
 
 }
 \author{

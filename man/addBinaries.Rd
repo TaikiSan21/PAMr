@@ -2,33 +2,33 @@
 % Please edit documentation in R/addBinaries.R
 \name{addBinaries}
 \alias{addBinaries}
-\title{Add Binaries to a PAMrSettings Object}
+\title{Add Binaries to a PAMpalSettings Object}
 \usage{
-addBinaries(prs, binFolder = NULL)
+addBinaries(pps, binFolder = NULL)
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
+\item{pps}{a \linkS4class{PAMpalSettings} object to add a database to}
 
 \item{binFolder}{a folder of binaries to add}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the binary
+the same \linkS4class{PAMpalSettings} object as pps, with the binary
   files contained in \code{binFolder} added to the "binaries" slot. Only
   binary files for Click Detector and WhistlesMoans modules will be added,
   since these are the only types PAMr currently knows how to process
   (last updated v 0.7.0)
 }
 \description{
-Adds a new function to the "function" slot in a PAMrSettings
+Adds a new function to the "function" slot in a PAMpalSettings
   object.
 }
 \examples{
 
-# not recommended to create PRS like this, for example only
-prs <- new('PAMrSettings')
+# not recommended to create pps like this, for example only
+pps <- new('PAMpalSettings')
 binFolder <- system.file('extdata', 'Binaries', package='PAMr')
-prs <- addBinaries(prs, binFolder)
-prs
+pps <- addBinaries(pps, binFolder)
+pps
 
 }
 \author{

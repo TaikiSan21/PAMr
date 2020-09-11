@@ -2,24 +2,24 @@
 % Please edit documentation in R/addFunction.R
 \name{addFunction}
 \alias{addFunction}
-\title{Add a Function to a PAMrSettings Object}
+\title{Add a Function to a PAMpalSettings Object}
 \usage{
-addFunction(prs, fun, module = NULL)
+addFunction(pps, fun, module = NULL)
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to add a function to}
+\item{pps}{a \linkS4class{PAMpalSettings} object to add a function to}
 
-\item{fun}{function to add OR another \linkS4class{PAMrSettings} object.
-In this case all functions from the second object will be added to \code{prs}}
+\item{fun}{function to add OR another \linkS4class{PAMpalSettings} object.
+In this case all functions from the second object will be added to \code{pps}}
 
 \item{module}{PamGuard module output this function should act on}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the function
+the same \linkS4class{PAMpalSettings} object as pps, with the function
   \code{fun} added to the "functions" slot
 }
 \description{
-Adds a new function to the "function" slot in a PAMrSettings
+Adds a new function to the "function" slot in a PAMpalSettings
   object.
 }
 \author{

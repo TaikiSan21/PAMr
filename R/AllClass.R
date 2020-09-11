@@ -1,7 +1,7 @@
-## ---- PAMrSettings Class ----------------------------------------------------
-#' @title \code{PAMrSettings} Class
+## ---- PAMpalSettings Class ----------------------------------------------------
+#' @title \code{PAMpalSettings} Class
 #' @description An S4 class that stores settings related to all processing and analysis steps
-#' done in PAMr. A PAMrSettings object will be the main input to any major function
+#' done in PAMr. A PAMpalSettings object will be the main input to any major function
 #' in the PAMr package.
 #'
 #' @slot db the full path to a PamGuard database file
@@ -18,7 +18,7 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #' @export
 #'
-setClass('PAMrSettings',
+setClass('PAMpalSettings',
          slots = c(
              db = 'character',
              binaries = 'list',
@@ -33,7 +33,7 @@ setClass('PAMrSettings',
          )
 )
 
-setValidity('PAMrSettings',
+setValidity('PAMpalSettings',
             function(object) {
                 valid <- TRUE
                 if(!all(c('folder', 'list') %in% names(object@binaries))) {
@@ -50,12 +50,12 @@ setValidity('PAMrSettings',
 
 #' @importFrom utils str
 #'
-setMethod('show', 'PAMrSettings', function(object) {
+setMethod('show', 'PAMpalSettings', function(object) {
     nBin <- length(object@binaries$list)
     nBinDir <- length(object@binaries$folder)
     nDb <- length(object@db)
     nCal <- length(object@calibration$ClickDetector)
-    cat('PAMrSettings object with:\n')
+    cat('PAMpalSettings object with:\n')
     cat(nDb, 'database(s)')
     if(nDb > 0) {
         showDb <- basename(object@db)
@@ -82,16 +82,16 @@ setMethod('show', 'PAMrSettings', function(object) {
     cat(nCal, 'click calibration function(s)\n')
 })
 
-#' Check if an Object is a PAMrSettings
+#' Check if an Object is a PAMpalSettings
 #'
-#' Function to check if an object is a PAMrSettings
+#' Function to check if an object is a PAMpalSettings
 #'
 #' @param x object to check
 #'
 #' @export
 #'
-is.PAMrSettings <- function(x) {
-    inherits(x, 'PAMrSettings')
+is.PAMpalSettings <- function(x) {
+    inherits(x, 'PAMpalSettings')
 }
 
 ## ---- AcousticEvent Class ---------------------------------------------------
@@ -217,7 +217,7 @@ setClassUnion('dataframeORtable', members = c('data.frame', 'data.table'))
 #'   detections from the AcousticStudy
 #' @slot files a list of folders and files containing the AcousticStudy data
 #' @slot gps a data frame of gps coordinates for the entire AcousticStudy
-#' @slot prs the \linkS4class{PAMrSettings} object used to create this object
+#' @slot pps the \linkS4class{PAMpalSettings} object used to create this object
 #' @slot settings a named list of various settings for detectors, localizers, etc.
 #' @slot effort something about effort lol
 #' @slot models a place to store any models run on your data
@@ -232,7 +232,7 @@ setClass('AcousticStudy',
              events = 'list',
              files = 'list',
              gps = 'dataframeORtable',
-             prs = 'PAMrSettings',
+             pps = 'PAMpalSettings',
              settings = 'list',
              effort = 'dataframeORtable',
              models = 'list',
@@ -242,7 +242,7 @@ setClass('AcousticStudy',
              events=list(),
              files=list(db='None', binaries='None', visual='None', enviro='None'),
              gps=data.frame(),
-             prs = new('PAMrSettings'),
+             pps = new('PAMpalSettings'),
              settings=list(detectors=list(), localizations=list()),
              effort=data.frame(),
              models = list(),
@@ -261,7 +261,7 @@ AcousticStudy <- function(id=NULL,
                           events=list(),
                           files=list(db=NA_character_, binaries=NA_character_, visual=NA_character_, enviro=NA_character_),
                           gps=data.frame(),
-                          prs=new('PAMrSettings'),
+                          pps=new('PAMpalSettings'),
                           settings=list(detectors=list(), localizations=list()),
                           effort=data.frame(),
                           models = list(),
@@ -277,7 +277,7 @@ AcousticStudy <- function(id=NULL,
     for(n in names(files)) {
         fileTemp[[n]] <- files[[n]]
     }
-    new('AcousticStudy', id=id, events=events, files=fileTemp, gps=gps,prs=prs,
+    new('AcousticStudy', id=id, events=events, files=fileTemp, gps=gps,pps=pps,
         settings=settings, effort=effort, models=models, ancillary=ancillary)
 }
 

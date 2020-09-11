@@ -3,10 +3,10 @@
 \name{addCalibration}
 \alias{addCalibration}
 \alias{applyCalibration}
-\title{Add a Calibration File to a PAMrSettings Object}
+\title{Add a Calibration File to a PAMpalSettings Object}
 \usage{
 addCalibration(
-  prs,
+  pps,
   calFile = NULL,
   module = "ClickDetector",
   calName = NULL,
@@ -14,10 +14,10 @@ addCalibration(
   units = NULL
 )
 
-applyCalibration(prs, module = "ClickDetector", all = FALSE)
+applyCalibration(pps, module = "ClickDetector", all = FALSE)
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
+\item{pps}{a \linkS4class{PAMpalSettings} object to add a database to}
 
 \item{calFile}{a calibration file name. Must be csv format with two columns.
 The first column must be the frequency (in Hz), and the second column must be the
@@ -41,12 +41,12 @@ number corresponds to dB re V/uPa, uPa/Counts, or uPa/FullScale respectively.
 A NULL (default) or other value will prompt user to select units.}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the calibration
+the same \linkS4class{PAMpalSettings} object as pps, with the calibration
   function added to the \code{calibration} slot.
 }
 \description{
 Adds a new calibration function to the "calibration" slot
-  of a PAMrSettings object.
+  of a PAMpalSettings object.
 }
 \details{
 When adding a calibration, you will be asked what units your calibration
@@ -66,15 +66,15 @@ When adding a calibration, you will be asked what units your calibration
 }
 \examples{
 
-prs <- new('PAMrSettings')
+pps <- new('PAMpalSettings')
 calFile <- system.file('extdata', 'calibration.csv', package='PAMr')
 calClick <- function(data, calibration=NULL) {
     standardClickCalcs(data, calibration=calibration, filterfrom_khz = 0)
 }
-prs <- addFunction(prs, calClick, module = 'ClickDetector')
+pps <- addFunction(pps, calClick, module = 'ClickDetector')
 \dontrun{
 # not running this part because interactive menu pops up
-prs <- addCalibration(prs, calFile=calFile)
+pps <- addCalibration(pps, calFile=calFile)
 }
 
 }

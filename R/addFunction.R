@@ -1,14 +1,14 @@
-#' @title Add a Function to a PAMrSettings Object
+#' @title Add a Function to a PAMpalSettings Object
 #'
-#' @description Adds a new function to the "function" slot in a PAMrSettings
+#' @description Adds a new function to the "function" slot in a PAMpalSettings
 #'   object.
 #'
-#' @param prs a \linkS4class{PAMrSettings} object to add a function to
-#' @param fun function to add OR another \linkS4class{PAMrSettings} object.
-#'   In this case all functions from the second object will be added to \code{prs}
+#' @param pps a \linkS4class{PAMpalSettings} object to add a function to
+#' @param fun function to add OR another \linkS4class{PAMpalSettings} object.
+#'   In this case all functions from the second object will be added to \code{pps}
 #' @param module PamGuard module output this function should act on
 #'
-#' @return the same \linkS4class{PAMrSettings} object as prs, with the function
+#' @return the same \linkS4class{PAMpalSettings} object as pps, with the function
 #'   \code{fun} added to the "functions" slot
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
@@ -16,15 +16,15 @@
 #' @importFrom utils menu
 #' @export
 #'
-addFunction <- function(prs, fun, module=NULL) {
+addFunction <- function(pps, fun, module=NULL) {
     modsAllowed <- c('ClickDetector', 'WhistlesMoans', 'Cepstrum')
-    if(is.PAMrSettings(fun)) {
+    if(is.PAMpalSettings(fun)) {
         for(m in modsAllowed) {
             newFuns <- fun@functions[[m]]
             cat('Adding', length(newFuns), 'functions to module type', m, '\n')
-            prs@functions[m] <- list(c(prs@functions[[m]], newFuns))
+            pps@functions[m] <- list(c(pps@functions[[m]], newFuns))
         }
-        return(prs)
+        return(pps)
     }
     fname <- deparse(substitute(fun))
     if(is.null(module) ||
@@ -35,16 +35,16 @@ addFunction <- function(prs, fun, module=NULL) {
         module <- modsAllowed[chooseMod]
     }
     cat('Adding function "', fname, '":\n', sep = '')
-    oldnames <- names(prs@functions[[module]])
+    oldnames <- names(pps@functions[[module]])
     fun <- functionParser(fun)
     # function checker
     if(functionChecker(fun, module)) {
-        prs@functions[module] <- list(c(prs@functions[[module]], fun))
-        names(prs@functions[[module]]) <- c(oldnames, fname)
+        pps@functions[module] <- list(c(pps@functions[[module]], fun))
+        names(pps@functions[[module]]) <- c(oldnames, fname)
     } else {
         cat('Unable to add function ', fname, ', it did not create the expected output.')
     }
-    prs
+    pps
 }
 
 # I put a function in yo function cuz i heard you like functions

@@ -5,7 +5,7 @@
 \title{Load and Process Detections from Pamguard}
 \usage{
 processPgDetections(
-  prs,
+  pps,
   mode = c("db", "time"),
   id = NULL,
   grouping = NULL,
@@ -14,10 +14,10 @@ processPgDetections(
 )
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object containing the databases,
+\item{pps}{a \linkS4class{PAMpalSettings} object containing the databases,
 binaries, and functions to use for processing data. See
-\code{\link[PAMr]{PAMrSettings}}. Can also be an \linkS4class{AcousticStudy}
-object, in which case the \code{prs} slot will be used.}
+\code{\link[PAMr]{PAMpalSettings}}. Can also be an \linkS4class{AcousticStudy}
+object, in which case the \code{pps} slot will be used.}
 
 \item{mode}{selector for how to organize your data in to events. \code{db}
 will organize by events based on tables in the databases, and \code{time}
@@ -56,17 +56,17 @@ in \code{grouping} if it is a csv. Times are assumed to be UTC. See
 }
 \value{
 an \linkS4class{AcousticStudy} object with one \linkS4class{AcousticEvent}
-  for each event in the \code{events} slot, and the \linkS4class{PAMrSettings} object
-  used stored in the \code{prs} slot.
+  for each event in the \code{events} slot, and the \linkS4class{PAMpalSettings} object
+  used stored in the \code{pps} slot.
 }
 \description{
 Loads and processes acoustic detection data that has been
   run through Pamguard. Uses the binary files and database(s) contained
-  in \code{prs}, and will either group your data into events by the
+  in \code{pps}, and will either group your data into events by the
   grouping present in the 'OfflineEvents' or 'Detection Group Localiser'
   tables (\code{mode = 'db'}) or by the grouping specified by start/end
   times in the supplied \code{grouping} (\code{mode = 'time'}). Will apply
-  all processing functions in \code{prs} to the appropriate modules
+  all processing functions in \code{pps} to the appropriate modules
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

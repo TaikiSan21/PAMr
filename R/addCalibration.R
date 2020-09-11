@@ -5,12 +5,12 @@
 # own, so I probably can't do anything too janky. People probs need to be able
 # to test shit with the functions and pull them out or whatever without everything
 # going to shit.
-#' @title Add a Calibration File to a PAMrSettings Object
+#' @title Add a Calibration File to a PAMpalSettings Object
 #'
 #' @description Adds a new calibration function to the "calibration" slot
-#'   of a PAMrSettings object.
+#'   of a PAMpalSettings object.
 #'
-#' @param prs a \linkS4class{PAMrSettings} object to add a database to
+#' @param pps a \linkS4class{PAMpalSettings} object to add a database to
 #' @param calFile a calibration file name. Must be csv format with two columns.
 #'   The first column must be the frequency (in Hz), and the second column must be the
 #'   sensitivity (in dB), and the columns should be labeled \code{Frequency}
@@ -28,7 +28,7 @@
 #'   number corresponds to dB re V/uPa, uPa/Counts, or uPa/FullScale respectively.
 #'   A NULL (default) or other value will prompt user to select units.
 #'
-#' @return the same \linkS4class{PAMrSettings} object as prs, with the calibration
+#' @return the same \linkS4class{PAMpalSettings} object as pps, with the calibration
 #'   function added to the \code{calibration} slot.
 #'
 #' @details When adding a calibration, you will be asked what units your calibration
@@ -50,15 +50,15 @@
 #'
 #' @examples
 #'
-#' prs <- new('PAMrSettings')
+#' pps <- new('PAMpalSettings')
 #' calFile <- system.file('extdata', 'calibration.csv', package='PAMr')
 #' calClick <- function(data, calibration=NULL) {
 #'     standardClickCalcs(data, calibration=calibration, filterfrom_khz = 0)
 #' }
-#' prs <- addFunction(prs, calClick, module = 'ClickDetector')
+#' pps <- addFunction(pps, calClick, module = 'ClickDetector')
 #' \dontrun{
 #' # not running this part because interactive menu pops up
-#' prs <- addCalibration(prs, calFile=calFile)
+#' pps <- addCalibration(pps, calFile=calFile)
 #' }
 #'
 #' @importFrom utils read.csv menu
@@ -67,41 +67,41 @@
 #' @importFrom tcltk tk_choose.files
 #' @export
 #'
-addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NULL, all=FALSE, units=NULL) {
-    if(is.PAMrSettings(calFile)) {
+addCalibration <- function(pps, calFile=NULL, module='ClickDetector', calName=NULL, all=FALSE, units=NULL) {
+    if(is.PAMpalSettings(calFile)) {
         funsToAdd <- calFile@calibration[[module]]
         for(i in seq_along(funsToAdd)) {
-            prs <- addCalibration(prs,
+            pps <- addCalibration(pps,
                                   get('CAL', envir = environment(calFile@calibration[[module]][[i]])),
                                   module=module,
                                   calName=names(calFile@calibration[[module]])[i])
         }
-        return(prs)
+        return(pps)
     }
     modsAllowed <- c('ClickDetector')
     if(!(module %in% modsAllowed)) {
         warning("I don't know how to add calibration for module type", module)
-        return(prs)
+        return(pps)
     }
     if(is.null(calFile)) {
         cat('Please choose a calibration file (must be csv format).\n')
         calFile <- tk_choose.files(caption = 'Select calibration file:')
     }
-    if(length(calFile) == 0) return(prs)
+    if(length(calFile) == 0) return(pps)
 
     calFun <- makeCalibration(calFile, units)
-    if(is.null(calFun)) return(prs)
+    if(is.null(calFun)) return(pps)
 
-    oldNames <- names(prs@calibration[[module]])
+    oldNames <- names(pps@calibration[[module]])
     if(is.null(calName)) {
         calName <- ifelse(is.character(calFile), calFile, 'Calibration')
     }
 
-    prs@calibration[module] <- list(c(prs@calibration[[module]], calFun))
+    pps@calibration[module] <- list(c(pps@calibration[[module]], calFun))
 
-    names(prs@calibration[[module]]) <- c(oldNames, calName)
-    prs <- applyCalibration(prs, module=module, all=all)
-    prs
+    names(pps@calibration[[module]]) <- c(oldNames, calName)
+    pps <- applyCalibration(pps, module=module, all=all)
+    pps
 }
 
 # Do checks, return calibration as a function
@@ -235,11 +235,11 @@ plot.calibration <- function(x, ...) {
 #' @rdname addCalibration
 #' @export
 #'
-applyCalibration <- function(prs, module = 'ClickDetector', all=FALSE) {
-    calList <- prs@calibration[[module]]
+applyCalibration <- function(pps, module = 'ClickDetector', all=FALSE) {
+    calList <- pps@calibration[[module]]
     if(length(calList) == 0) {
-        cat('No calibration functions found in PRS.\n')
-        return(prs)
+        cat('No calibration functions found in PPS\n')
+        return(pps)
     }
     if(length(calList) == 1) {
         calName <- names(calList)
@@ -250,16 +250,16 @@ applyCalibration <- function(prs, module = 'ClickDetector', all=FALSE) {
                           title = 'Which calibration function should be applied?')
         if(chooseFun == 0) {
             warning('You must choose a function.')
-            return(prs)
+            return(pps)
         }
         calName <- names(calList)[chooseFun]
         calFun <- calList[[chooseFun]]
     }
-    argList <- lapply(prs@functions[[module]], formals)
+    argList <- lapply(pps@functions[[module]], formals)
     hasCal <- sapply(argList, function(x) 'calibration' %in% names(x))
     if(length(hasCal) == 0) {
         cat('Could not find any functions with "calibration" as an input.\n')
-        return(prs)
+        return(pps)
     }
     hasCal <- which(hasCal)
     for(i in hasCal) {
@@ -269,24 +269,24 @@ applyCalibration <- function(prs, module = 'ClickDetector', all=FALSE) {
                                       ' to function ', names(argList)[i], '?'))
             if(yn == 2 || yn == 0) next
         }
-        formals(prs@functions[[module]][[i]])['calibration'] <- calName
+        formals(pps@functions[[module]][[i]])['calibration'] <- calName
     }
-    prs
+    pps
 }
 
 # do janky environment search to actually get functiont
 findCalibration <- function(calName, module = 'ClickDetector') {
     allGlobal <- ls(envir = .GlobalEnv)
-    allPrs <- sapply(allGlobal, function(x) {
+    allPps <- sapply(allGlobal, function(x) {
         obj <- get(x, envir = .GlobalEnv)
-        if('PAMrSettings' %in% class(obj)) {
+        if('PAMpalSettings' %in% class(obj)) {
             obj
         } else {
             NULL
         }
     })
-    allPrs <- allPrs[!sapply(allPrs, is.null)]
-    hasCal <- which(sapply(allPrs, function(x) calName %in% names(x@calibration[[module]])))
+    allPps <- allPps[!sapply(allPps, is.null)]
+    hasCal <- which(sapply(allPps, function(x) calName %in% names(x@calibration[[module]])))
     if(length(hasCal) == 0) {
         stop('Could not find calibration function named ', calName,
              ' please re-apply calibration.')
@@ -298,5 +298,5 @@ findCalibration <- function(calName, module = 'ClickDetector') {
     } else {
         useCal <- hasCal[1]
     }
-    allPrs[[useCal]]@calibration[[module]][[calName]]
+    allPps[[useCal]]@calibration[[module]][[calName]]
 }

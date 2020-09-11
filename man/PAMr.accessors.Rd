@@ -55,10 +55,10 @@
 \alias{effort,AcousticStudy-method}
 \alias{effort<-}
 \alias{effort<-,AcousticStudy-method}
-\alias{prs}
-\alias{prs,AcousticStudy-method}
-\alias{prs<-}
-\alias{prs<-,AcousticStudy-method}
+\alias{pps}
+\alias{pps,AcousticStudy-method}
+\alias{pps<-}
+\alias{pps<-,AcousticStudy-method}
 \alias{ancillary,AcousticStudy-method}
 \alias{ancillary<-,AcousticStudy-method}
 \alias{models}
@@ -179,13 +179,13 @@ effort(x) <- value
 
 \S4method{effort}{AcousticStudy}(x) <- value
 
-prs(x, ...)
+pps(x, ...)
 
-\S4method{prs}{AcousticStudy}(x, ...)
+\S4method{pps}{AcousticStudy}(x, ...)
 
-prs(x) <- value
+pps(x) <- value
 
-\S4method{prs}{AcousticStudy}(x) <- value
+\S4method{pps}{AcousticStudy}(x) <- value
 
 \S4method{ancillary}{AcousticStudy}(x, ...)
 
@@ -232,7 +232,7 @@ models(x) <- value
   \item{files}{list of files used to create this object}
   \item{events}{a list of \linkS4class{AcousticEvent} objects}
   \item{gps}{a dataframe containing gps data}
-  \item{prs}{the \linkS4class{PAMrSettings} object used to create this}
+  \item{pps}{the \linkS4class{PAMpalSettings} object used to create this}
   \item{effort}{something about effort?}
   \item{ancillary}{miscellaneous extra data}
   }

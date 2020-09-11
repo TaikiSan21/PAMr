@@ -1,12 +1,12 @@
-#' @title Add Binaries to a PAMrSettings Object
+#' @title Add Binaries to a PAMpalSettings Object
 #'
-#' @description Adds a new function to the "function" slot in a PAMrSettings
+#' @description Adds a new function to the "function" slot in a PAMpalSettings
 #'   object.
 #'
-#' @param prs a \linkS4class{PAMrSettings} object to add a database to
+#' @param pps a \linkS4class{PAMpalSettings} object to add a database to
 #' @param binFolder a folder of binaries to add
 #'
-#' @return the same \linkS4class{PAMrSettings} object as prs, with the binary
+#' @return the same \linkS4class{PAMpalSettings} object as pps, with the binary
 #'   files contained in \code{binFolder} added to the "binaries" slot. Only
 #'   binary files for Click Detector and WhistlesMoans modules will be added,
 #'   since these are the only types PAMr currently knows how to process
@@ -16,18 +16,18 @@
 #'
 #' @examples
 #'
-#' # not recommended to create PRS like this, for example only
-#' prs <- new('PAMrSettings')
+#' # not recommended to create pps like this, for example only
+#' pps <- new('PAMpalSettings')
 #' binFolder <- system.file('extdata', 'Binaries', package='PAMr')
-#' prs <- addBinaries(prs, binFolder)
-#' prs
+#' pps <- addBinaries(pps, binFolder)
+#' pps
 #'
 #' @importFrom tcltk tk_choose.dir
 #' @export
 #'
-addBinaries <- function(prs, binFolder=NULL) {
+addBinaries <- function(pps, binFolder=NULL) {
     binList <- NULL
-    if(is.PAMrSettings(binFolder)) {
+    if(is.PAMpalSettings(binFolder)) {
         binList <- binFolder@binaries$list
         binFolder <- binFolder@binaries$folder
         exists <- file.exists(binList)
@@ -48,13 +48,13 @@ addBinaries <- function(prs, binFolder=NULL) {
     # Case when cancelled, dont error
     if(is.null(binFolder) || is.na(binFolder)) {
         cat('No folder chosen')
-        return(prs)
+        return(pps)
     }
     if(!dir.exists(binFolder)) {
         cat(paste0('Binary folder ', binFolder, ' does not exist'))
-        return(prs)
+        return(pps)
     }
-    prs@binaries$folder <- unique(c(prs@binaries$folder, binFolder))
+    pps@binaries$folder <- unique(c(pps@binaries$folder, binFolder))
     if(is.null(binList) ||
        length(binList) == 0) {
         cat('Getting list of all binary files in folder. This may take a while...\n')
@@ -63,6 +63,6 @@ addBinaries <- function(prs, binFolder=NULL) {
         binList <- list.files(binFolder, recursive = TRUE, full.names = TRUE, pattern ='(Clicks|WhistlesMoans).*pgdf$')
     }
     cat('Adding', length(binList), 'binary files from', length(binFolder), 'folders\n')
-    prs@binaries$list <- unique(c(prs@binaries$list, binList))
-    prs
+    pps@binaries$list <- unique(c(pps@binaries$list, binList))
+    pps
 }

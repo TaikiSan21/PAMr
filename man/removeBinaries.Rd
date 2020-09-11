@@ -2,12 +2,12 @@
 % Please edit documentation in R/removeBinaries.R
 \name{removeBinaries}
 \alias{removeBinaries}
-\title{Remove Binaries from a PAMrSettings Object}
+\title{Remove Binaries from a PAMpalSettings Object}
 \usage{
-removeBinaries(prs, index = NULL)
+removeBinaries(pps, index = NULL)
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to remove binaries from}
+\item{pps}{a \linkS4class{PAMpalSettings} object to remove binaries from}
 
 \item{index}{index indicating which binary folders to remove. Can be a vector
 if you want to remove multiple folders. If missing user is prompted to
@@ -15,13 +15,13 @@ select a folder from a list, will only show up to the first 20. You can
 easily remove all of the folders with a large index like \code{1:1000}}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the binary
+the same \linkS4class{PAMpalSettings} object as pps, with the binary
   folders and files associated with those folders removed from the "binaries"
   slot.
 }
 \description{
 Remove a binary folder and associated files from the "binaries"
-  slot in a PAMrSettings object.
+  slot in a PAMpalSettings object.
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

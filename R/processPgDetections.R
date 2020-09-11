@@ -2,16 +2,16 @@
 #'
 #' @description Loads and processes acoustic detection data that has been
 #'   run through Pamguard. Uses the binary files and database(s) contained
-#'   in \code{prs}, and will either group your data into events by the
+#'   in \code{pps}, and will either group your data into events by the
 #'   grouping present in the 'OfflineEvents' or 'Detection Group Localiser'
 #'   tables (\code{mode = 'db'}) or by the grouping specified by start/end
 #'   times in the supplied \code{grouping} (\code{mode = 'time'}). Will apply
-#'   all processing functions in \code{prs} to the appropriate modules
+#'   all processing functions in \code{pps} to the appropriate modules
 #'
-#' @param prs a \linkS4class{PAMrSettings} object containing the databases,
+#' @param pps a \linkS4class{PAMpalSettings} object containing the databases,
 #'   binaries, and functions to use for processing data. See
-#'   \code{\link[PAMr]{PAMrSettings}}. Can also be an \linkS4class{AcousticStudy}
-#'   object, in which case the \code{prs} slot will be used.
+#'   \code{\link[PAMr]{PAMpalSettings}}. Can also be an \linkS4class{AcousticStudy}
+#'   object, in which case the \code{pps} slot will be used.
 #' @param mode selector for how to organize your data in to events. \code{db}
 #'   will organize by events based on tables in the databases, and \code{time}
 #'   will organize into events based on timestamps provided in \code{grouping}.
@@ -44,8 +44,8 @@
 #' @param \dots additional arguments to pass onto to different methods
 #'
 #' @return an \linkS4class{AcousticStudy} object with one \linkS4class{AcousticEvent}
-#'   for each event in the \code{events} slot, and the \linkS4class{PAMrSettings} object
-#'   used stored in the \code{prs} slot.
+#'   for each event in the \code{events} slot, and the \linkS4class{PAMpalSettings} object
+#'   used stored in the \code{pps} slot.
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
@@ -58,26 +58,26 @@
 #' @import dplyr
 #' @export
 #'
-processPgDetections <- function(prs, mode = c('db', 'time'), id=NULL,
+processPgDetections <- function(pps, mode = c('db', 'time'), id=NULL,
                             grouping=NULL, format='%Y-%m-%d %H:%M:%OS', ...) {
     mode <- match.arg(mode)
-    if(is.AcousticStudy(prs)) {
+    if(is.AcousticStudy(pps)) {
         if(mode == 'time' &&
            is.null(grouping) &&
-           !is.null(ancillary(prs)$grouping)) {
+           !is.null(ancillary(pps)$grouping)) {
             cat('Found a grouping file in the provided AcousticStudy object,',
                 'to use a different grouping file specify with the grouping argument.')
-            grouping <- ancillary(prs)$grouping
+            grouping <- ancillary(pps)$grouping
         }
-        prs <- prs(prs)
+        pps <- pps(pps)
     }
-    if(!is.PAMrSettings(prs)) {
-        stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
-                    ' function "PAMrSettings()"'))
+    if(!is.PAMpalSettings(pps)) {
+        stop(paste0(pps, ' is not a PAMpalSettings object. Please create one with',
+                    ' function "PAMpalSettings()"'))
     }
     result <- switch(mode,
-           'db' = processPgDetectionsDb(prs=prs, grouping=grouping, id=id, ...),
-           'time' = processPgDetectionsTime(prs=prs, grouping=grouping, format=format, id=id)
+           'db' = processPgDetectionsDb(pps=pps, grouping=grouping, id=id, ...),
+           'time' = processPgDetectionsTime(pps=pps, grouping=grouping, format=format, id=id)
     )
     checkStudy(result)
 }
@@ -87,14 +87,14 @@ processPgDetections <- function(prs, mode = c('db', 'time'), id=NULL,
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom readr read_csv cols col_character
 #'
-processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%OS', id=NULL) {
+processPgDetectionsTime <- function(pps, grouping=NULL, format='%Y-%m-%d %H:%M:%OS', id=NULL) {
     # start with checking grouping - parse csv if missing or provided as character and fmt times
     grouping <- checkGrouping(grouping, format)
     # this is a flag to see if any manual entries happened to grouping
     editGroup <- FALSE
-    binList <- prs@binaries$list
-    binFuns <- prs@functions
-    allDbs <- prs@db
+    binList <- pps@binaries$list
+    binFuns <- pps@functions
+    allDbs <- pps@db
 
     # Check for what DB shit should be associated with, get full list of SA data
     # first, gonna match event times to that since its roughly the times assoicated
@@ -188,7 +188,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
     # from here can check "simple SR" mode - all SR in DBs and
     # the one we selected are the same, avoid doing shit later
 
-    calibrationUsed <- names(prs@calibration[[1]])
+    calibrationUsed <- names(pps@calibration[[1]])
     if(length(calibrationUsed)==0) calibrationUsed <- 'None'
 
     binExists <- file.exists(binList)
@@ -334,7 +334,7 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
     allBins <- unique(unlist(lapply(acousticEvents, function(x) {
         files(x)$binaries
     })))
-    study <- AcousticStudy(id=id, events = acousticEvents, prs = prs,
+    study <- AcousticStudy(id=id, events = acousticEvents, pps = pps,
                   files = list(db=allDbs, binaries=allBins),
                   ancillary = list(grouping=grouping))
     on.exit() # this cancels the on.exit 'save my grouping' call that is there if you crash
@@ -342,8 +342,8 @@ processPgDetectionsTime <- function(prs, grouping=NULL, format='%Y-%m-%d %H:%M:%
 }
 
 #'
-processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL, ...) {
-    allDb <- prs@db
+processPgDetectionsDb <- function(pps, grouping=c('event', 'detGroup'), id=NULL, ...) {
+    allDb <- pps@db
     # awk diff init values between modes have to reset this here
     if(is.null(grouping)) {
         grouping <- c('event', 'detGroup')
@@ -354,8 +354,8 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
     binNo <- 1
     allAcEv <- lapply(allDb, function(db) {
         tryCatch({
-            binList <- prs@binaries$list
-            binFuns <- prs@functions
+            binList <- pps@binaries$list
+            binFuns <- pps@functions
             dbData <- getDbData(db, grouping, ...)
             if(is.null(dbData) ||
                nrow(dbData) == 0) {
@@ -372,7 +372,7 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
             }
             thisSource <- unique(dbData$SystemType)
             dbData <- select(dbData, -.data$SystemType)
-            calibrationUsed <- names(prs@calibration[[1]])
+            calibrationUsed <- names(pps@calibration[[1]])
             if(length(calibrationUsed)==0) calibrationUsed <- 'None'
             failBin <- 'No file processed'
             dbData <- lapply(
@@ -451,7 +451,7 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
         files(x)$binaries
     })))
     on.exit()
-    AcousticStudy(id=id, events = allAcEv, prs = prs,
+    AcousticStudy(id=id, events = allAcEv, pps = pps,
                   files = list(db=allDbs, binaries=allBins))
 }
 

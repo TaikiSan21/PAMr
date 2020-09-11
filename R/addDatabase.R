@@ -1,29 +1,29 @@
-#' @title Add a Database to a PAMrSettings Object
+#' @title Add a Database to a PAMpalSettings Object
 #'
-#' @description Adds a new function to the "function" slot in a PAMrSettings
+#' @description Adds a new function to the "function" slot in a PAMpalSettings
 #'   object.
 #'
-#' @param prs a \linkS4class{PAMrSettings} object to add a database to
+#' @param pps a \linkS4class{PAMpalSettings} object to add a database to
 #' @param db a database to add
 #'
-#' @return the same \linkS4class{PAMrSettings} object as prs, with the database
+#' @return the same \linkS4class{PAMpalSettings} object as pps, with the database
 #'   \code{db} added to the "db" slot
 #'
 #' @examples
 #'
-#' # not recommended to create a prs like this, for example only
-#' prs <- new('PAMrSettings')
+#' # not recommended to create a pps like this, for example only
+#' pps <- new('PAMpalSettings')
 #' db <- system.file('extdata', 'Example.sqlite3', package='PAMr')
-#' prs <- addDatabase(prs, db)
-#' prs
+#' pps <- addDatabase(pps, db)
+#' pps
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom tcltk tk_choose.files
 #' @export
 #'
-addDatabase <- function(prs, db=NULL) {
-    if(is.PAMrSettings(db)) {
+addDatabase <- function(pps, db=NULL) {
+    if(is.PAMpalSettings(db)) {
         db <- db@db
     }
     if(is.null(db)) {
@@ -32,7 +32,7 @@ addDatabase <- function(prs, db=NULL) {
         db <- tk_choose.files(caption='Select database(s):')
     }
     # Case when cancelled or some weirdness
-    if(length(db) == 0) return(prs)
+    if(length(db) == 0) return(pps)
 
     exists <- file.exists(db)
     if(any(!exists)) {
@@ -55,6 +55,6 @@ addDatabase <- function(prs, db=NULL) {
         dbMsg <- paste0(basename(db), collapse=', ')
     }
     cat(dbMsg, '\n')
-    prs@db <- unique(c(prs@db, db))
-    prs
+    pps@db <- unique(c(pps@db, db))
+    pps
 }

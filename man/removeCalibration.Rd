@@ -2,12 +2,12 @@
 % Please edit documentation in R/removeCalibration.R
 \name{removeCalibration}
 \alias{removeCalibration}
-\title{Remove a Calibration Function from a PAMrSettings Object}
+\title{Remove a Calibration Function from a PAMpalSettings Object}
 \usage{
-removeCalibration(prs, index = NULL, module = "ClickDetector")
+removeCalibration(pps, index = NULL, module = "ClickDetector")
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to remove a calibration from}
+\item{pps}{a \linkS4class{PAMpalSettings} object to remove a calibration from}
 
 \item{index}{index of the calibration function to remove. If \code{NULL}, user
 will be prompted to select from a list. This can also be a vector to remove
@@ -17,12 +17,15 @@ multiple calibration functions at once.}
 not needed}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the calibration
+the same \linkS4class{PAMpalSettings} object as pps, with the calibration
   function removed from the "calibration" slot
 }
 \description{
 Remove a calibration function from the "calibration"
-  slot of a PAMrSettings object
+  slot of a PAMpalSettings object
+}
+\examples{
+
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

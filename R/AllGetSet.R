@@ -22,7 +22,7 @@
 #'   \item{files}{list of files used to create this object}
 #'   \item{events}{a list of \linkS4class{AcousticEvent} objects}
 #'   \item{gps}{a dataframe containing gps data}
-#'   \item{prs}{the \linkS4class{PAMrSettings} object used to create this}
+#'   \item{pps}{the \linkS4class{PAMpalSettings} object used to create this}
 #'   \item{effort}{something about effort?}
 #'   \item{ancillary}{miscellaneous extra data}
 #'   }
@@ -287,7 +287,7 @@ setMethod('[[<-', 'AcousticEvent', function(x, i, value) {
 # #'   \item{events}{a list of \linkS4class{AcousticEvent} objects}
 # #'   \item{files}{a list of files}
 # #'   \item{gps}{a dataframe containing gps data}
-# #'   \item{prs}{the \linkS4class{PAMrSettings} object used to create this}
+# #'   \item{pps}{the \linkS4class{PAMpalSettings} object used to create this}
 # #'   \item{settings}{a named list of settings for each detector and localization}
 # #'   \item{effort}{something about effort?}
 # #'   \item{ancillary}{miscellaneous extra data}
@@ -438,25 +438,25 @@ setMethod('effort<-', 'AcousticStudy', function(x, value) {
 #' @export
 #' @rdname PAMr.accessors
 #'
-setGeneric('prs', function(x, ...) standardGeneric('prs'))
+setGeneric('pps', function(x, ...) standardGeneric('pps'))
 
 #' @export
 #' @rdname PAMr.accessors
-#' @aliases prs
+#' @aliases pps
 #'
-setMethod('prs', 'AcousticStudy', function(x, ...) x@prs)
+setMethod('pps', 'AcousticStudy', function(x, ...) x@pps)
 
 #' @export
 #' @rdname PAMr.accessors
 #'
-setGeneric('prs<-', function(x, value) standardGeneric('prs<-'))
+setGeneric('pps<-', function(x, value) standardGeneric('pps<-'))
 
 #' @export
 #' @rdname PAMr.accessors
-#' @aliases prs
+#' @aliases pps
 #'
-setMethod('prs<-', 'AcousticStudy', function(x, value) {
-    x@prs <- value
+setMethod('pps<-', 'AcousticStudy', function(x, value) {
+    x@pps <- value
     validObject(x)
     x
 })

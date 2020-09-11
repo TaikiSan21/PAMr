@@ -2,12 +2,12 @@
 % Please edit documentation in R/removeDatabase.R
 \name{removeDatabase}
 \alias{removeDatabase}
-\title{Remove a Database from a PAMrSettings Object}
+\title{Remove a Database from a PAMpalSettings Object}
 \usage{
-removeDatabase(prs, index = NULL)
+removeDatabase(pps, index = NULL)
 }
 \arguments{
-\item{prs}{a \linkS4class{PAMrSettings} object to remove a database from}
+\item{pps}{a \linkS4class{PAMpalSettings} object to remove a database from}
 
 \item{index}{index indicating which database(s) to remove. Can be a vector
 if you want to remove multiple databases. If missing user is prompted to
@@ -15,11 +15,11 @@ select a database from a list, will only show up to the first 20. You can
 easily remove all of the databases with a large index like \code{1:1000}}
 }
 \value{
-the same \linkS4class{PAMrSettings} object as prs, with the database(s)
+the same \linkS4class{PAMpalSettings} object as pps, with the database(s)
   removed from the "db" slot
 }
 \description{
-Remove a database from the "db" slot in a PAMrSettings
+Remove a database from the "db" slot in a PAMpalSettings
   object.
 }
 \author{

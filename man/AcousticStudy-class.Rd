@@ -19,7 +19,7 @@ detections from the AcousticStudy}
 
 \item{\code{gps}}{a data frame of gps coordinates for the entire AcousticStudy}
 
-\item{\code{prs}}{the \linkS4class{PAMrSettings} object used to create this object}
+\item{\code{pps}}{the \linkS4class{PAMpalSettings} object used to create this object}
 
 \item{\code{settings}}{a named list of various settings for detectors, localizers, etc.}
 
