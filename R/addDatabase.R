@@ -19,6 +19,7 @@
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
+#' @importFrom tcltk tk_choose.files
 #' @export
 #'
 addDatabase <- function(prs, db=NULL) {
@@ -28,7 +29,7 @@ addDatabase <- function(prs, db=NULL) {
     if(is.null(db)) {
         cat('Please select a database file,',
             ' multiple selections are ok..\n')
-        db <- choose.files(caption='Select database(s):')
+        db <- tk_choose.files(caption='Select database(s):')
     }
     # Case when cancelled or some weirdness
     if(length(db) == 0) return(prs)

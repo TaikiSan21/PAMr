@@ -53,7 +53,7 @@
 #' @importFrom PAMmisc squishList
 #' @importFrom RSQLite dbConnect dbListTables dbReadTable dbDisconnect SQLite
 #' @importFrom stringr str_trim
-#' @importFrom utils choose.files
+#' @importFrom tcltk tk_choose.files
 #' @importFrom purrr transpose
 #' @import dplyr
 #' @export
@@ -638,13 +638,13 @@ checkGrouping <- function(grouping, format) {
     if(is.null(grouping)) {
         cat('Please provide a csv file with columns "start", "end", "id", and',
             'optionally "species" to group detections into events.')
-        grouping <- choose.files(caption = 'Select event time csv file:', multi = FALSE)
+        grouping <- tk_choose.files(caption = 'Select event time csv file:', multi = FALSE)
     }
     if(inherits(grouping, 'character')) {
         if(!file.exists(grouping)) {
             cat('Provided grouping file does not exist, please provide a csv file with',
                 'columns "start", "end", and "id" to group detections into events.')
-            grouping <- choose.files(caption = 'Select event time csv file:', multi = FALSE)
+            grouping <- tk_choose.files(caption = 'Select event time csv file:', multi = FALSE)
         }
         grouping <- read_csv(grouping, col_types = cols(.default=col_character()))
     }

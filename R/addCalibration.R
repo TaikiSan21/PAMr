@@ -61,9 +61,10 @@
 #' prs <- addCalibration(prs, calFile=calFile)
 #' }
 #'
-#' @importFrom utils choose.files read.csv menu
+#' @importFrom utils read.csv menu
 #' @importFrom gam gam s predict.Gam
 #' @importFrom seewave spec
+#' @importFrom tcltk tk_choose.files
 #' @export
 #'
 addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NULL, all=FALSE, units=NULL) {
@@ -84,7 +85,7 @@ addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NU
     }
     if(is.null(calFile)) {
         cat('Please choose a calibration file (must be csv format).\n')
-        calFile <- choose.files(caption = 'Select calibration file:')
+        calFile <- tk_choose.files(caption = 'Select calibration file:')
     }
     if(length(calFile) == 0) return(prs)
 

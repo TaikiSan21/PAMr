@@ -14,6 +14,8 @@
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
+#' @examples
+#'
 #' @importFrom utils menu
 #' @export
 #'
