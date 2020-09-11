@@ -1,3 +1,19 @@
+## PAMr 0.9.2
+
+* Lots of prep for CRAN submission
+
+* Changes to `standardClickCalcs` so it doesnt crash if peak frequency is 0, happens
+if lower filter bound is 0
+
+* Added `updateFiles` function to update file locations of a study object if you have
+changed computers or moved folders around
+
+* Added `checkStudy` function to do some sanity checking for possible issues after
+data is processed. Currently only checks for peak freq of 0 which would mean you
+probably want a different filter value or add a calibration function
+
+* Added test datasets to inst/extdata to go along with added testthat support
+
 ## PAMr 0.9.1
 
 * NEW FUN FUNCTION `calculateAverageSpectra`! Calcultes and plots average spectra from

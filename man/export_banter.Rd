@@ -47,9 +47,6 @@ a list with three items, \code{events}, \code{detectors}, and
 Formats a list of AcousticEvent objects into the structure
   needed to run a banter model.
 }
-\details{
-
-}
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}
 }

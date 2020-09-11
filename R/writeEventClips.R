@@ -26,7 +26,9 @@
 #'
 writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamguard', 'soundtrap'), log=NULL) {
     if(is.null(wavFolder)) {
-        wavFolder <- choose.dir(caption='Select a folder containing your wav files.')
+        # wavFolder <- choose.dir(caption='Select a folder containing your wav files.')
+        wavFolder <- tk_choose.dir(caption = 'Select a folder containing your wav files.',
+                                   default = getwd())
     }
     if(!dir.exists(wavFolder)) {
         stop('Cannot locate wavFolder.')
@@ -35,7 +37,9 @@ writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamgu
     wavs <- list.files(wavFolder, full.names=TRUE)
     if(format == 'soundtrap') {
         if(is.null(log)) {
-            log <- choose.dir(caption='Select a folder of Soundtrap log files (optional)')
+            # log <- choose.dir(caption='Select a folder of Soundtrap log files (optional)')
+            log <- tk_choose.dir(caption = 'Select a folder of SoundTrap log files (optional)',
+                                 default = getwd())
         }
         if(dir.exists(log)) {
             stLog <- getSoundtrapLog(log)
@@ -47,7 +51,7 @@ writeEventClips <- function(event, wavFolder=NULL, buffer = 0.1, format=c('pamgu
         rng <- getWavDate(x, format)
         list(start=rng[1], end=rng[2], file=x, length=as.numeric(difftime(rng[2], rng[1], units='secs')))
     }))
-    wavMap <- arrange(wavMap, start)
+    wavMap <- arrange(wavMap, .data$start)
     wavMap$wavGroup <- 1
     wavMap$timeDiff <- 0
     if(nrow(wavMap) > 1) {

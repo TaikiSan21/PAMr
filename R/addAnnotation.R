@@ -20,6 +20,7 @@
 #'
 #' @importFrom dplyr bind_rows arrange
 #' @importFrom rjson fromJSON
+#' @importFrom rlang .data
 #'
 #' @export
 #'
@@ -60,7 +61,7 @@ addAnnotation <- function(x, annoList=NULL) {
         coordsOnly <- bind_rows(lapply(detectors(event), function(d) {
             d[, c('UTC', 'Longitude', 'Latitude')]
         }))
-        coordsOnly <- arrange(coordsOnly, UTC)
+        coordsOnly <- arrange(coordsOnly, .data$UTC)
         annoList$lon <- coordsOnly$Longitude[1]
         annoList$lat <- coordsOnly$Latitude[1]
         annoList$time_start <- coordsOnly$UTC[1]

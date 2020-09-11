@@ -11,7 +11,12 @@
 #'   greater than the clip present in the binary, clip will be zero padded
 #' @param sr a sample rate to use if the sample rate present in the database needs
 #'   to be overridden (typically only needed if a decimator was used)
-#' @param plot logical flag whether or not to plot the result
+#' @param plot logical flag whether or not to plot the result. The plot will be a
+#'   two panel plot, the top is a concatenated spectrogram where the y-axis is
+#'   frequency and the x-axis is click number. The bottom plot is the average
+#'   spectrogram of all clicks, the y-axis is normalized magnitude (dB values
+#'   for each click are normalized between 0 and 1 before averaging), x-axis
+#'   is frequency.
 #'
 #' @return invisibly returns a list with three items: \code{freq}, the frequency,
 #'   \code{average}, the average spectra of the event, and \code{all}, the individual
@@ -21,6 +26,7 @@
 #'
 #' @importFrom signal hanning
 #' @importFrom graphics par image axis
+#' @importFrom stats fft
 #' @export
 #'
 calculateAverageSpectra <- function(x, evNum=1, calibration=NULL, wl=4096, sr=NULL, plot=TRUE) {
@@ -59,27 +65,11 @@ calculateAverageSpectra <- function(x, evNum=1, calibration=NULL, wl=4096, sr=NU
         axis(2, at = yPretty/max(freq/1e3), labels = yPretty)
         plot(x=freq, averageSpec, type='l',
              xaxt='n', yaxt='n', ylab='Normalized Magnitude', xlab='Frequency (kHz)')
-        axis(1, at = yPretty*1e3, label=yPretty)
+        axis(1, at = yPretty*1e3, labels=yPretty)
         yPretty <- pretty(0:1, n=5)
-        axis(2, at=yPretty, label=yPretty)
+        axis(2, at=yPretty, labels=yPretty)
     }
     invisible(list(freq=freq, average=averageSpec, all=specMat))
-}
-
-getClip <- function(wave, length) {
-    if(length(wave) < length) {
-        return(c(wave, rep(0, length - length(wave))))
-    }
-    peak <- which.max(abs(wave))
-    low <- peak - floor(length/2)
-    high <- ceiling(peak + length/2) -1
-    if(low < 1) {
-        return(wave[1:length])
-    }
-    if(high > length(wave)) {
-        return(wave[(length(wave)-length+1):length(wave)])
-    }
-    wave[low:high]
 }
 
 myGram <- function(x, channel=1, wl = 2048, window = T, sr=NULL) {
@@ -87,14 +77,14 @@ myGram <- function(x, channel=1, wl = 2048, window = T, sr=NULL) {
     if(is.null(sr)) {
         sr <- x$sr
     }
-    wave <- getClip(wave, wl)
+    wave <- clipAroundPeak(wave, wl)
     FUN <- function(x) {
         20*log10(abs(fft(x)))
     }
 
     y <- (1:(wl)) / wl * sr
 
-    if(window) wave <- wave * hanning(length(wave))
+    if(window) wave <- wave * hanning(length(wave)) / mean(hanning(length(wave)))
     dB <- FUN(wave)[1:(wl)]
-    list(dB = dB[1:(wl/2)], freq=y[1:(wl/2)])
+    list(dB = dB[1:(wl%/%2)], freq=y[1:(wl%/%2)])
 }

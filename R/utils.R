@@ -37,6 +37,8 @@ whereUID <- function(study, UID, quiet=FALSE) {
 # data needs UTC, thats it
 # db is sound acq data, either DF or db
 # safe to fail with NULL instead of error
+#' @importFrom data.table data.table setkeyv
+#'
 matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
     if(is.character(db)) {
         if(!file.exists(db)) {
@@ -57,17 +59,18 @@ matchSR <- function(data, db, extraCols = NULL, safe=FALSE) {
     }
 
     soundAcquisition <- soundAcquisition %>%
-        mutate(Status = str_trim(Status),
-               SystemType = str_trim(SystemType)) %>%
-        filter(Status=='Start') %>%
-        arrange(UTC) %>%
+        mutate(Status = str_trim(.data$Status),
+               SystemType = str_trim(.data$SystemType)) %>%
+        filter(.data$Status=='Start') %>%
+        arrange(.data$UTC) %>%
         select_(.dots = c('UTC', 'sampleRate', extraCols)) %>%
         distinct() %>%
-        data.table() %>%
-        setkey(UTC)
+        data.table()
 
-    data <- data.table(data) %>%
-        setkey(UTC)
+    setkeyv(soundAcquisition, 'UTC')
+
+    data <- data.table(data)
+    setkeyv(data, 'UTC')
 
     # This rolling join rolls to the first time before. Since we filtered to only starts, it goes back
     # to whatever the last Start was.
@@ -141,4 +144,21 @@ getEventTime <- function(x) {
         d[, 'UTC', drop = FALSE]
     }))
     c(start=min(allDets$UTC), end=max(allDets$UTC))
+}
+
+# clip of fixed length, zeropads if needed and deals with edge case
+clipAroundPeak <- function(wave, length) {
+    if(length(wave) < length) {
+        return(c(wave, rep(0, length - length(wave))))
+    }
+    peak <- which.max(abs(wave))
+    low <- peak - floor(length/2)
+    high <- ceiling(peak + length/2) -1
+    if(low < 1) {
+        return(wave[1:length])
+    }
+    if(high > length(wave)) {
+        return(wave[(length(wave)-length+1):length(wave)])
+    }
+    wave[low:high]
 }

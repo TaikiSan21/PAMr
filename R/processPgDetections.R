@@ -53,7 +53,6 @@
 #' @importFrom PAMmisc squishList
 #' @importFrom RSQLite dbConnect dbListTables dbReadTable dbDisconnect SQLite
 #' @importFrom stringr str_trim
-#' @importFrom data.table data.table setkey
 #' @importFrom utils choose.files
 #' @importFrom purrr transpose
 #' @import dplyr
@@ -76,10 +75,11 @@ processPgDetections <- function(prs, mode = c('db', 'time'), id=NULL,
         stop(paste0(prs, ' is not a PAMrSettings object. Please create one with',
                     ' function "PAMrSettings()"'))
     }
-    switch(mode,
+    result <- switch(mode,
            'db' = processPgDetectionsDb(prs=prs, grouping=grouping, id=id, ...),
            'time' = processPgDetectionsTime(prs=prs, grouping=grouping, format=format, id=id)
     )
+    checkStudy(result)
 }
 
 # ---- separate methods ----
@@ -371,7 +371,7 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
                         basename(db),'.')
             }
             thisSource <- unique(dbData$SystemType)
-            dbData <- select(dbData, -SystemType)
+            dbData <- select(dbData, -.data$SystemType)
             calibrationUsed <- names(prs@calibration[[1]])
             if(length(calibrationUsed)==0) calibrationUsed <- 'None'
             failBin <- 'No file processed'
@@ -389,7 +389,7 @@ processPgDetectionsDb <- function(prs, grouping=c('event', 'detGroup'), id=NULL,
                     binData <- calculateModuleData(thisBin, binFuns)
                     if(!is.null(binData)) {
                         binData %>%
-                            select(-BinaryFile) %>%
+                            select(-.data$BinaryFile) %>%
                             inner_join(x, by='UID') %>%
                             distinct()
                     }
@@ -492,10 +492,10 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
            'detGroup' = {
                modules <- dbReadTable(con, 'PamguardModules')
                dgTables <- modules %>%
-                   mutate(Module_Name=str_trim(Module_Name),
-                          Module_Type=str_trim(Module_Type)) %>%
-                   filter(Module_Name == 'Detection Group Localiser') %>%
-                   distinct(Module_Type, Module_Name)
+                   mutate(Module_Name=str_trim(.data$Module_Name),
+                          Module_Type=str_trim(.data$Module_Type)) %>%
+                   filter(.data$Module_Name == 'Detection Group Localiser') %>%
+                   distinct(.data$Module_Type, .data$Module_Name)
                dgNames <- gsub(' ',  '_', dgTables$Module_Type)
                detTables <- sapply(dgNames, function(x) grep(x, tables, value=TRUE))
                eventTables <- detTables[!grepl('Children', detTables)]
@@ -557,9 +557,9 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
     )
 
     allDetections <- allDetections %>%
-        mutate(BinaryFile = str_trim(BinaryFile),
+        mutate(BinaryFile = str_trim(.data$BinaryFile),
                # UTC = as.POSIXct(as.character(UTC), format='%Y-%m-%d %H:%M:%OS', tz='UTC')) %>%
-               UTC = pgDateToPosix(UTC)) %>%
+               UTC = pgDateToPosix(.data$UTC)) %>%
         select_(.dots=unique(c(eventColumns, 'UTC', 'Id', 'UID', 'parentUID', 'BinaryFile')))
 
     # rename column to use as label - standardize across event group types
@@ -572,7 +572,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
     for(i in whichChar) {
         allDetections[, i] <- str_trim(allDetections[, i])
     }
-    allDetections <- select(allDetections, -UTC)
+    allDetections <- select(allDetections, -.data$UTC)
     allDetections$UID <- as.character(allDetections$UID)
     allDetections$parentUID <- paste0(evName, allDetections$parentUID)
     allDetections
@@ -580,7 +580,7 @@ getDbData <- function(db, grouping=c('event', 'detGroup'), label=NULL) {
 
 getMatchingBinaryData <- function(dbData, binList, dbName) {
     # dbData here has a single BinaryFile in it, we've split by that before here
-    dbData <- arrange(dbData, UID)
+    dbData <- arrange(dbData, .data$UID)
     # This breaks if 'dbData' doesnt have binaryfile...
     # Borked if UID mismatch between dems
     binFile <- dbData$BinaryFile[1]
@@ -590,8 +590,8 @@ getMatchingBinaryData <- function(dbData, binList, dbName) {
     }
     if(length(allBinFiles)==1) {
         thisBin <- loadPamguardBinaryFile(allBinFiles, keepUIDs=dbData$UID)
-        matchSr <- select(dbData, UID, sampleRate) %>%
-            distinct() %>% arrange(UID)
+        matchSr <- select(dbData, .data$UID, .data$sampleRate) %>%
+            distinct() %>% arrange(.data$UID)
         if(setequal(matchSr$UID, names(thisBin$data))) {
             for(i in seq_along(matchSr$UID)) {
                 thisBin$data[[i]]$sr <- matchSr$sampleRate[i]
@@ -611,8 +611,8 @@ getMatchingBinaryData <- function(dbData, binList, dbName) {
             # We've found the right file if theres any data
             if(length(thisBin$data) > 0) {
                 thisBin$data <- thisBin$data[names(thisBin$data) %in% dbData$UID]
-                matchSr <- select(dbData, UID, sampleRate) %>%
-                    distinct() %>% arrange(UID)
+                matchSr <- select(dbData, .data$UID, .data$sampleRate) %>%
+                    distinct() %>% arrange(.data$UID)
                 if(setequal(matchSr$UID, names(thisBin$data))) {
                     for(i in seq_along(matchSr$UID)) {
                         thisBin$data[[i]]$sr <- matchSr$sampleRate[i]

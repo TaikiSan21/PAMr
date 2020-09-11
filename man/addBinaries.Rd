@@ -22,6 +22,15 @@ the same \linkS4class{PAMrSettings} object as prs, with the binary
 Adds a new function to the "function" slot in a PAMrSettings
   object.
 }
+\examples{
+
+# not recommended to create PRS like this, for example only
+prs <- new('PAMrSettings')
+binFolder <- system.file('extdata', 'Binaries', package='PAMr')
+prs <- addBinaries(prs, binFolder)
+prs
+
+}
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}
 }

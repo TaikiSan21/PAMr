@@ -29,7 +29,7 @@
 \item{data}{an \linkS4class{AcousticStudy} or \linkS4class{AcousticEvent} object
 that must have GPS data added to it using the \link{addGps} functions}
 
-\item{nc}{name of a netcdf file}
+\item{nc}{name of a netcdf file, ERDDAP dataset id, or an edinfo object}
 
 \item{var}{(optional) vector of variable names}
 

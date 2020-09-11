@@ -28,7 +28,7 @@
 #'
 #' @importFrom seewave bwfilter TKEO spec specprop fpeaks
 #' @importFrom dplyr bind_rows
-#' @importFrom stats median quantile
+#' @importFrom stats median quantile loess
 #' @importFrom tuneR WaveMC
 #' @export
 #'

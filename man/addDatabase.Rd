@@ -19,6 +19,15 @@ the same \linkS4class{PAMrSettings} object as prs, with the database
 Adds a new function to the "function" slot in a PAMrSettings
   object.
 }
+\examples{
+
+# not recommended to create a prs like this, for example only
+prs <- new('PAMrSettings')
+db <- system.file('extdata', 'Example.sqlite3', package='PAMr')
+prs <- addDatabase(prs, db)
+prs
+
+}
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}
 }

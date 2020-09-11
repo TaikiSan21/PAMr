@@ -88,35 +88,33 @@ standardClickCalcs <- function(data, sr_hz='auto', calibration=NULL, filterfrom_
 
         # Shortening click wave by getting numpoints=fftsize around peak of wav. Length fft+1
         # This removes a lot of the noise samples Pamguard takes - following what Jay/EG did
-        wavPeak <- which.max(thisWave)
+        # wavPeak <- which.max(thisWave)
 
-        if(length(thisWave) <= fftSize) {
-            # do nothing
-        } else if(wavPeak > fftSize/2) {
-            if((wavPeak + fftSize/2) <= length(thisWave)) {
-                thisWave <- thisWave[(wavPeak - fftSize/2):(wavPeak + fftSize/2)]
-            } else {
-                thisWave <- thisWave[(length(thisWave)-fftSize):length(thisWave)]
-            }
-        } else {
-            thisWave <- thisWave[1:(fftSize+1)]
-        }
+        # if(length(thisWave) <= fftSize) {
+        #     # do nothing
+        # } else if(wavPeak > fftSize/2) {
+        #     if((wavPeak + fftSize/2) <= length(thisWave)) {
+        #         thisWave <- thisWave[(wavPeak - fftSize/2):(wavPeak + fftSize/2)]
+        #     } else {
+        #         thisWave <- thisWave[(length(thisWave)-fftSize):length(thisWave)]
+        #     }
+        # } else {
+        #     thisWave <- thisWave[1:(fftSize+1)]
+        # }
+        thisWave <- clipAroundPeak(thisWave, fftSize)
 
         # Do any calculations you want. Here just getting peak frequency.
         # TKEO - skip 1st .001s to avoid startup artifacts, energy is 2nd col
         # This .001s bit doesnt work for really short samples...
+        # UPDATE 8-24-2020 THERES NO WAY THE STARTUP ARTIFACT IS RELEVANT
         thisTk <- TKEO(thisWave, f=sr, M=1,plot=F)
-        if(.001*sr < length(thisWave)) {
-            tkEnergy <- thisTk[(.001*sr):length(thisWave),2]
-            tkDb <- 10*log10(tkEnergy-min(tkEnergy, na.rm=TRUE))
-            tkDb <- tkDb - max(tkDb, na.rm=TRUE)
-            tkDb[!is.finite(tkDb)] <- NA
+        tkEnergy <- thisTk[1:length(thisWave),2]
+        tkDb <- 10*log10(tkEnergy-min(tkEnergy, na.rm=TRUE))
+        tkDb <- tkDb - max(tkDb, na.rm=TRUE)
+        tkDb[!is.finite(tkDb)] <- NA
 
-            noiseLevel <- median(tkDb, na.rm=TRUE)
-            if(is.na(noiseLevel)) {
-                noiseLevel <- 0
-            }
-        } else {
+        noiseLevel <- median(tkDb, na.rm=TRUE)
+        if(is.na(noiseLevel)) {
             noiseLevel <- 0
         }
         thisDf$noiseLevel <- noiseLevel
@@ -226,10 +224,10 @@ Qfast <- function(spec,
     if(length(specMax)==0) {
         return(list(Q = 0, dfreq = 0, fmin = 0, fmax = 0, bdw = 0))
     }
-    if (spec[specMax] == 1)
-        stop("data must be in dB")
-    if (specMax == 1)
-        stop("maximal peak cannot be the first value of the spectrum")
+    # if (spec[specMax] == 1)
+    #     stop("data must be in dB")
+    # if (specMax == 1)
+    #     stop("maximal peak cannot be the first value of the spectrum")
 
     n1 <- length(spec)
     level2 <- spec[specMax] + level

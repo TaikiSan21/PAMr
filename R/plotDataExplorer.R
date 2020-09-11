@@ -23,6 +23,7 @@
 #' @export
 #'
 plotDataExplorer <- function(x, maxCategories=15, callType=NULL) {
+    globalVariables(c('dataPicker', 'colPicker', 'fCheck'))
     x <- getDetectorData(x)
     if(is.list(x)) {
         if(length(x) == 1) {
@@ -63,6 +64,8 @@ plotDataExplorer <- function(x, maxCategories=15, callType=NULL) {
     colPicker = cPick,
     fCheck = facetPick)
 }
+
+globalVariables(c('dataPicker', 'colPicker', 'fCheck'))
 
 myPicker <- function(x, none=FALSE, label) {
     vals <- as.list(x)

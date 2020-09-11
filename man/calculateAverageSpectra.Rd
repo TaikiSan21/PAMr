@@ -27,7 +27,12 @@ greater than the clip present in the binary, clip will be zero padded}
 \item{sr}{a sample rate to use if the sample rate present in the database needs
 to be overridden (typically only needed if a decimator was used)}
 
-\item{plot}{logical flag whether or not to plot the result}
+\item{plot}{logical flag whether or not to plot the result. The plot will be a
+two panel plot, the top is a concatenated spectrogram where the y-axis is
+frequency and the x-axis is click number. The bottom plot is the average
+spectrogram of all clicks, the y-axis is normalized magnitude (dB values
+for each click are normalized between 0 and 1 before averaging), x-axis
+is frequency.}
 }
 \value{
 invisibly returns a list with three items: \code{freq}, the frequency,

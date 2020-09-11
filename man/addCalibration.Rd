@@ -5,9 +5,16 @@
 \alias{applyCalibration}
 \title{Add a Calibration File to a PAMrSettings Object}
 \usage{
-addCalibration(prs, calFile = NULL, module = "ClickDetector", calName = NULL)
+addCalibration(
+  prs,
+  calFile = NULL,
+  module = "ClickDetector",
+  calName = NULL,
+  all = FALSE,
+  units = NULL
+)
 
-applyCalibration(prs, module = "ClickDetector")
+applyCalibration(prs, module = "ClickDetector", all = FALSE)
 }
 \arguments{
 \item{prs}{a \linkS4class{PAMrSettings} object to add a database to}
@@ -25,6 +32,13 @@ for future-proofing purposes but should not be needed.}
 \item{calName}{the name to assign to the calibration function, defaults to
 the file name and only needs to be set if supplying a dataframe instead of
 a csv file}
+
+\item{all}{logical flag whether or not to apply calibration to all functions
+without asking individually, recommended to stay as \code{FALSE}}
+
+\item{units}{a number from 1 to 3 specifying the units of the calibration file,
+number corresponds to dB re V/uPa, uPa/Counts, or uPa/FullScale respectively.
+A NULL (default) or other value will prompt user to select units.}
 }
 \value{
 the same \linkS4class{PAMrSettings} object as prs, with the calibration
@@ -49,6 +63,20 @@ When adding a calibration, you will be asked what units your calibration
   outputs the associated dB value that needs to be added to correct the
   power spectrum of a signal. If the input is a matrix or dataframe, the first
   column is assumed to be frequency.
+}
+\examples{
+
+prs <- new('PAMrSettings')
+calFile <- system.file('extdata', 'calibration.csv', package='PAMr')
+calClick <- function(data, calibration=NULL) {
+    standardClickCalcs(data, calibration=calibration, filterfrom_khz = 0)
+}
+prs <- addFunction(prs, calClick, module = 'ClickDetector')
+\dontrun{
+# not running this part because interactive menu pops up
+prs <- addCalibration(prs, calFile=calFile)
+}
+
 }
 \author{
 Taiki Sakai \email{taiki.sakai@noaa.gov}

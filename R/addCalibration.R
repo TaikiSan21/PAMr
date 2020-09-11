@@ -22,6 +22,11 @@
 #' @param calName the name to assign to the calibration function, defaults to
 #'   the file name and only needs to be set if supplying a dataframe instead of
 #'   a csv file
+#' @param all logical flag whether or not to apply calibration to all functions
+#'   without asking individually, recommended to stay as \code{FALSE}
+#' @param units a number from 1 to 3 specifying the units of the calibration file,
+#'   number corresponds to dB re V/uPa, uPa/Counts, or uPa/FullScale respectively.
+#'   A NULL (default) or other value will prompt user to select units.
 #'
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the calibration
 #'   function added to the \code{calibration} slot.
@@ -43,12 +48,25 @@
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
+#' @examples
+#'
+#' prs <- new('PAMrSettings')
+#' calFile <- system.file('extdata', 'calibration.csv', package='PAMr')
+#' calClick <- function(data, calibration=NULL) {
+#'     standardClickCalcs(data, calibration=calibration, filterfrom_khz = 0)
+#' }
+#' prs <- addFunction(prs, calClick, module = 'ClickDetector')
+#' \dontrun{
+#' # not running this part because interactive menu pops up
+#' prs <- addCalibration(prs, calFile=calFile)
+#' }
+#'
 #' @importFrom utils choose.files read.csv menu
 #' @importFrom gam gam s predict.Gam
 #' @importFrom seewave spec
 #' @export
 #'
-addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NULL) {
+addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NULL, all=FALSE, units=NULL) {
     if(is.PAMrSettings(calFile)) {
         funsToAdd <- calFile@calibration[[module]]
         for(i in seq_along(funsToAdd)) {
@@ -70,7 +88,7 @@ addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NU
     }
     if(length(calFile) == 0) return(prs)
 
-    calFun <- makeCalibration(calFile)
+    calFun <- makeCalibration(calFile, units)
     if(is.null(calFun)) return(prs)
 
     oldNames <- names(prs@calibration[[module]])
@@ -81,7 +99,7 @@ addCalibration <- function(prs, calFile=NULL, module='ClickDetector', calName=NU
     prs@calibration[module] <- list(c(prs@calibration[[module]], calFun))
 
     names(prs@calibration[[module]]) <- c(oldNames, calName)
-    prs <- applyCalibration(prs)
+    prs <- applyCalibration(prs, module=module, all=all)
     prs
 }
 
@@ -132,9 +150,14 @@ makeCalibration <- function(calFile, units=NULL) {
     #     CAL$Sensitivity <- CAL$Sensitivity * -1
     # }
     unitOpts <- paste0('dB re ', c('V/uPa', 'uPa/Counts', 'uPa/FullScale'))
-    unitChoice <- menu(title = paste0('What are the units of your calibration?\n',
-                                     "(If you only need relative dB values choose the FullScale option)"),
+    if(is.null(units) ||
+       !(units %in% 1:3)) {
+        unitChoice <- menu(title = paste0('What are the units of your calibration?\n',
+                                      "(If you only need relative dB values choose the FullScale option)"),
                        choices = unitOpts)
+    } else {
+        unitChoice <- units
+    }
     if(unitChoice == 0) {
         stop('No unit selection made, stopping calibration.')
     }
@@ -211,7 +234,7 @@ plot.calibration <- function(x, ...) {
 #' @rdname addCalibration
 #' @export
 #'
-applyCalibration <- function(prs, module = 'ClickDetector') {
+applyCalibration <- function(prs, module = 'ClickDetector', all=FALSE) {
     calList <- prs@calibration[[module]]
     if(length(calList) == 0) {
         cat('No calibration functions found in PRS.\n')
@@ -232,17 +255,19 @@ applyCalibration <- function(prs, module = 'ClickDetector') {
         calFun <- calList[[chooseFun]]
     }
     argList <- lapply(prs@functions[[module]], formals)
-    hasCal <- which(sapply(argList, function(x) 'calibration' %in% names(x)))
+    hasCal <- sapply(argList, function(x) 'calibration' %in% names(x))
     if(length(hasCal) == 0) {
         cat('Could not find any functions with "calibration" as an input.\n')
         return(prs)
     }
+    hasCal <- which(hasCal)
     for(i in hasCal) {
-        yn <- menu(choices = c('Yes', 'No'),
-                   title = paste0('Should we apply calibration ', calName,
-                                  ' to function ', names(argList)[i], '?'))
-        if(yn == 2 || yn == 0) next
-
+        if(!all) {
+            yn <- menu(choices = c('Yes', 'No'),
+                       title = paste0('Should we apply calibration ', calName,
+                                      ' to function ', names(argList)[i], '?'))
+            if(yn == 2 || yn == 0) next
+        }
         formals(prs@functions[[module]][[i]])['calibration'] <- calName
     }
     prs

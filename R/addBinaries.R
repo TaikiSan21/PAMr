@@ -14,7 +14,15 @@
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
-#' @importFrom rstudioapi isAvailable selectDirectory
+#' @examples
+#'
+#' # not recommended to create PRS like this, for example only
+#' prs <- new('PAMrSettings')
+#' binFolder <- system.file('extdata', 'Binaries', package='PAMr')
+#' prs <- addBinaries(prs, binFolder)
+#' prs
+#'
+#' @importFrom tcltk tk_choose.dir
 #' @export
 #'
 addBinaries <- function(prs, binFolder=NULL) {
@@ -30,11 +38,12 @@ addBinaries <- function(prs, binFolder=NULL) {
     }
     if(is.null(binFolder)) {
         cat('Please select the folder where the binaries are stored.\n')
-        if(!rstudioapi::isAvailable('1.1.287')) {
-            binFolder <- choose.dir(caption = 'Choose Binary Folder:')
-        } else {
-            binFolder <- rstudioapi::selectDirectory(caption = 'Choose Binary Folder:', path = getwd())
-        }
+        # if(!rstudioapi::isAvailable('1.1.287')) {
+        #     binFolder <- choose.dir(caption = 'Choose Binary Folder:')
+        # } else {
+        #     binFolder <- rstudioapi::selectDirectory(caption = 'Choose Binary Folder:', path = getwd())
+        # }
+        binFolder <- tk_choose.dir(caption = 'Choose Binary Folder:',default = getwd())
     }
     # Case when cancelled, dont error
     if(is.null(binFolder) || is.na(binFolder)) {

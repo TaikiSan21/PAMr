@@ -35,8 +35,6 @@
 #'   for any detections that had NA values. These cannot be used in the
 #'   random forest model and are removed from the exported dataset.
 #'
-#' @details
-#'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom PAMmisc squishList
@@ -243,9 +241,9 @@ export_banter <- function(x, dropVars=NULL, dropSpecies=NULL, training=TRUE) {
 bntSummaryTable <- function(x) {
     bind_rows(lapply(x$detectors, function(y) {
         tmp <- left_join(y, x$events, by='event.id')
-        select(tmp, event.id, species)
+        select(tmp, .data$event.id, .data$species)
     }), .id = 'detector') %>% group_by(species) %>%
-        summarise(Events = n_distinct(event.id),
+        summarise(Events = n_distinct(.data$event.id),
                   Detections = n()) %>%
         rename(Species = species)
 }
@@ -278,12 +276,12 @@ bntSplit <- function(x, trainFrac) {
                    test = list(events = bind_rows(ev$test)))
     # result$train$detectors <- x$detectors$event.id %in% train$event.id #psuedodfacode
     result$train$detectors <- lapply(x$detectors, function(d) {
-        tmp <- filter(d, event.id %in% result$train$events$event.id)
+        tmp <- filter(d, .data$event.id %in% result$train$events$event.id)
         # if(nrow(tmp) == 0) return(NULL)
         tmp
     })
     result$test$detectors <- lapply(x$detectors, function(d) {
-        tmp <- filter(d, event.id %in% result$test$events$event.id)
+        tmp <- filter(d, .data$event.id %in% result$test$events$event.id)
         # if(nrow(tmp) == 0) return(NULL)
         tmp
     })

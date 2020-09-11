@@ -9,6 +9,14 @@
 #' @return the same \linkS4class{PAMrSettings} object as prs, with the database
 #'   \code{db} added to the "db" slot
 #'
+#' @examples
+#'
+#' # not recommended to create a prs like this, for example only
+#' prs <- new('PAMrSettings')
+#' db <- system.file('extdata', 'Example.sqlite3', package='PAMr')
+#' prs <- addDatabase(prs, db)
+#' prs
+#'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @export

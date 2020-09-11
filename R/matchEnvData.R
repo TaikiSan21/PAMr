@@ -5,7 +5,7 @@
 #'
 #' @param data an \linkS4class{AcousticStudy} or \linkS4class{AcousticEvent} object
 #'   that must have GPS data added to it using the \link{addGps} functions
-#' @param nc name of a netcdf file
+#' @param nc name of a netcdf file, ERDDAP dataset id, or an edinfo object
 #' @param var (optional) vector of variable names
 #' @param buffer vector of Longitude, Latitude, and Time (seconds) to buffer around
 #'   each datapoint. All values within the buffer will be used to report the mean,

@@ -23,7 +23,7 @@
 #'   \code{old} and \code{new}. Any events with species id in the \code{old} column
 #'   of the dataframe will get reassigned to the corresponding id in the
 #'   \code{new} column.
-#' @return the same object as \code{acev}, with species identifications assigned
+#' @return the same object as \code{x}, with species identifications assigned
 #'   as an item named \code{type} in the \code{species} slot
 #'
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}

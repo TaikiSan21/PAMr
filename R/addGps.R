@@ -42,6 +42,7 @@ setGeneric('addGps', function(x, gps=NULL, thresh = 3600, ...) standardGeneric('
 #' @importFrom data.table data.table setkeyv key setDT setDF
 #' @importFrom dplyr mutate select
 #' @importFrom magrittr %>%
+#' @importFrom utils globalVariables
 #' @export
 #'
 setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
@@ -64,7 +65,8 @@ setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
     # gps$gpsTime <- gps$UTC
     x <- dropCols(x, c('Latitude', 'Longitude'))
     setDT(x)
-    x[, dataTime := UTC]
+    # x[, dataTime := UTC]
+    x$dataTime <- x$UTC
     gps <- checkGpsKey(gps)
 
     if('Channel' %in% colnames(gps)) {
@@ -76,7 +78,8 @@ setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
     }
 
     gps <- gps[, gpsCols, with=FALSE]
-    gps[, gpsTime := UTC]
+    # gps[, gpsTime := UTC]
+    gps$gpsTime <- gps$UTC
     # set keys for the join, using 'Channel' if its present
     if('Channel' %in% colnames(x) &&
        'Channel' %in% colnames(gps)) {
@@ -94,7 +97,8 @@ setMethod('addGps', 'data.frame', function(x, gps, thresh = 3600, ...) {
     # browser()
     result <- gps[x, roll='nearest']
     result[abs(dataTime - gpsTime) > thresh, c('Latitude', 'Longitude') := NA]
-    result[, UTC := dataTime]
+    # result[, UTC := dataTime]
+    result$UTC <- result$dataTime
     result[, c('gpsTime', 'dataTime') := NULL]
     if(any(is.na(result$Longitude))) {
         warning('Some GPS coordinate matches exceeded time threshold, setting',
@@ -166,6 +170,10 @@ setMethod('addGps', 'ANY', function(x, gps, thresh = 3600, ...) {
     x
 })
 
+globalVariables(c('UTC', 'gpsTime', 'dataTime', 'db'))
+
+#' @importFrom data.table :=
+#'
 gpsFromDb <- function(db, extraCols=NULL, bounds=NULL) {
     con <- dbConnect(db, drv=SQLite())
     on.exit(dbDisconnect(con))
@@ -175,13 +183,14 @@ gpsFromDb <- function(db, extraCols=NULL, bounds=NULL) {
     }
     thisGps <- dbReadTable(con, 'gpsData')
     setDT(thisGps)
-    thisGps[, db := db]
-    # thisGps$db <- db
+    # thisGps[, db := db]
+    thisGps$db <- db
     if(!is.null(extraCols)) {
         extraCols <- extraCols[extraCols %in% colnames(thisGps)]
     }
     thisGps <- thisGps[, c('UTC', 'UTCMilliseconds', 'Latitude', 'Longitude', extraCols), with=FALSE]
-    thisGps[, UTC := pgDateToPosix(UTC) + UTCMilliseconds / 1e3]
+    # thisGps[, UTC := pgDateToPosix(UTC) + UTCMilliseconds / 1e3]
+    thisGps$UTC <- pgDateToPosix(thisGps$UTC) + thisGps$UTCMilliseconds / 1e3
     if(!is.null(bounds)) {
         thisGps <- thisGps[UTC <= bounds[2] & UTC >= bounds[1], ]
     }

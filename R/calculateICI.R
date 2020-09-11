@@ -54,7 +54,7 @@ setMethod('calculateICI', 'AcousticEvent', function(x,
   callType <- match.arg(callType)
   detData <- getDetectorData(x)[[callType]]
   if(is.null(detData)) {
-    cat('No detector data found for call type', callType, 'in event', id(x))
+    cat('No detector data found for call type', callType, 'in event', id(x), '\n')
     return(x)
   }
   detNames <- unique(detData$detectorName)

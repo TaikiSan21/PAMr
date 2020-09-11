@@ -38,10 +38,14 @@ removeCalibration <- function(prs, index=NULL, module='ClickDetector') {
     prs@calibration[[module]] <- prs@calibration[[module]][-index[1]]
     # Removing calibration from functions, set back to NULL
     argList <- lapply(prs@functions[[module]], formals)
-    hasCal <- which(sapply(argList, function(x) {
+    hasCal <- sapply(argList, function(x) {
         'calibration' %in% names(x) &&
             x[['calibration']] == dropName
-    }))
+    })
+    if(length(hasCal) == 0) {
+        return(prs)
+    }
+    hasCal <- which(hasCal)
     for(i in hasCal) {
         thisArgs <- argList[[i]]
         # this looks odd, but only way to set NULL without removing from list

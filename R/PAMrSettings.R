@@ -16,7 +16,6 @@
 #' @author Taiki Sakai \email{taiki.sakai@@noaa.gov}
 #'
 #' @importFrom methods new
-#' @importFrom utils choose.files choose.dir
 #' @export
 #'
 PAMrSettings <- function(db=NULL, binaries=NULL, calibration=NULL) {

@@ -103,7 +103,7 @@ calculateModuleData <- function(binData, binFuns=list('ClickDetector'=list(stand
                                detectorName=unique(c(x$type, unlist(x$annotations$classification))),
                                stringsAsFactors = FALSE)
                 })) %>%
-                mutate(detectorName = paste(detName, detectorName, sep='_'))
+                mutate(detectorName = paste(detName, .data$detectorName, sep='_'))
             allClicks <- left_join(allClicks, allNames, by='UID')
             allClicks$callType <- 'click'
             allClicks
