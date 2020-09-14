@@ -76,6 +76,8 @@ PAMrSettings object (PRS) using the `PAMrSettings()` function. You can call this
 function with no arguments and pop-up menus will walk you through the rest:
 
 ```r
+# You will always need to load the PAMr package before using it
+library(PAMr)
 myPrs <- PAMrSettings()
 ```
 First you will be asked to select the database files. You can select more than one
