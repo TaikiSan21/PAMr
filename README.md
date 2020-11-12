@@ -4,7 +4,8 @@
 
 # PAMr
 
-Welcome! The installation guide and tutorial has moved to [here](https://taikisan21.github.io/PAMr/).
+Welcome! PAMr has been changed to PAMpal, see the new tutorial [here](https://taikisan21.github.io/PAMpal/)
+and the new GitHub page [here](https://github.com/TaikiSan21/PAMpal)
 
 Please reach out if you have any issues [taiki.sakai@noaa.gov](mailto:taiki.sakai@noaa.gov).
 
